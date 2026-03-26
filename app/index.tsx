@@ -21,9 +21,9 @@ export default function TelaInicial() {
   return (
     <SafeAreaProvider style={styles.main}>
       <View style={styles.content}>
-        <View>
-          <Text>BEM VINDO AO</Text>
-          <Text>FORBOOK</Text>
+        <View style={styles.titleContent}>
+          <Text style={styles.minorTitle}>BEM VINDO AO</Text>
+          <Text style={styles.bigTitle}>FORBOOK</Text>
         </View>
         <View>
           <TouchableOpacity>
@@ -43,6 +43,15 @@ const styles = StyleSheet.create({
       backgroundColor: 'F0F2F5',
     },
     content: {
+
+    },
+    titleContent: {
+
+    },
+    minorTitle: {
+      fontFamily: 'lexend'
+    },
+    bigTitle: {
 
     }
 });

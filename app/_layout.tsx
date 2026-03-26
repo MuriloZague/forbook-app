@@ -1,12 +1,19 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
 import 'react-native-reanimated';
+import { fonts } from '@/assets/fonts/fonts';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
 export default function RootLayout() {
+
+  const [fontsLoaded] = useFonts({
+    lexend: fonts.lexend
+  });
+
   return (
     <>
       <Stack>
