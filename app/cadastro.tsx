@@ -329,6 +329,7 @@ const styles = StyleSheet.create({
     padding: 14,
     fontSize: 14,
     fontFamily: "montserratRegular",
+    color: "black",
   },
 
   label: {
