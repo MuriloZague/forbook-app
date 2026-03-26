@@ -26,7 +26,7 @@ export default function LoginScreen() {
           <Text style={styles.bigTitle}>Entre em sua conta</Text>
           <Text style={styles.minorTitle}>Não possui uma conta? {""}
             <TouchableOpacity activeOpacity={0.6}>
-              <Text style={{ textDecorationLine: 'underline', fontWeight: 'bold' }}>Crie uma!</Text>
+              <Text style={{ textDecorationLine: 'underline', fontWeight: '700', color: '#6C63FF' }}>Crie uma!</Text>
               </TouchableOpacity>
           </Text>
         </View>
