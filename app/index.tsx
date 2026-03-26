@@ -6,7 +6,7 @@ import {
   StyleSheet,
   StatusBar,
   Dimensions,
-  Image
+  Image,
 } from "react-native";
 import {
   SafeAreaProvider,
@@ -14,79 +14,86 @@ import {
 } from "react-native-safe-area-context";
 import Svg, { Rect, Line, Path, Circle, G } from "react-native-svg";
 import { router } from "expo-router";
+import Logo from "../assets/images/logo-forbook.svg";
 
 const { width, height } = Dimensions.get("window");
-
 
 export default function TelaInicial() {
   return (
     <SafeAreaProvider style={styles.main}>
       <View style={styles.content}>
-        <View style={styles.titleContent}>
+        <View>
           <Text style={styles.minorTitle}>BEM VINDO AO</Text>
           <Text style={styles.bigTitle}>FORBOOK</Text>
         </View>
         <View style={styles.btnContent}>
-          <TouchableOpacity style={styles.btn} activeOpacity={0.6} onPress={() => router.push('/login')}>
+          <TouchableOpacity
+            style={styles.btn}
+            activeOpacity={0.6}
+            onPress={() => router.push("/login")}
+          >
             <Text style={styles.btnText}>ENTRAR</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.btn} activeOpacity={0.6} onPress={() => router.push('/cadastro')}>
+          <TouchableOpacity
+            style={styles.btn}
+            activeOpacity={0.6}
+            onPress={() => router.push("/cadastro")}
+          >
             <Text style={styles.btnText}>CRIAR CONTA</Text>
           </TouchableOpacity>
         </View>
       </View>
       <View style={styles.imgLogo}>
-        <Image source={require('../assets/images/logo-forbook.svg')} 
-        />
+        <Logo width={82} height={82} />
       </View>
     </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-    main: {
-      backgroundColor: 'F0F2F5',
-    },
-    content: {
-      margin: 'auto',
-      gap: 16
-    },
-    titleContent: {
-
-    },
-    minorTitle: {
-      fontFamily: 'lexend',
-      fontSize: 28,
-      fontWeight: 'bold',
-      lineHeight: 5,
-    },
-    bigTitle: {
-      fontFamily: 'lexend',
-      fontSize: 58,
-      fontWeight: '900'
-    },
-    btnContent: {
-      alignItems: 'center',
-      gap: 12
-    },
-    btn: {
-      backgroundColor: '#6C63FF',
-      width: "85%",
-      borderRadius: 12,
-      paddingVertical: 12,
-    },
-    btnText: {
-      fontFamily: 'montserrat',
-      color: 'white',
-      fontSize: 20,
-      fontWeight: '600',
-      textAlign: 'center',
-    },
-    imgLogo: {
-      position: 'absolute',
-      bottom: 32,
-      left: 0,
-      right: 0,
-      alignItems: 'center',
-    }
+  main: {
+    flex: 1,
+    backgroundColor: "#F0F2F5",
+  },
+  content: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 20,
+    marginBottom: 8,
+  },
+  minorTitle: {
+    fontFamily: "lexendBold",
+    fontSize: 24,
+    lineHeight: 18,
+  },
+  bigTitle: {
+    fontFamily: "lexendBlack",
+    fontSize: 58,
+    includeFontPadding: false,
+  },
+  btnContent: {
+    alignItems: "center",
+    width: "100%",
+    gap: 12,
+  },
+  btn: {
+    backgroundColor: "#6C63FF",
+    width: "56%",
+    borderRadius: 12,
+    paddingVertical: 8,
+  },
+  btnText: {
+    fontFamily: "montserratBold",
+    color: "white",
+    fontSize: 20,
+    textAlign: "center",
+  },
+  imgLogo: {
+    position: "absolute",
+    bottom: 32,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
 });
