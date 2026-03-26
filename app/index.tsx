@@ -6,6 +6,7 @@ import {
   StyleSheet,
   StatusBar,
   Dimensions,
+  Image
 } from "react-native";
 import {
   SafeAreaProvider,
@@ -34,8 +35,9 @@ export default function TelaInicial() {
           </TouchableOpacity>
         </View>
       </View>
-      <View>
-        
+      <View style={styles.imgLogo}>
+        <Image source={require('../assets/images/logo-forbook.svg')} 
+        />
       </View>
     </SafeAreaProvider>
   );
@@ -80,4 +82,11 @@ const styles = StyleSheet.create({
       fontWeight: '600',
       textAlign: 'center',
     },
+    imgLogo: {
+      position: 'absolute',
+      bottom: 32,
+      left: 0,
+      right: 0,
+      alignItems: 'center',
+    }
 });
