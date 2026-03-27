@@ -26,7 +26,7 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    para buildar o aplicativo voce tem duas opcoes:
 
    1 opcao - buildar nos servidores eas e depois baixar o app por lá
-   npx eas build --profile development --platform android  --> gera arquivo do app
+   npx eas build --profile development --platform android
 
    2 opcao - buildar usando seu PC (precisar ter o android SDK instalado e seu telefone conectado no usb)
    npx expo run:android
