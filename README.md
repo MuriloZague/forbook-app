@@ -23,7 +23,15 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
     npx eas build:configure  --> selecionar android ou ios
    ```
    ```bash
+   para buildar o aplicativo voce tem duas opcoes:
+
+   1 opcao - buildar nos servidores eas e depois baixar o app por lá
    npx eas build --profile development --platform android  --> gera arquivo do app
+
+   2 opcao - buildar usando seu PC (precisar ter o android SDK instalado e seu telefone conectado no usb)
+   npx expo run:android
+
+   se for usar a segunda opcao pode ignorar os 2 primeiros comandos dessa sessao
    ```
    ```bash
    --> abre o app e excuta o comando:
@@ -32,3 +40,10 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
      ```
 
 ## Esses comandos geram o arquivo para development build
+
+
+   ```bash
+   --> para buildar uma versao final do aplicativo usar:
+   
+   npx expo run:android --variant release   
+   ```

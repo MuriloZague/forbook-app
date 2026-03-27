@@ -2,7 +2,7 @@ import StepIndicator from "@/src/components/stepIndicator";
 import { Picker } from "@react-native-picker/picker";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -21,6 +21,36 @@ import Animated, {
 
 const { width } = Dimensions.get("window");
 
+const ESTADOS = [
+  "AC",
+  "AL",
+  "AP",
+  "AM",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MT",
+  "MS",
+  "MG",
+  "PA",
+  "PB",
+  "PR",
+  "PE",
+  "PI",
+  "RJ",
+  "RN",
+  "RS",
+  "RO",
+  "RR",
+  "SC",
+  "SP",
+  "SE",
+  "TO",
+];
+
 export default function LoginScreen() {
   const [step, setStep] = useState(1);
 
@@ -28,49 +58,19 @@ export default function LoginScreen() {
 
   const PAGE_WIDTH = Dimensions.get("window").width - 40;
 
-  function handleNext() {
-    translateX.value = withTiming(-(width - 40), { duration: 300 }); // era -width
+  const handleNext = useCallback(() => {
+    translateX.value = withTiming(-(width - 40), { duration: 300 });
     setStep(2);
-  }
+  }, []);
 
-  function handleBack() {
+  const handleBack = useCallback(() => {
     translateX.value = withTiming(0, { duration: 300 });
     setStep(1);
-  }
+  }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
-
-  const ESTADOS = [
-    "AC",
-    "AL",
-    "AP",
-    "AM",
-    "BA",
-    "CE",
-    "DF",
-    "ES",
-    "GO",
-    "MA",
-    "MT",
-    "MS",
-    "MG",
-    "PA",
-    "PB",
-    "PR",
-    "PE",
-    "PI",
-    "RJ",
-    "RN",
-    "RS",
-    "RO",
-    "RR",
-    "SC",
-    "SP",
-    "SE",
-    "TO",
-  ];
 
   const [estado, setEstado] = useState("");
 
