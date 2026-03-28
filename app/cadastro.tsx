@@ -1,7 +1,7 @@
 import StepIndicator from "@/src/components/stepIndicator";
+import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useState } from "react";
 import {
   Dimensions,
@@ -238,7 +238,7 @@ export default function LoginScreen() {
                       selectedValue={estado}
                       onValueChange={(val) => setEstado(val)}
                       style={styles.picker}
-                      dropdownIconColor="#6C63FF" // 👈 cor da setinha
+                      dropdownIconColor="#6C63FF"
                     >
                       <Picker.Item label="Selecione" value="" />
                       {ESTADOS.map((uf) => (
@@ -262,7 +262,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.btn} onPress={handleBack}>
-              <Text style={styles.btnText}>Cadastrar</Text>
+              <Text style={styles.btnText}>CRIAR CONTA</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
 
   btn: {
     backgroundColor: "#6C63FF",
-    width: "52%",
+    width: "56%",
     borderRadius: 12,
     paddingVertical: 12,
     marginTop: 12,
