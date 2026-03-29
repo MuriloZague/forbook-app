@@ -52,6 +52,14 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
+
+        <View>
+          <Text style={styles.titleMain}>Melhores ofertas</Text>
+          <View>
+            
+          </View>
+        </View>
+
       </View>
     </SafeAreaView>
   );
@@ -64,11 +72,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 22,
     boxShadow: "0px 2px 2px rgba(0, 0, 0, 0.25)",
-    paddingVertical: 12,
+    paddingBottom: 16,
+    paddingTop: 12,
   },
   title: {
     fontFamily: "lexendBlack",
-    fontSize: 32,
+    fontSize: 28,
   },
   wellcomeContent: {
     paddingVertical: 32,
@@ -91,5 +100,9 @@ const styles = StyleSheet.create({
     fontFamily: 'montserratBold',
     color: '#a6a8aa',
     
+  },
+  titleMain: {
+    fontFamily: "lexendBlack",
+    fontSize: 32,
   }
 });
