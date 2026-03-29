@@ -182,7 +182,7 @@ export default function LoginScreen() {
                         secureTextEntry
                         value={senha}
                         onChangeText={setSenha}
-                        onFocus={handlePasswordFocus}
+                        onPress={handlePasswordFocus}
                         placeholderTextColor="#6C63FF"
                         placeholder="Preencha com sua Senha"
                       />
@@ -193,7 +193,7 @@ export default function LoginScreen() {
                         secureTextEntry
                         value={confirmarSenha}
                         onChangeText={setConfirmarSenha}
-                        onFocus={handlePasswordFocus}
+                        onPress={handlePasswordFocus}
                         placeholderTextColor="#6C63FF"
                         placeholder="Confirme sua Senha"
                       />
