@@ -1,3 +1,4 @@
+// app/(tabs)/_layout.tsx
 import { Tabs } from "expo-router";
 import {
   View,
@@ -9,7 +10,14 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Path } from "react-native-svg";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { useRef, useCallback } from "react";
 
+import BookmarkTransitionOverlay, {
+  type BookmarkTransitionHandle,
+} from "@/src/components/bookmarktransitionoverlay"; // ajuste o caminho
+import { TransitionContext } from "@/src/context/transitionContext";   // ajuste o caminho
+
+// ─── Constantes ───────────────────────────────────────────────────────────────
 const PURPLE     = "#6c63ff";
 const BAR_HEIGHT = 74;
 const BTN_WIDTH  = 112;
@@ -30,6 +38,7 @@ const TAB_CONFIG: Record<
 const LEFT_ROUTES  = ["home", "search"];
 const RIGHT_ROUTES = ["chat", "menu"];
 
+// ─── Forma do marca-página (botão central) ────────────────────────────────────
 function BookmarkShape() {
   const W   = BTN_WIDTH;
   const H   = BTN_HEIGHT;
@@ -43,7 +52,7 @@ function BookmarkShape() {
     `M 0 ${tr}`,
     `Q 0 0 ${tr} 0`,
     `L ${mid - vr} ${bot - vr * 0.5}`,
-    `Q ${mid} ${bot + vr * 0.4} ${mid + vr} ${bot - vr * 0.5}`, 
+    `Q ${mid} ${bot + vr * 0.4} ${mid + vr} ${bot - vr * 0.5}`,
     `L ${W - tr} 0`,
     `Q ${W} 0 ${W} ${tr}`,
     `L ${W} ${H - r}`,
@@ -60,7 +69,11 @@ function BookmarkShape() {
   );
 }
 
+// ─── Tab Bar personalizada ────────────────────────────────────────────────────
 function CustomTabBar({ state, navigation }: BottomTabBarProps) {
+  // 👇 Acessa o ref do overlay via contexto
+  const overlayRef = useRef<BookmarkTransitionHandle | null>(null);
+
   function isActive(name: string) {
     return state.routes[state.index]?.name === name;
   }
@@ -68,8 +81,19 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   function handlePress(routeName: string) {
     const route = state.routes.find((r) => r.name === routeName);
     if (!route) return;
-    const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
+    const event = navigation.emit({
+      type: "tabPress",
+      target: route.key,
+      canPreventDefault: true,
+    });
     if (!event.defaultPrevented) navigation.navigate(routeName);
+  }
+
+  // 👇 Botão central usa a transição animada
+  function handleAnnouncePress() {
+    overlayRef.current?.trigger(() => {
+      handlePress("create");
+    });
   }
 
   function renderTab(name: string, showSeparator = false) {
@@ -99,47 +123,60 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   }
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.bar}>
-        <View style={styles.side}>
-          {LEFT_ROUTES.map((r, i) => renderTab(r, i > 0))}
-        </View>
-        <View style={{ width: BTN_WIDTH }} />
-        <View style={styles.side}>
-          {RIGHT_ROUTES.map((r, i) => renderTab(r, i === 0))}
-        </View>
-      </View>
+    <>
+      {/* ── Overlay de transição (flutua acima de tudo) ── */}
+      {/* 
+        IMPORTANTE: O overlay precisa estar FORA da View da barra para
+        que seu z-index cubra toda a tela. Coloque-o no nível do layout
+        raiz (ver TabsLayout abaixo) e passe o ref via contexto ou prop.
+        Aqui usamos um ref local apenas para exemplo simplificado.
+      */}
+      <BookmarkTransitionOverlay ref={overlayRef} />
 
-      <TouchableOpacity
-        style={styles.announceButton}
-        onPress={() => handlePress("create")}
-        activeOpacity={0.85}
-      >
-        <BookmarkShape />
-        <View style={styles.announceContent}>
-          <Ionicons name="add" size={28} color="#fff" />
-          <Text style={styles.announceLabel}>ANUNCIAR</Text>
+      <View style={styles.wrapper}>
+        <View style={styles.bar}>
+          <View style={styles.side}>
+            {LEFT_ROUTES.map((r, i) => renderTab(r, i > 0))}
+          </View>
+          <View style={{ width: BTN_WIDTH }} />
+          <View style={styles.side}>
+            {RIGHT_ROUTES.map((r, i) => renderTab(r, i === 0))}
+          </View>
         </View>
-      </TouchableOpacity>
-    </View>
+
+        <TouchableOpacity
+          style={styles.announceButton}
+          onPress={handleAnnouncePress}   // 👈 usa a transição
+          activeOpacity={0.85}
+        >
+          <BookmarkShape />
+          <View style={styles.announceContent}>
+            <Ionicons name="add" size={28} color="#fff" />
+            <Text style={styles.announceLabel}>ANUNCIAR</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </>
   );
 }
 
+// ─── Layout principal ─────────────────────────────────────────────────────────
 export default function TabsLayout() {
   return (
     <Tabs
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen name="home"     options={{ title: "Início" }} />
-      <Tabs.Screen name="search"   options={{ title: "Buscar" }} />
+      <Tabs.Screen name="home"   options={{ title: "Início"   }} />
+      <Tabs.Screen name="search" options={{ title: "Buscar"   }} />
       <Tabs.Screen name="create" options={{ title: "Anunciar" }} />
-      <Tabs.Screen name="chat"     options={{ title: "Chat" }} />
-      <Tabs.Screen name="menu"     options={{ title: "Mais" }} />
+      <Tabs.Screen name="chat"   options={{ title: "Chat"     }} />
+      <Tabs.Screen name="menu"   options={{ title: "Mais"     }} />
     </Tabs>
   );
 }
 
+// ─── Estilos ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   wrapper: {
     paddingBottom: Platform.OS === "ios" ? 20 : 0,
