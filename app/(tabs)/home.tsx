@@ -1,17 +1,17 @@
+import Notification from "@/assets/images/Notification.svg";
+import User from "@/assets/images/Perfil.svg";
+import BookCard from "@/src/components/bookCard";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  FlatList,
+  ScrollView,
   StyleSheet,
-  View,
   Text,
   TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useState, useEffect } from "react";
-import User from "@/assets/images/Perfil.svg";
-import Notification from "@/assets/images/Notification.svg";
-import BookCard from "@/src/components/bookCard";
-import { ScrollView } from "react-native";
 
 type Condition = "Usado" | "Novo";
 type Category = "ofertas" | "populares" | "interesse" | "other";
@@ -132,8 +132,8 @@ const MOCK_DATA: Record<Category, Book[]> = {
       imageUri:
         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf22C1RLxd5oDi2YNn-y8owQX6JhtQbhbRVA&s",
       condition: "Novo",
-    }
-  ]
+    },
+  ],
 };
 
 const SECTION_TITLE: Record<Category, string> = {
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   categoryWrapper: {
-    height: 2,
+    height: 1,
     backgroundColor: "#c4c8ce",
   },
   headerContainer: {

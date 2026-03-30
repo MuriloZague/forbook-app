@@ -209,9 +209,7 @@ export default function LoginScreen() {
                           size={16}
                           color={temMinimo8Caracteres ? "#4CAF50" : "#ff6584"}
                         />
-                        <Text
-                          style={styles.requisitesText}
-                        >
+                        <Text style={styles.requisitesText}>
                           8 ou mais caracteres
                         </Text>
                       </View>
@@ -225,9 +223,7 @@ export default function LoginScreen() {
                           size={16}
                           color={temLetraMaiuscula ? "#4CAF50" : "#ff6584"}
                         />
-                        <Text
-                          style={styles.requisitesText}
-                        >
+                        <Text style={styles.requisitesText}>
                           Uma letra maiúscula
                         </Text>
                       </View>
@@ -241,9 +237,7 @@ export default function LoginScreen() {
                           size={16}
                           color={temLetraMinuscula ? "#4CAF50" : "#ff6584"}
                         />
-                        <Text
-                          style={styles.requisitesText}
-                        >
+                        <Text style={styles.requisitesText}>
                           Uma letra minúscula
                         </Text>
                       </View>
@@ -481,7 +475,7 @@ const styles = StyleSheet.create({
   requisitesText: {
     fontFamily: "montserratRegular",
     marginLeft: 8,
-    color: 'black'
+    color: "black",
   },
   requisiteRow: {
     flexDirection: "row",
