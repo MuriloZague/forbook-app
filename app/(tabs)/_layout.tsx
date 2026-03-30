@@ -22,13 +22,13 @@ const TAB_CONFIG: Record<
   { label: string; icon: keyof typeof Ionicons.glyphMap; iconActive: keyof typeof Ionicons.glyphMap }
 > = {
   home:   { label: "Início",  icon: "home-outline",                       iconActive: "home" },
-  buscar: { label: "Buscar",  icon: "search-outline",                     iconActive: "search" },
+  search: { label: "Buscar",  icon: "search-outline",                     iconActive: "search" },
   chat:   { label: "Chat",    icon: "chatbubble-ellipses-outline",         iconActive: "chatbubble-ellipses" },
-  mais:   { label: "Mais",    icon: "ellipsis-horizontal-circle-outline",  iconActive: "ellipsis-horizontal-circle" },
+  menu:   { label: "Mais",    icon: "ellipsis-horizontal-circle-outline",  iconActive: "ellipsis-horizontal-circle" },
 };
 
-const LEFT_ROUTES  = ["home", "buscar"];
-const RIGHT_ROUTES = ["chat", "mais"];
+const LEFT_ROUTES  = ["home", "search"];
+const RIGHT_ROUTES = ["chat", "menu"];
 
 function BookmarkShape() {
   const W   = BTN_WIDTH;
@@ -112,7 +112,7 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
 
       <TouchableOpacity
         style={styles.announceButton}
-        onPress={() => handlePress("anunciar")}
+        onPress={() => handlePress("create")}
         activeOpacity={0.85}
       >
         <BookmarkShape />
@@ -132,10 +132,10 @@ export default function TabsLayout() {
       screenOptions={{ headerShown: false }}
     >
       <Tabs.Screen name="home"     options={{ title: "Início" }} />
-      <Tabs.Screen name="buscar"   options={{ title: "Buscar" }} />
-      <Tabs.Screen name="anunciar" options={{ title: "Anunciar" }} />
+      <Tabs.Screen name="search"   options={{ title: "Buscar" }} />
+      <Tabs.Screen name="create" options={{ title: "Anunciar" }} />
       <Tabs.Screen name="chat"     options={{ title: "Chat" }} />
-      <Tabs.Screen name="mais"     options={{ title: "Mais" }} />
+      <Tabs.Screen name="menu"     options={{ title: "Mais" }} />
     </Tabs>
   );
 }

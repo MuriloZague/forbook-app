@@ -3,11 +3,11 @@ import { Platform, StyleSheet, Text, View } from "react-native";
 import { Link } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function HomeScreen() {
+export default function SearchScreen() {
   return (
     <SafeAreaView>
       <View style={styles.titleContainer}>
-        <Text>Welcome!</Text>
+        <Text>BuscarPage</Text>
       </View>
       <View style={styles.stepContainer}>
         <Text>Step 1: Try it</Text>
