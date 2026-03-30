@@ -11,9 +11,10 @@ import { useState, useEffect } from "react";
 import User from "@/assets/images/Perfil.svg";
 import Notification from "@/assets/images/Notification.svg";
 import BookCard from "@/src/components/bookCard";
+import { ScrollView } from "react-native";
 
 type Condition = "Usado" | "Novo";
-type Category = "ofertas" | "populares" | "interesse";
+type Category = "ofertas" | "populares" | "interesse" | "other";
 
 interface Book {
   id: string;
@@ -66,7 +67,8 @@ const MOCK_DATA: Record<Category, Book[]> = {
       title: "Jojo's Bizarre Adventure Parte 7 Steel Ball Run 02",
       priceWhole: "54",
       priceCents: "99",
-      imageUri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf22C1RLxd5oDi2YNn-y8owQX6JhtQbhbRVA&s",
+      imageUri:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf22C1RLxd5oDi2YNn-y8owQX6JhtQbhbRVA&s",
       condition: "Novo",
     },
     {
@@ -74,7 +76,8 @@ const MOCK_DATA: Record<Category, Book[]> = {
       title: "Frieren: Beyond Journey's End volume 2",
       priceWhole: "28",
       priceCents: "90",
-      imageUri: "https://tcgcollectors.com.au/wp-content/uploads/2024/08/frieran-manga-volume-2-front.jpg",
+      imageUri:
+        "https://tcgcollectors.com.au/wp-content/uploads/2024/08/frieran-manga-volume-2-front.jpg",
       condition: "Usado",
     },
     {
@@ -120,12 +123,24 @@ const MOCK_DATA: Record<Category, Book[]> = {
       condition: "Usado",
     },
   ],
+  other: [
+    {
+      id: "p1",
+      title: "Jojo's Bizarre Adventure Parte 7 Steel Ball Run 02",
+      priceWhole: "54",
+      priceCents: "99",
+      imageUri:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf22C1RLxd5oDi2YNn-y8owQX6JhtQbhbRVA&s",
+      condition: "Novo",
+    }
+  ]
 };
 
 const SECTION_TITLE: Record<Category, string> = {
   ofertas: "Melhores ofertas",
   populares: "Mais populares",
   interesse: "Para você",
+  other: "Nada ainda",
 };
 
 function useBooks(category: Category) {
@@ -135,32 +150,23 @@ function useBooks(category: Category) {
 
   useEffect(() => {
     let cancelled = false;
-
     async function loadBooks() {
       try {
         setLoading(true);
         setBooks([]);
-
         await new Promise((res) => setTimeout(res, 600));
         if (!cancelled) setBooks(MOCK_DATA[category]);
-
-        // API quando tiver pronta
-        // const response = await fetch(`https://sua-api.com/books?category=${category}`);
-        // if (!response.ok) throw new Error();
-        // const data: Book[] = await response.json();
-        // if (!cancelled) setBooks(data);
       } catch {
         if (!cancelled) setError("Não foi possível carregar os livros.");
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
-
     loadBooks();
     return () => {
       cancelled = true;
     };
-  }, [category]); // <- recarrega sempre que muda a aba
+  }, [category]);
 
   return { books, loading, error };
 }
@@ -169,6 +175,7 @@ const TABS: { key: Category; label: string }[] = [
   { key: "ofertas", label: "Ofertas" },
   { key: "populares", label: "Populares" },
   { key: "interesse", label: "Baseado no seu interesse" },
+  { key: "other", label: "Outros" },
 ];
 
 export default function HomeScreen() {
@@ -185,150 +192,165 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity>
-          <User width={40} height={40} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Forbook</Text>
-        <TouchableOpacity>
-          <Notification width={28} height={28} />
-        </TouchableOpacity>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.headerWrapper}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity>
+            <User width={40} height={40} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Forbook</Text>
+          <TouchableOpacity>
+            <Notification width={28} height={28} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.headerShadow} />
       </View>
-
-      <FlatList
-        ListHeaderComponent={
-          <View>
-            <View style={styles.wellcomeContent}>
-              <Text style={styles.wellcomeText}>
-                Bem Vindo,{" "}
-                <Text
-                  style={{ fontFamily: "montserratBold", color: "#6c63ff" }}
+      <View style={styles.wellcomeContent}>
+        <Text style={styles.wellcomeText}>
+          Bem Vindo,{" "}
+          <Text style={{ fontFamily: "montserratBold", color: "#6c63ff" }}>
+            $usuario!
+          </Text>
+        </Text>
+      </View>
+      <View style={styles.categoryContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryBar}
+        >
+          {TABS.map((tab, index) => {
+            const isActive = activeCategory === tab.key;
+            return (
+              <View key={tab.key} style={styles.tabWrapper}>
+                {index > 0 && <View style={styles.tabSeparator} />}
+                <TouchableOpacity
+                  onPress={() => setActiveCategory(tab.key)}
+                  style={styles.tabButton}
                 >
-                  $usuario!
-                </Text>
-              </Text>
-
-              <View style={styles.categoryBar}>
-                {TABS.map((tab, index) => {
-                  const isActive = activeCategory === tab.key;
-                  return (
-                    <View key={tab.key} style={styles.tabWrapper}>
-                      {index > 0 && <View style={styles.tabSeparator} />}
-
-                      <TouchableOpacity
-                        onPress={() => setActiveCategory(tab.key)}
-                        style={styles.tabButton}
-                      >
-                        <Text
-                          style={[
-                            styles.textCategory,
-                            isActive && styles.textCategoryActive,
-                          ]}
-                        >
-                          {tab.label}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
+                  <Text
+                    style={[
+                      styles.textCategory,
+                      isActive && styles.textCategoryActive,
+                    ]}
+                  >
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
               </View>
-            </View>
+            );
+          })}
+        </ScrollView>
+        <View style={styles.categoryWrapper}></View>
+      </View>
+      <Text style={styles.titleMain}>{SECTION_TITLE[activeCategory]}</Text>
 
-            <Text style={styles.titleMain}>
-              {SECTION_TITLE[activeCategory]}
-            </Text>
-
-            {loading && (
-              <ActivityIndicator
-                color="#6c63ff"
-                size="large"
-                style={{ marginTop: 52 }}
-              />
-            )}
-            {error && <Text style={styles.errorText}>{error}</Text>}
-          </View>
-        }
-        data={loading ? [] : books}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <BookCard
-            title={item.title}
-            priceWhole={item.priceWhole}
-            priceCents={item.priceCents}
-            imageUri={item.imageUri}
-            condition={item.condition}
-            isFavorited={favorites.has(item.id)}
-            onFavoritePress={() => toggleFavorite(item.id)}
-            onPress={() => console.log("Abrir livro:", item.id)}
-          />
-        )}
-      />
+      {loading ? (
+        <ActivityIndicator
+          color="#6c63ff"
+          size="large"
+          style={{ marginTop: 52 }}
+        />
+      ) : error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : (
+        <FlatList
+          data={books}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => (
+            <BookCard
+              title={item.title}
+              priceWhole={item.priceWhole}
+              priceCents={item.priceCents}
+              imageUri={item.imageUri}
+              condition={item.condition}
+              isFavorited={favorites.has(item.id)}
+              onFavoritePress={() => toggleFavorite(item.id)}
+              onPress={() => console.log("Abrir livro:", item.id)}
+            />
+          )}
+        />
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  headerWrapper: {
+    backgroundColor: "#fff",
+  },
+  categoryWrapper: {
+    height: 2,
+    backgroundColor: "#c4c8ce",
+  },
   headerContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 22,
-    boxShadow: "0px 2px 2px rgba(0, 0, 0, 0.25)",
     paddingBottom: 16,
     paddingTop: 12,
   },
+  headerShadow: {
+    height: 2,
+    backgroundColor: "#0000007a",
+    opacity: 0.25,
+  },
   title: {
     fontFamily: "lexendBlack",
-    fontSize: 28,
+    fontSize: 30,
   },
   wellcomeContent: {
-    paddingTop: 30,
-    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingHorizontal: 28,
+    paddingBottom: 12,
   },
   wellcomeText: {
     fontFamily: "montserratRegular",
-    fontSize: 24,
-    paddingLeft: 8,
-    marginBottom: 4,
+    fontSize: 22,
   },
-
   categoryBar: {
     flexDirection: "row",
-    alignItems: "flex-end",
-    borderBottomWidth: 1,
-    borderBottomColor: "#c4c8ce",
-    marginTop: 8,
+    alignItems: "center",
+    paddingHorizontal: 4,
   },
+
   tabWrapper: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+  },
+
+  tabButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
   },
   tabSeparator: {
     width: 1,
-    height: 16,
+    height: 18,
     backgroundColor: "#c4c8ce",
-    marginBottom: 8,
+    alignSelf: "center",
   },
-  tabButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    alignItems: "center",
-  },
+
   textCategory: {
     fontFamily: "montserratBold",
-    fontSize: 13,
+    fontSize: 14,
     color: "#a6a8aa",
+    textAlign: "center",
+  },
+  categoryContainer: {
+    marginHorizontal: 20,
   },
   textCategoryActive: {
     color: "#6c63ff",
   },
-
   titleMain: {
     fontFamily: "lexendBlack",
     fontSize: 32,
