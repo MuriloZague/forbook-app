@@ -257,7 +257,7 @@ export default function HomeScreen() {
         <FlatList
           data={books}
           keyExtractor={(item) => item.id}
-          numColumns={2}
+          numColumns={3}
           columnWrapperStyle={styles.row}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (

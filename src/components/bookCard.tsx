@@ -75,7 +75,7 @@ export default function BookCard({
   );
 }
 
-const CARD_WIDTH = Dimensions.get("window").width / 2 - 28; // 2 colunas + margem (parece gambiarra mais gambiarra sao os amigos que fazemos pelo caminho)
+const CARD_WIDTH = Dimensions.get("window").width / 2.9 - 28; // 2 colunas + margem (parece gambiarra mais gambiarra sao os amigos que fazemos pelo caminho) (2 - 28 para 2 colunas)
 
 const styles = StyleSheet.create({
   card: {
@@ -161,10 +161,11 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   titleText: {
-    fontFamily: "montserratRegular",
+    fontFamily: "montserratBold",
     fontSize: 13,
     color: "#2d2d2d",
     marginBottom: 6,
+    height: 32
   },
 
   priceRow: {
@@ -172,22 +173,22 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   currency: {
-    fontFamily: "montserratBold",
-    fontSize: 13,
+    fontFamily: "montserratRegular",
+    fontSize: 18,
     color: "#1a1a1a",
-    marginBottom: 2,
+    marginBottom: 1,
     marginRight: 2,
   },
   priceWhole: {
-    fontFamily: "lexendBlack",
-    fontSize: 26,
+    fontFamily: "montserratRegular",
+    fontSize: 20,
     color: "#1a1a1a",
-    lineHeight: 28,
+    marginBottom: 1,
   },
   priceCents: {
-    fontFamily: "lexendBlack",
-    fontSize: 13,
+    fontFamily: "montserratRegular",
+    fontSize: 12,
     color: "#1a1a1a",
-    marginBottom: 3,
+    marginBottom: 10,
   },
 });
