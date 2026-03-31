@@ -10,12 +10,18 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Path } from "react-native-svg";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-
+import {
+  GestureDetector,
+  Gesture,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   interpolate,
+  runOnJS,
+  useSharedValue,
+  withSpring,
 } from "react-native-reanimated";
-
 import { router } from "expo-router";
 import { useTransition } from "@/src/context/transition-context";
 
@@ -23,6 +29,7 @@ const { height: SH } = Dimensions.get("window");
 
 const PURPLE = "#6c63ff";
 const BAR_HEIGHT = 74;
+const BTN_EXTRA_BOTTOM = 50; // 👈 adicione esta constante junto das outras
 const BTN_WIDTH = 112;
 const BTN_RISE = 18;
 const BTN_HEIGHT = BAR_HEIGHT + BTN_RISE;
@@ -60,7 +67,7 @@ const RIGHT_ROUTES = ["chat", "menu"];
 
 function BookmarkShape() {
   const W = BTN_WIDTH,
-    H = BTN_HEIGHT,
+     H = BTN_HEIGHT + BTN_EXTRA_BOTTOM,
     tr = 14,
     vr = 1,
     r = BTN_RADIUS;
@@ -90,15 +97,18 @@ function BookmarkShape() {
 
 function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const { progress, overlayRef } = useTransition();
+    const dragY = useSharedValue(0); // 👈 novo
+  const dragProgress = useSharedValue(0);
 
   const btnAnimStyle = useAnimatedStyle(() => ({
     transform: [
       {
-        translateY: interpolate(
-          progress.value,
-          [0, 1, 2],
-          [0, BTN_Y_COVER, BTN_Y_EXIT],
-        ),
+        translateY:
+          interpolate(
+            progress.value,
+            [0, 1, 2],
+            [0, BTN_Y_COVER, BTN_Y_EXIT],
+          ) + dragY.value, // 👈 soma o drag
       },
     ],
   }));
@@ -126,6 +136,31 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
     });
   }
 
+  const SWIPE_THRESHOLD = 10;
+
+  const swipeGesture = Gesture.Pan()
+    .onUpdate((event) => {
+      if (event.translationY < 0) {
+        // Segue o dedo mas com resistência (divide por 2.5)
+        dragY.value = event.translationY / 30.5;
+      }
+    })
+    .onEnd((event) => {
+      if (event.translationY < -SWIPE_THRESHOLD) {
+        dragY.value = withSpring(0); // volta antes de navegar
+        runOnJS(handleAnnouncePress)();
+      } else {
+        dragY.value = withSpring(0); // snap back se não passou do threshold
+      }
+    });
+
+  const tapGesture = Gesture.Tap().onEnd(() => {
+    runOnJS(handleAnnouncePress)();
+  });
+
+
+  const combinedGesture = Gesture.Race(swipeGesture, tapGesture);
+
   function renderTab(name: string, showSeparator = false) {
     const cfg = TAB_CONFIG[name];
     const active = isActive(name);
@@ -135,7 +170,6 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
     return (
       <View key={name} style={styles.tabItem}>
         {showSeparator && <View style={styles.separator} />}
-
         <TouchableOpacity
           style={styles.tabButton}
           onPress={() => handlePress(name)}
@@ -160,42 +194,39 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
         <View style={styles.side}>
           {LEFT_ROUTES.map((r, i) => renderTab(r, i > 0))}
         </View>
-
         <View style={{ width: BTN_WIDTH }} />
-
         <View style={styles.side}>
           {RIGHT_ROUTES.map((r, i) => renderTab(r, i === 0))}
         </View>
       </View>
 
-      <Animated.View style={[styles.announceButton, btnAnimStyle]}>
-        <BookmarkShape />
-
-        <TouchableOpacity
-          style={styles.announceContent}
-          onPress={handleAnnouncePress}
-          activeOpacity={0.85}
-        >
-          <Ionicons name="add" size={28} color="#fff" />
-          <Text style={styles.announceLabel}>ANUNCIAR</Text>
-        </TouchableOpacity>
-      </Animated.View>
+      <GestureDetector gesture={combinedGesture}>
+        <Animated.View style={[styles.announceButton, btnAnimStyle]}>
+          <BookmarkShape />
+          <View style={styles.announceContent}>
+            <Ionicons name="add" size={28} color="#fff" />
+            <Text style={styles.announceLabel}>ANUNCIAR</Text>
+          </View>
+        </Animated.View>
+      </GestureDetector>
     </View>
   );
 }
 
 export default function TabsLayout() {
   return (
-    <Tabs
-      tabBar={(props) => <CustomTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
-    >
-      <Tabs.Screen name="home" />
-      <Tabs.Screen name="search" />
-      <Tabs.Screen name="create" />
-      <Tabs.Screen name="chat" />
-      <Tabs.Screen name="menu" />
-    </Tabs>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Tabs
+        tabBar={(props) => <CustomTabBar {...props} />}
+        screenOptions={{ headerShown: false }}
+      >
+        <Tabs.Screen name="home" />
+        <Tabs.Screen name="search" />
+        <Tabs.Screen name="create" />
+        <Tabs.Screen name="chat" />
+        <Tabs.Screen name="menu" />
+      </Tabs>
+    </GestureHandlerRootView>
   );
 }
 
