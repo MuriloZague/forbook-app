@@ -1,10 +1,11 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import {
+  Dimensions,
   StyleSheet,
-  View,
   Text,
   TouchableOpacity,
-  Dimensions,
+  View,
 } from "react-native";
 
 type Condition = "Usado" | "Novo";
@@ -32,36 +33,39 @@ export default function BookCard({
 }: BookCardProps) {
   return (
     <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.85}
+      style={styles.card2}
+      activeOpacity={0.8}
       onPress={onPress}
     >
-      <View style={styles.accentBar} />
+      <View style={styles.card}>
+        <View style={styles.accentBar} />
 
-      <View style={styles.imageWrapper}>
-        <Image
-          source={{ uri: imageUri }}
-          style={styles.image}
-          contentFit="cover"
-        />
+        <View style={styles.imageWrapper}>
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.image}
+            contentFit="cover"
+          />
 
-        <TouchableOpacity
-          style={styles.favoriteBtn}
-          onPress={onFavoritePress}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Text style={[styles.heartIcon, isFavorited && styles.heartFilled]}>
-            {isFavorited ? "♥" : "♡"}
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.favoriteBtn}
+            onPress={onFavoritePress}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons
+              name={isFavorited ? "heart" : "heart-outline"}
+              size={16}
+              color={isFavorited ? "#ff3d6b" : "#ff6b8a"}
+            />
+          </TouchableOpacity>
 
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{condition}</Text>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{condition}</Text>
+          </View>
         </View>
       </View>
-
       <View style={styles.info}>
-        <Text style={styles.titleText} numberOfLines={2}>
+        <Text style={styles.titleText} numberOfLines={1}>
           {title}
         </Text>
 
@@ -75,21 +79,27 @@ export default function BookCard({
   );
 }
 
-const CARD_WIDTH = Dimensions.get("window").width / 2.8 - 28; // 2 colunas + margem (parece gambiarra mais gambiarra sao os amigos que fazemos pelo caminho) (2 - 28 para 2 colunas)
+const CARD_WIDTH = Dimensions.get("window").width / 2.85 - 28; // 2 colunas + margem (parece gambiarra mais gambiarra sao os amigos que fazemos pelo caminho) (2 - 28 para 2 colunas)
 
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    borderRadius: 14,
+    borderRadius: 10,
     backgroundColor: "#ffffff",
     overflow: "hidden",
     // sombra iOS
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    //shadowColor: "#000",
+    //shadowOffset: { width: 0, height: 3 },
+    //shadowOpacity: 0.1,
+    //shadowRadius: 8,
     // sombra Android
-    elevation: 4,
+    //elevation: 4,
+  },
+
+  card2: {
+    width: CARD_WIDTH,
+    backgroundColor: "#ffffff",
+    overflow: "hidden",
     margin: 8,
   },
 
@@ -98,11 +108,11 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    width: 4,
+    width: 3,
     backgroundColor: "#6c63ff",
     zIndex: 10,
-    borderTopLeftRadius: 14,
-    borderBottomLeftRadius: 14,
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
   },
 
   imageWrapper: {
@@ -118,26 +128,13 @@ const styles = StyleSheet.create({
   favoriteBtn: {
     position: "absolute",
     top: 10,
-    left: 12,
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    left: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 25,
     backgroundColor: "rgba(255,255,255,0.88)",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  heartIcon: {
-    fontSize: 22,
-    color: "#ff6b8a",
-    lineHeight: 20,
-  },
-  heartFilled: {
-    color: "#ff3d6b",
   },
 
   badge: {
@@ -150,22 +147,21 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   badgeText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: "montserratBold",
     color: "#818181",
   },
 
   info: {
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 14,
+    paddingTop: 6,
+    paddingBottom: 10,
   },
   titleText: {
-    fontFamily: "montserratBold",
+    fontFamily: "montserratRegular",
     fontSize: 13,
-    color: "#2d2d2d",
+    color: "#000000",
     marginBottom: 6,
-    height: 32
+    height: 16,
   },
 
   priceRow: {
