@@ -1,4 +1,3 @@
-// app/(tabs)/_layout.tsx
 import { Tabs } from "expo-router";
 import {
   View,
@@ -6,47 +5,67 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Path } from "react-native-svg";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { useRef, useCallback } from "react";
 
-import BookmarkTransitionOverlay, {
-  type BookmarkTransitionHandle,
-} from "@/src/components/bookmarktransitionoverlay"; // ajuste o caminho
-import { TransitionContext } from "@/src/context/transitionContext";   // ajuste o caminho
+import Animated, {
+  useAnimatedStyle,
+  interpolate,
+} from "react-native-reanimated";
 
-// ─── Constantes ───────────────────────────────────────────────────────────────
-const PURPLE     = "#6c63ff";
+import { router } from "expo-router";
+import { useTransition } from "@/src/context/transition-context";
+
+const { height: SH } = Dimensions.get("window");
+
+const PURPLE = "#6c63ff";
 const BAR_HEIGHT = 74;
-const BTN_WIDTH  = 112;
-const BTN_RISE   = 18;
+const BTN_WIDTH = 112;
+const BTN_RISE = 18;
 const BTN_HEIGHT = BAR_HEIGHT + BTN_RISE;
 const BTN_RADIUS = 0;
+const IOS_PAD = Platform.OS === "ios" ? 20 : 0;
+
+const PANEL_H = SH + BTN_HEIGHT + 20;
+const BTN_Y_COVER = -(SH - IOS_PAD);
+const BTN_Y_EXIT = -(SH - IOS_PAD + PANEL_H + 20);
 
 const TAB_CONFIG: Record<
   string,
-  { label: string; icon: keyof typeof Ionicons.glyphMap; iconActive: keyof typeof Ionicons.glyphMap }
+  {
+    label: string;
+    icon: keyof typeof Ionicons.glyphMap;
+    iconActive: keyof typeof Ionicons.glyphMap;
+  }
 > = {
-  home:   { label: "Início",  icon: "home-outline",                       iconActive: "home" },
-  search: { label: "Buscar",  icon: "search-outline",                     iconActive: "search" },
-  chat:   { label: "Chat",    icon: "chatbubble-ellipses-outline",         iconActive: "chatbubble-ellipses" },
-  menu:   { label: "Mais",    icon: "ellipsis-horizontal-circle-outline",  iconActive: "ellipsis-horizontal-circle" },
+  home: { label: "Início", icon: "home-outline", iconActive: "home" },
+  search: { label: "Buscar", icon: "search-outline", iconActive: "search" },
+  chat: {
+    label: "Chat",
+    icon: "chatbubble-ellipses-outline",
+    iconActive: "chatbubble-ellipses",
+  },
+  menu: {
+    label: "Mais",
+    icon: "ellipsis-horizontal-circle-outline",
+    iconActive: "ellipsis-horizontal-circle",
+  },
 };
 
-const LEFT_ROUTES  = ["home", "search"];
+const LEFT_ROUTES = ["home", "search"];
 const RIGHT_ROUTES = ["chat", "menu"];
 
-// ─── Forma do marca-página (botão central) ────────────────────────────────────
 function BookmarkShape() {
-  const W   = BTN_WIDTH;
-  const H   = BTN_HEIGHT;
-  const tr  = 14;
-  const vr  = 1;
-  const r   = BTN_RADIUS;
-  const mid = W / 2;
-  const bot = BTN_RISE;
+  const W = BTN_WIDTH,
+    H = BTN_HEIGHT,
+    tr = 14,
+    vr = 1,
+    r = BTN_RADIUS;
+  const mid = W / 2,
+    bot = BTN_RISE;
 
   const d = [
     `M 0 ${tr}`,
@@ -69,10 +88,20 @@ function BookmarkShape() {
   );
 }
 
-// ─── Tab Bar personalizada ────────────────────────────────────────────────────
 function CustomTabBar({ state, navigation }: BottomTabBarProps) {
-  // 👇 Acessa o ref do overlay via contexto
-  const overlayRef = useRef<BookmarkTransitionHandle | null>(null);
+  const { progress, overlayRef } = useTransition();
+
+  const btnAnimStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateY: interpolate(
+          progress.value,
+          [0, 1, 2],
+          [0, BTN_Y_COVER, BTN_Y_EXIT],
+        ),
+      },
+    ],
+  }));
 
   function isActive(name: string) {
     return state.routes[state.index]?.name === name;
@@ -81,29 +110,32 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   function handlePress(routeName: string) {
     const route = state.routes.find((r) => r.name === routeName);
     if (!route) return;
+
     const event = navigation.emit({
       type: "tabPress",
       target: route.key,
       canPreventDefault: true,
     });
+
     if (!event.defaultPrevented) navigation.navigate(routeName);
   }
 
-  // 👇 Botão central usa a transição animada
   function handleAnnouncePress() {
     overlayRef.current?.trigger(() => {
-      handlePress("create");
+      router.push("/announce");
     });
   }
 
   function renderTab(name: string, showSeparator = false) {
-    const cfg    = TAB_CONFIG[name];
+    const cfg = TAB_CONFIG[name];
     const active = isActive(name);
+
     if (!cfg) return null;
 
     return (
       <View key={name} style={styles.tabItem}>
         {showSeparator && <View style={styles.separator} />}
+
         <TouchableOpacity
           style={styles.tabButton}
           onPress={() => handlePress(name)}
@@ -123,65 +155,52 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   }
 
   return (
-    <>
-      {/* ── Overlay de transição (flutua acima de tudo) ── */}
-      {/* 
-        IMPORTANTE: O overlay precisa estar FORA da View da barra para
-        que seu z-index cubra toda a tela. Coloque-o no nível do layout
-        raiz (ver TabsLayout abaixo) e passe o ref via contexto ou prop.
-        Aqui usamos um ref local apenas para exemplo simplificado.
-      */}
-      <BookmarkTransitionOverlay ref={overlayRef} />
-
-      <View style={styles.wrapper}>
-        <View style={styles.bar}>
-          <View style={styles.side}>
-            {LEFT_ROUTES.map((r, i) => renderTab(r, i > 0))}
-          </View>
-          <View style={{ width: BTN_WIDTH }} />
-          <View style={styles.side}>
-            {RIGHT_ROUTES.map((r, i) => renderTab(r, i === 0))}
-          </View>
+    <View style={styles.wrapper}>
+      <View style={styles.bar}>
+        <View style={styles.side}>
+          {LEFT_ROUTES.map((r, i) => renderTab(r, i > 0))}
         </View>
 
+        <View style={{ width: BTN_WIDTH }} />
+
+        <View style={styles.side}>
+          {RIGHT_ROUTES.map((r, i) => renderTab(r, i === 0))}
+        </View>
+      </View>
+
+      <Animated.View style={[styles.announceButton, btnAnimStyle]}>
+        <BookmarkShape />
+
         <TouchableOpacity
-          style={styles.announceButton}
-          onPress={handleAnnouncePress}   // 👈 usa a transição
+          style={styles.announceContent}
+          onPress={handleAnnouncePress}
           activeOpacity={0.85}
         >
-          <BookmarkShape />
-          <View style={styles.announceContent}>
-            <Ionicons name="add" size={28} color="#fff" />
-            <Text style={styles.announceLabel}>ANUNCIAR</Text>
-          </View>
+          <Ionicons name="add" size={28} color="#fff" />
+          <Text style={styles.announceLabel}>ANUNCIAR</Text>
         </TouchableOpacity>
-      </View>
-    </>
+      </Animated.View>
+    </View>
   );
 }
 
-// ─── Layout principal ─────────────────────────────────────────────────────────
 export default function TabsLayout() {
   return (
     <Tabs
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen name="home"   options={{ title: "Início"   }} />
-      <Tabs.Screen name="search" options={{ title: "Buscar"   }} />
-      <Tabs.Screen name="create" options={{ title: "Anunciar" }} />
-      <Tabs.Screen name="chat"   options={{ title: "Chat"     }} />
-      <Tabs.Screen name="menu"   options={{ title: "Mais"     }} />
+      <Tabs.Screen name="home" />
+      <Tabs.Screen name="search" />
+      <Tabs.Screen name="create" />
+      <Tabs.Screen name="chat" />
+      <Tabs.Screen name="menu" />
     </Tabs>
   );
 }
 
-// ─── Estilos ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  wrapper: {
-    paddingBottom: Platform.OS === "ios" ? 20 : 0,
-    backgroundColor: "#fff",
-  },
+  wrapper: { paddingBottom: IOS_PAD, backgroundColor: "#fff" },
   bar: {
     flexDirection: "row",
     alignItems: "center",
@@ -189,22 +208,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopWidth: 1,
     borderTopColor: "#e8e8e8",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 10,
   },
-  side: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  tabItem: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  side: { flex: 1, flexDirection: "row", alignItems: "center" },
+  tabItem: { flex: 1, flexDirection: "row", alignItems: "center" },
   tabButton: {
     flex: 1,
     alignItems: "center",
@@ -217,21 +223,14 @@ const styles = StyleSheet.create({
     color: "#9b9b9b",
     marginTop: 2,
   },
-  tabLabelActive: {
-    color: PURPLE,
-  },
-  separator: {
-    width: 1,
-    height: 28,
-    backgroundColor: "#e8e8e8",
-  },
+  tabLabelActive: { color: PURPLE },
+  separator: { width: 1, height: 28, backgroundColor: "#e8e8e8" },
   announceButton: {
     position: "absolute",
-    bottom: Platform.OS === "ios" ? 20 : 0,
+    bottom: IOS_PAD,
     alignSelf: "center",
     width: BTN_WIDTH,
     height: BTN_HEIGHT,
-    elevation: 14,
   },
   announceContent: {
     flex: 1,
@@ -244,6 +243,5 @@ const styles = StyleSheet.create({
     fontFamily: "lexendBlack",
     fontSize: 12,
     marginTop: 2,
-    letterSpacing: 0.5,
   },
 });

@@ -67,7 +67,7 @@ export default function LoginScreen() {
 
   const scrollViewRef = React.useRef<ScrollView>(null);
 
-  // Validações de requisitos de senha
+  // Validações de requisitos de senha - descartar pois vou usar o ZOD
   const temMinimo8Caracteres = senha.length >= 8;
   const temLetraMaiuscula = /[A-Z]/.test(senha);
   const temLetraMinuscula = /[a-z]/.test(senha);
