@@ -67,7 +67,7 @@ const RIGHT_ROUTES = ["chat", "menu"];
 
 function BookmarkShape() {
   const W = BTN_WIDTH,
-     H = BTN_HEIGHT + BTN_EXTRA_BOTTOM,
+    H = BTN_HEIGHT + BTN_EXTRA_BOTTOM,
     tr = 14,
     vr = 1,
     r = BTN_RADIUS;
@@ -97,18 +97,15 @@ function BookmarkShape() {
 
 function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const { progress, overlayRef } = useTransition();
-    const dragY = useSharedValue(0); // 👈 novo
+  const dragY = useSharedValue(0); // 👈 novo
   const dragProgress = useSharedValue(0);
 
   const btnAnimStyle = useAnimatedStyle(() => ({
     transform: [
       {
         translateY:
-          interpolate(
-            progress.value,
-            [0, 1, 2],
-            [0, BTN_Y_COVER, BTN_Y_EXIT],
-          ) + dragY.value, // 👈 soma o drag
+          interpolate(progress.value, [0, 1, 2], [0, BTN_Y_COVER, BTN_Y_EXIT]) +
+          dragY.value, // 👈 soma o drag
       },
     ],
   }));
@@ -158,7 +155,6 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
     runOnJS(handleAnnouncePress)();
   });
 
-
   const combinedGesture = Gesture.Race(swipeGesture, tapGesture);
 
   function renderTab(name: string, showSeparator = false) {
@@ -169,7 +165,6 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
 
     return (
       <View key={name} style={styles.tabItem}>
-        {showSeparator && <View style={styles.separator} />}
         <TouchableOpacity
           style={styles.tabButton}
           onPress={() => handlePress(name)}
@@ -255,7 +250,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   tabLabelActive: { color: PURPLE },
-  separator: { width: 1, height: 28, backgroundColor: "#e8e8e8" },
   announceButton: {
     position: "absolute",
     bottom: IOS_PAD,
