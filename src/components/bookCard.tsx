@@ -75,7 +75,7 @@ export default function BookCard({
   );
 }
 
-const CARD_WIDTH = Dimensions.get("window").width / 2.9 - 28; // 2 colunas + margem (parece gambiarra mais gambiarra sao os amigos que fazemos pelo caminho) (2 - 28 para 2 colunas)
+const CARD_WIDTH = Dimensions.get("window").width / 2.8 - 28; // 2 colunas + margem (parece gambiarra mais gambiarra sao os amigos que fazemos pelo caminho) (2 - 28 para 2 colunas)
 
 const styles = StyleSheet.create({
   card: {

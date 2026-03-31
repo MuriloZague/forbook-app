@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   },
   row: {
     justifyContent: "flex-start",
-    paddingHorizontal: 8,
+    paddingHorizontal: 2,
   },
   listContent: {
     paddingBottom: 32,
