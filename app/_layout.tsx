@@ -1,12 +1,91 @@
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useFonts } from "expo-font";
 import "react-native-reanimated";
+
 import { fonts } from "@/assets/fonts/fonts";
+import BookmarkTransitionOverlay from "@/src/components/bookmarktransitionoverlay";
+import {
+  TransitionProvider,
+  useTransition,
+} from "@/src/context/transition-context";
 
 export const unstable_settings = {
   anchor: "(tabs)",
 };
+
+function AppContent() {
+  const { progress, overlayRef } = useTransition();
+
+  return (
+    <>
+      <Stack>
+        <Stack.Screen
+          name="index"
+          options={{ headerShown: false, animation: "ios_from_right" }}
+        />
+        <Stack.Screen
+          name="login"
+          options={{ headerShown: false, animation: "ios_from_right" }}
+        />
+        <Stack.Screen
+          name="register"
+          options={{ headerShown: false, animation: "ios_from_right" }}
+        />
+        <Stack.Screen
+          name="(tabs)"
+          options={{ headerShown: false, animation: "slide_from_bottom" }}
+        />
+        <Stack.Screen
+          name="announce"
+          options={{
+            headerShown: false,
+            animation: "none",
+          }}
+        />
+        <Stack.Screen
+          name="terms"
+          options={{
+            headerShown: false,
+            animation: "fade_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="settings"
+          options={{
+            headerShown: false,
+            animation: "ios_from_right",
+          }}
+        />
+        <Stack.Screen
+          name="profile"
+          options={{
+            headerShown: false,
+            animation: "ios_from_right",
+          }}
+        />
+        <Stack.Screen
+          name="politics"
+          options={{
+            headerShown: false,
+            animation: "fade_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="help"
+          options={{
+            headerShown: false,
+            animation: "fade_from_bottom",
+          }}
+        />
+      </Stack>
+
+      <BookmarkTransitionOverlay ref={overlayRef} progress={progress} />
+
+      <StatusBar style="auto" />
+    </>
+  );
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -18,32 +97,11 @@ export default function RootLayout() {
     montserratRegular: fonts.montserratRegular,
   });
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
   return (
-    <>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-
-        <Stack.Screen name="cadastro" options={{ headerShown: false }} />
-
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-
-        <Stack.Screen
-          name="modal"
-          options={{
-            presentation: "modal",
-            title: "Modal",
-            headerShown: true,
-          }}
-        />
-      </Stack>
-
-      <StatusBar style="auto" />
-    </>
+    <TransitionProvider>
+      <AppContent />
+    </TransitionProvider>
   );
 }

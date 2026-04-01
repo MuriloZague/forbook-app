@@ -1,20 +1,14 @@
+import { router } from "expo-router";
 import React from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  StatusBar,
   Dimensions,
   Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
-import Svg, { Rect, Line, Path, Circle, G } from "react-native-svg";
-import { router } from "expo-router";
-import Logo from "../assets/images/logo-forbook.svg";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
@@ -37,14 +31,17 @@ export default function TelaInicial() {
           <TouchableOpacity
             style={styles.btn}
             activeOpacity={0.6}
-            onPress={() => router.push("/cadastro")}
+            onPress={() => router.push("/register")}
           >
             <Text style={styles.btnText}>CRIAR CONTA</Text>
           </TouchableOpacity>
         </View>
       </View>
       <View style={styles.imgLogo}>
-        <Logo width={82} height={82} />
+        <Image
+          source={require("../assets/images/Logo.png")}
+          style={{ width: 84, height: 52 }}
+        />
       </View>
     </SafeAreaProvider>
   );
@@ -91,7 +88,7 @@ const styles = StyleSheet.create({
   },
   imgLogo: {
     position: "absolute",
-    bottom: 32,
+    bottom: 38,
     left: 0,
     right: 0,
     alignItems: "center",

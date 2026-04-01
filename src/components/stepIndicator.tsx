@@ -1,4 +1,4 @@
-import { View, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 export default function StepIndicator({
   step,
@@ -12,10 +12,7 @@ export default function StepIndicator({
       {Array.from({ length: total }).map((_, index) => (
         <View
           key={index}
-          style={[
-            styles.dot,
-            step === index + 1 && styles.activeDot,
-          ]}
+          style={[styles.dot, step === index + 1 && styles.activeDot]}
         />
       ))}
     </View>
