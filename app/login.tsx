@@ -119,14 +119,12 @@ const styles = StyleSheet.create({
 
   label: {
     position: "absolute",
-    top: -10, // Sobe o texto para cortar a borda
-    left: 16, // Afasta um pouco da lateral esquerda
-    backgroundColor: "#F0F2F5", // TEM que ser exatamente a cor de fundo da tela
-    paddingHorizontal: 6, // Cria o espaço em branco ao redor da palavra
-    fontSize: 13, // Fonte um pouco menor fica mais elegante
-    color: "#6C63FF", // Cor combinando com a borda
-    zIndex: 2, // Garante que fique por cima da borda no iOS
-    elevation: 2, // Garante que fique por cima da borda no Android
+    top: -10,
+    left: 12,
+    backgroundColor: "#F0F2F5",
+    paddingHorizontal: 4,
+    fontSize: 14,
+    zIndex: 1,
     fontFamily: "montserratBold",
   },
 

@@ -20,16 +20,48 @@ function AppContent() {
   return (
     <>
       <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="cadastro" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="index"
+          options={{ headerShown: false, animation: "ios_from_right" }}
+        />
+        <Stack.Screen
+          name="login"
+          options={{ headerShown: false, animation: "ios_from_right" }}
+        />
+        <Stack.Screen
+          name="register"
+          options={{ headerShown: false, animation: "ios_from_right" }}
+        />
+        <Stack.Screen
+          name="(tabs)"
+          options={{ headerShown: false, animation: "slide_from_bottom" }}
+        />
         <Stack.Screen
           name="announce"
           options={{
             headerShown: false,
-            presentation: "transparentModal",
             animation: "none",
+          }}
+        />
+        <Stack.Screen
+          name="terms"
+          options={{
+            headerShown: false,
+            animation: "fade_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="settings"
+          options={{
+            headerShown: false,
+            animation: "ios_from_right",
+          }}
+        />
+        <Stack.Screen
+          name="profile"
+          options={{
+            headerShown: false,
+            animation: "ios_from_right",
           }}
         />
       </Stack>

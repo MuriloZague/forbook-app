@@ -1,18 +1,27 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Switch } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SettingsScreen() {
   const router = useRouter();
-  
+
   // Estados para controlar os botões
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
 
-  const toggleNotifications = () => setNotificationsEnabled(previousState => !previousState);
-  const toggleDarkMode = () => setDarkModeEnabled(previousState => !previousState);
+  const toggleNotifications = () =>
+    setNotificationsEnabled((previousState) => !previousState);
+  const toggleDarkMode = () =>
+    setDarkModeEnabled((previousState) => !previousState);
 
   // Definindo as cores dinâmicas baseadas no estado do darkModeEnabled
   const theme = {
@@ -26,33 +35,55 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: theme.background }]}
+    >
       {/* Cabeçalho */}
-      <View style={[styles.headerContainer, { borderBottomColor: theme.divider }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+      <View
+        style={[styles.headerContainer, { borderBottomColor: theme.divider }]}
+      >
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={24} color={theme.headerTitle} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: theme.headerTitle }]}>Configurações</Text>
-        <View style={{ width: 24 }} /> 
+        <Text style={[styles.title, { color: theme.headerTitle }]}>
+          Configurações
+        </Text>
+        <View style={{ width: 24 }} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        
         {/* Seção: Conta */}
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Conta</Text>
-        
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+          Conta
+        </Text>
+
         <TouchableOpacity style={styles.settingItem}>
           <View style={styles.settingItemLeft}>
             <Ionicons name="person-outline" size={24} color={theme.iconColor} />
-            <Text style={[styles.settingItemText, { color: theme.textPrimary }]}>Editar Perfil</Text>
+            <Text
+              style={[styles.settingItemText, { color: theme.textPrimary }]}
+            >
+              Editar Perfil
+            </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={theme.chevron} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.settingItem}>
           <View style={styles.settingItemLeft}>
-            <Ionicons name="lock-closed-outline" size={24} color={theme.iconColor} />
-            <Text style={[styles.settingItemText, { color: theme.textPrimary }]}>Alterar Senha</Text>
+            <Ionicons
+              name="lock-closed-outline"
+              size={24}
+              color={theme.iconColor}
+            />
+            <Text
+              style={[styles.settingItemText, { color: theme.textPrimary }]}
+            >
+              Alterar Senha
+            </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={theme.chevron} />
         </TouchableOpacity>
@@ -60,12 +91,22 @@ export default function SettingsScreen() {
         <View style={[styles.divider, { backgroundColor: theme.divider }]} />
 
         {/* Seção: Preferências */}
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Preferências</Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+          Preferências
+        </Text>
 
         <View style={styles.settingItem}>
           <View style={styles.settingItemLeft}>
-            <Ionicons name="notifications-outline" size={24} color={theme.iconColor} />
-            <Text style={[styles.settingItemText, { color: theme.textPrimary }]}>Notificações Push</Text>
+            <Ionicons
+              name="notifications-outline"
+              size={24}
+              color={theme.iconColor}
+            />
+            <Text
+              style={[styles.settingItemText, { color: theme.textPrimary }]}
+            >
+              Notificações Push
+            </Text>
           </View>
           <Switch
             trackColor={{ false: "#e0e0e0", true: "#a39fff" }}
@@ -78,7 +119,11 @@ export default function SettingsScreen() {
         <View style={styles.settingItem}>
           <View style={styles.settingItemLeft}>
             <Ionicons name="moon-outline" size={24} color={theme.iconColor} />
-            <Text style={[styles.settingItemText, { color: theme.textPrimary }]}>Modo Escuro</Text>
+            <Text
+              style={[styles.settingItemText, { color: theme.textPrimary }]}
+            >
+              Modo Escuro
+            </Text>
           </View>
           <Switch
             trackColor={{ false: "#e0e0e0", true: "#a39fff" }}
@@ -87,7 +132,6 @@ export default function SettingsScreen() {
             value={darkModeEnabled}
           />
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );

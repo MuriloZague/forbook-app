@@ -1,29 +1,28 @@
-import { Tabs } from "expo-router";
+import { useTransition } from "@/src/context/transition-context";
+import { Ionicons } from "@expo/vector-icons";
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { router, Tabs } from "expo-router";
 import {
-  View,
+  Dimensions,
+  Platform,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  Platform,
-  Dimensions,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import Svg, { Path } from "react-native-svg";
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import {
-  GestureDetector,
   Gesture,
+  GestureDetector,
   GestureHandlerRootView,
 } from "react-native-gesture-handler";
 import Animated, {
-  useAnimatedStyle,
   interpolate,
   runOnJS,
+  useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { router } from "expo-router";
-import { useTransition } from "@/src/context/transition-context";
+import Svg, { Path } from "react-native-svg";
 
 const { height: SH } = Dimensions.get("window");
 

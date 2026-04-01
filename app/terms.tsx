@@ -24,8 +24,7 @@ export default function TermsScreen() {
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.title}>Termos e Condições</Text>
-        <View style={{ width: 24 }} />{" "}
-        {/* Espaçamento para centralizar o título */}
+        <View style={{ width: 24 }} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>

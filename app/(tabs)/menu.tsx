@@ -142,8 +142,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   profileSection: {
-    marginTop: 16,
-    marginBottom: 16,
+    marginTop: 18,
+    marginBottom: 6,
   },
   sectionTitle: {
     fontFamily: "lexendBold",
