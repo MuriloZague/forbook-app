@@ -1,6 +1,9 @@
 import QrCode from "@/assets/images/code.svg";
+import Config from "@/assets/images/config.svg";
 import Notification from "@/assets/images/Notification.svg";
-import User from "@/assets/images/Perfil.svg";
+import Order from "@/assets/images/order.svg";
+import Sign from "@/assets/images/sign.svg";
+import User2 from "@/assets/images/User.svg";
 import { Ionicons } from "@expo/vector-icons";
 import {
   StyleSheet,
@@ -10,9 +13,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Sign from '@/assets/images/sign.svg';
-import Config from '@/assets/images/config.svg';
-import Order from '@/assets/images/order.svg'
 
 export default function SearchScreen() {
   return (
@@ -20,7 +20,9 @@ export default function SearchScreen() {
       <View style={styles.headerWrapper}>
         <View style={styles.headerContainer}>
           <TouchableOpacity>
-            <User width={40} height={40} />
+            <View style={styles.userLogo}>
+              <User2 width={22} height={22} />
+            </View>
           </TouchableOpacity>
           <Text style={styles.title}>Forbook</Text>
           <TouchableOpacity>
@@ -72,11 +74,13 @@ export default function SearchScreen() {
             <Text style={styles.categoryText}>Ordenar</Text>
           </TouchableOpacity>
         </View>
-         <View style={styles.categoryWrapperH}></View>
+        <View style={styles.categoryWrapperH}></View>
       </View>
 
       <View style={styles.resultsMain}>
-        <Text style={styles.textResults}>$cardCount resultados encontrados</Text>
+        <Text style={styles.textResults}>
+          $cardCount resultados encontrados
+        </Text>
       </View>
     </SafeAreaView>
   );
@@ -168,16 +172,25 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   categoryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   resultsMain: {
     margin: 20,
   },
   textResults: {
-    fontFamily: 'montserratRegular',
+    fontFamily: "montserratRegular",
     fontSize: 14,
-    color: '#a6a8aa'
-  }
+    color: "#a6a8aa",
+  },
+  userLogo: {
+    borderWidth: 2,
+    borderColor: "#6c63ff",
+    borderRadius: 20, // opcional - para arredondar as bordas
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });

@@ -1,17 +1,17 @@
 // esse codigo completo pertence ao barbudo, nao mexer nunca na vida
 
-import React, { forwardRef, useImperativeHandle, useCallback } from "react";
-import { StyleSheet, Dimensions, Text, Platform } from "react-native";
+import React, { forwardRef, useCallback, useImperativeHandle } from "react";
+import { Dimensions, Platform, StyleSheet, Text } from "react-native";
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  interpolate,
+  cancelAnimation,
   Easing,
+  interpolate,
   runOnJS,
   runOnUI,
-  cancelAnimation,
   SharedValue,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -111,26 +111,34 @@ const BookmarkTransitionOverlay = forwardRef<BookmarkTransitionHandle, Props>(
     );
 
     const playEnter = useCallback((onCovered: () => void) => {
-  runOnUI(() => {
-    "worklet";
-    cancelAnimation(progress);
+      runOnUI(() => {
+        "worklet";
+        cancelAnimation(progress);
 
-    isVisible.value = 1;
-    progress.value = 2;
+        isVisible.value = 1;
+        progress.value = 2;
 
-    progress.value = withTiming(1, { duration: T_EXIT, easing: EASE_UP }, (finished) => {
-      if (finished) {
-        runOnJS(onCovered)();
+        progress.value = withTiming(
+          1,
+          { duration: T_EXIT, easing: EASE_UP },
+          (finished) => {
+            if (finished) {
+              runOnJS(onCovered)();
 
-        progress.value = withTiming(0, { duration: T_RISE, easing: EASE_OUT }, (done) => {
-          if (done) {
-            isVisible.value = 0;
-          }
-        });
-      }
-    });
-  })();
-}, []);
+              progress.value = withTiming(
+                0,
+                { duration: T_RISE, easing: EASE_OUT },
+                (done) => {
+                  if (done) {
+                    isVisible.value = 0;
+                  }
+                },
+              );
+            }
+          },
+        );
+      })();
+    }, []);
 
     useImperativeHandle(ref, () => ({ trigger, playExit, playEnter }), [
       trigger,

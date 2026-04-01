@@ -1,11 +1,14 @@
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useFonts } from "expo-font";
 import "react-native-reanimated";
 
 import { fonts } from "@/assets/fonts/fonts";
-import { TransitionProvider, useTransition } from "@/src/context/transition-context";
 import BookmarkTransitionOverlay from "@/src/components/bookmarktransitionoverlay";
+import {
+  TransitionProvider,
+  useTransition,
+} from "@/src/context/transition-context";
 
 export const unstable_settings = {
   anchor: "(tabs)",

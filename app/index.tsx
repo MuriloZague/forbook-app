@@ -6,11 +6,9 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
-import {
-  SafeAreaProvider
-} from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
@@ -33,7 +31,7 @@ export default function TelaInicial() {
           <TouchableOpacity
             style={styles.btn}
             activeOpacity={0.6}
-            onPress={() => router.push("/cadastro")}
+            onPress={() => router.push("/register")}
           >
             <Text style={styles.btnText}>CRIAR CONTA</Text>
           </TouchableOpacity>

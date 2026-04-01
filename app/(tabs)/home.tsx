@@ -1,5 +1,5 @@
 import Notification from "@/assets/images/Notification.svg";
-import User from "@/assets/images/Perfil.svg";
+import User2 from "@/assets/images/User.svg";
 import BookCard from "@/src/components/bookCard";
 import { useEffect, useState } from "react";
 import {
@@ -196,7 +196,9 @@ export default function HomeScreen() {
       <View style={styles.headerWrapper}>
         <View style={styles.headerContainer}>
           <TouchableOpacity>
-            <User width={40} height={40} />
+            <View style={styles.userLogo}>
+              <User2 width={22} height={22} />
+            </View>
           </TouchableOpacity>
           <Text style={styles.title}>Forbook</Text>
           <TouchableOpacity>
@@ -207,9 +209,9 @@ export default function HomeScreen() {
       </View>
       <View style={styles.wellcomeContent}>
         <Text style={styles.wellcomeText}>
-          Bem Vindo,{" "}
+          Bem vindo,{" "}
           <Text style={{ fontFamily: "montserratBold", color: "#6c63ff" }}>
-            $usuario!
+            Arthur!
           </Text>
         </Text>
       </View>
@@ -282,6 +284,15 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  userLogo: {
+    borderWidth: 2,
+    borderColor: "#6c63ff",
+    borderRadius: 20, // opcional - para arredondar as bordas
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerWrapper: {
     backgroundColor: "#fff",

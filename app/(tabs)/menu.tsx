@@ -1,21 +1,21 @@
-import Notification from "@/assets/images/Notification.svg";
-import User from "@/assets/images/Perfil.svg";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router"; // Importação adicionada
 import {
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function MenuScreen() {
+  const router = useRouter(); // Inicialização do router
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.profileSection}>
-
           <View style={styles.profileCard}>
             <View style={styles.profileHeader}>
               <View style={styles.avatar}>
@@ -23,7 +23,9 @@ export default function MenuScreen() {
               </View>
               <View style={styles.profileInfo}>
                 <Text style={styles.userName}>Arthur Risos</Text>
-                <Text style={styles.userLocation}>Meu perfil {" >"}</Text>
+                <TouchableOpacity onPress={() => router.push("/profile")}>
+                  <Text style={styles.userLocation}>Meu perfil {" >"}</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -33,6 +35,11 @@ export default function MenuScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionSubtitle}>Minhas atividades</Text>
+
+          <TouchableOpacity style={styles.menuItem}>
+            <Ionicons name="storefront-outline" size={24} color="#6C63FF" />
+            <Text style={styles.menuItemText}>Meus anúncios</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem}>
             <Ionicons name="bag-outline" size={24} color="#6C63FF" />
@@ -59,7 +66,10 @@ export default function MenuScreen() {
             <Text style={styles.menuItemText}>Histórico de visualizações</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/settings")}
+          >
             <Ionicons name="settings-outline" size={24} color="#6C63FF" />
             <Text style={styles.menuItemText}>Configurações</Text>
           </TouchableOpacity>
@@ -68,8 +78,11 @@ export default function MenuScreen() {
         <View style={styles.divider} />
 
         <View style={styles.section}>
-        
-          <TouchableOpacity style={styles.menuItem}>
+          {/* Botão de Termos e condições atualizado com o onPress */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/terms")}
+          >
             <Text style={styles.menuItemText}>Termos e condições</Text>
           </TouchableOpacity>
 
@@ -137,7 +150,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginBottom: 16,
     color: "#000",
-    textAlign: 'center'
+    textAlign: "center",
   },
   sectionSubtitle: {
     fontFamily: "lexendRegular",
@@ -199,7 +212,7 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: 'center',
+    justifyContent: "center",
     gap: 12,
     paddingVertical: 12,
   },
@@ -208,16 +221,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#333",
     flex: 1,
-    paddingTop: 4
+    paddingTop: 4,
   },
   menuItemTextLogout: {
     fontFamily: "montserratBold",
     fontSize: 15,
     color: "#FF6B9D",
     flex: 1,
-    paddingTop: 4
+    paddingTop: 4,
   },
   sectionFinal: {
     marginBottom: 26,
-  }
+  },
 });
