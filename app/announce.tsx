@@ -71,9 +71,9 @@ export default function Modal() {
           contentContainerStyle={styles.scrollContent}
         >
           {/* Capa do Livro */}
-          <View style={styles.inputContainer}>
+          <View style={styles.inputContainerUp}>
             <Text style={styles.title}>Capa do Livro</Text>
-            <TouchableOpacity style={styles.coverUploadBox}>
+            <TouchableOpacity style={styles.coverUploadBox} activeOpacity={0.7}>
               <Ionicons name="camera-outline" size={40} color="#6c63ff" />
               <Text style={styles.uploadText}>Adicionar capa principal</Text>
             </TouchableOpacity>
@@ -180,12 +180,12 @@ export default function Modal() {
             />
           </View>
 
-         {/* Imagens Adicionais */}
+          {/* Imagens Adicionais */}
           <View style={styles.inputContainer}>
             <Text style={styles.floatingLabel}>Imagens Adicionais</Text>
             <View style={styles.boxContainer}>
               <View style={styles.attachmentsRow}>
-                
+
                 {/* Imagem 1 */}
                 <TouchableOpacity style={styles.attachmentBox} activeOpacity={0.7}>
                   <Ionicons name="add" size={24} color="#6c63ff" />
@@ -200,6 +200,12 @@ export default function Modal() {
                 <TouchableOpacity style={styles.attachmentBox} activeOpacity={0.7}>
                   <Ionicons name="add" size={24} color="#6c63ff" />
                 </TouchableOpacity>
+
+                {/* Imagem 4 */}
+                <TouchableOpacity style={styles.attachmentBox} activeOpacity={0.7}>
+                  <Ionicons name="add" size={24} color="#6c63ff" />
+                </TouchableOpacity>
+
 
               </View>
             </View>
@@ -260,6 +266,10 @@ const styles = StyleSheet.create({
     position: "relative",
     marginTop: 20,
   },
+  inputContainerUp: {
+    alignItems: 'center',
+    marginVertical: 20,
+  },
   floatingLabel: {
     position: "absolute",
     top: -10,
@@ -316,8 +326,8 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   coverUploadBox: {
-    width: "100%",
-    height: 180,
+    width: "80%",
+    height: 240,
     backgroundColor: "#f0f0ff",
     borderWidth: 2,
     borderColor: "#6c63ff",
@@ -362,8 +372,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   attachmentBox: {
-    width: 70,
-    height: 70,
+    width: 78,
+    height: 78,
     backgroundColor: "#f0f0ff",
     borderRadius: 12,
     justifyContent: "center",
