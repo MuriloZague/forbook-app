@@ -68,14 +68,14 @@ function AppContent() {
           name="politics"
           options={{
             headerShown: false,
-            animation: "ios_from_right",
+            animation: "fade_from_bottom",
           }}
         />
         <Stack.Screen
           name="help"
           options={{
             headerShown: false,
-            animation: "ios_from_right",
+            animation: "fade_from_bottom",
           }}
         />
       </Stack>
