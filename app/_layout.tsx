@@ -64,6 +64,20 @@ function AppContent() {
             animation: "ios_from_right",
           }}
         />
+        <Stack.Screen
+          name="politics"
+          options={{
+            headerShown: false,
+            animation: "ios_from_right",
+          }}
+        />
+        <Stack.Screen
+          name="help"
+          options={{
+            headerShown: false,
+            animation: "ios_from_right",
+          }}
+        />
       </Stack>
 
       <BookmarkTransitionOverlay ref={overlayRef} progress={progress} />

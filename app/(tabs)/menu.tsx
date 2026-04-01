@@ -86,11 +86,17 @@ export default function MenuScreen() {
             <Text style={styles.menuItemText}>Termos e condições</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/politics")}
+          >
             <Text style={styles.menuItemText}>Políticas de privacidade</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/help")}
+          >
             <Text style={styles.menuItemText}>Ajuda</Text>
           </TouchableOpacity>
         </View>
