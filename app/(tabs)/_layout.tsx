@@ -17,12 +17,12 @@ import {
 } from "react-native-gesture-handler";
 import Animated, {
   interpolate,
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withSpring
 } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
+import { scheduleOnRN } from "react-native-worklets";
 
 const { height: SH } = Dimensions.get("window");
 
@@ -144,14 +144,14 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
     .onEnd((event) => {
       if (event.translationY < -SWIPE_THRESHOLD) {
         dragY.value = withSpring(0); // volta antes de navegar
-        runOnJS(handleAnnouncePress)();
+        scheduleOnRN(handleAnnouncePress);
       } else {
         dragY.value = withSpring(0); // snap back se não passou do threshold
       }
     });
 
   const tapGesture = Gesture.Tap().onEnd(() => {
-    runOnJS(handleAnnouncePress)();
+    scheduleOnRN(handleAnnouncePress);
   });
 
   const combinedGesture = Gesture.Race(swipeGesture, tapGesture);

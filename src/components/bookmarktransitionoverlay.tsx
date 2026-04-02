@@ -6,13 +6,13 @@ import Animated, {
   cancelAnimation,
   Easing,
   interpolate,
-  runOnJS,
   runOnUI,
   SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
 
 const { width: SW, height: SH } = Dimensions.get("window");
 
@@ -69,7 +69,7 @@ const BookmarkTransitionOverlay = forwardRef<BookmarkTransitionHandle, Props>(
     const trigger = useCallback(
       (onCovered: () => void) => {
         const covered = () => onCovered();
-        runOnUI(() => {
+        scheduleOnUI(() => {
           "worklet";
           cancelAnimation(progress);
           isVisible.value = 1;
@@ -78,10 +78,10 @@ const BookmarkTransitionOverlay = forwardRef<BookmarkTransitionHandle, Props>(
             1,
             { duration: T_RISE, easing: EASE_UP },
             (done) => {
-              if (done) runOnJS(covered)();
+              if (done) scheduleOnRN(covered);
             },
           );
-        })();
+        });
       },
       [progress, isVisible],
     );
@@ -89,7 +89,7 @@ const BookmarkTransitionOverlay = forwardRef<BookmarkTransitionHandle, Props>(
     const playExit = useCallback(
       (onDone?: () => void) => {
         const done = () => onDone?.();
-        runOnUI(() => {
+        scheduleOnUI(() => {
           "worklet";
           cancelAnimation(progress);
           isVisible.value = 1;
@@ -101,17 +101,17 @@ const BookmarkTransitionOverlay = forwardRef<BookmarkTransitionHandle, Props>(
               if (finished) {
                 isVisible.value = 0;
                 progress.value = 0;
-                runOnJS(done)();
+                scheduleOnRN(done);
               }
             },
           );
-        })();
+        });
       },
       [progress, isVisible],
     );
 
     const playEnter = useCallback((onCovered: () => void) => {
-      runOnUI(() => {
+      scheduleOnUI(() => {
         "worklet";
         cancelAnimation(progress);
 
@@ -123,7 +123,7 @@ const BookmarkTransitionOverlay = forwardRef<BookmarkTransitionHandle, Props>(
           { duration: T_EXIT, easing: EASE_UP },
           (finished) => {
             if (finished) {
-              runOnJS(onCovered)();
+              scheduleOnRN(onCovered);
 
               progress.value = withTiming(
                 0,
@@ -137,7 +137,7 @@ const BookmarkTransitionOverlay = forwardRef<BookmarkTransitionHandle, Props>(
             }
           },
         );
-      })();
+      });
     }, []);
 
     useImperativeHandle(ref, () => ({ trigger, playExit, playEnter }), [
