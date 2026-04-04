@@ -12,7 +12,7 @@ import {
 import { router } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-
+import BarcodeScannerModal from "@/src/components/barcodeScannerModal";
 import { useTransition } from "@/src/context/transition-context";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -26,6 +26,7 @@ export default function Modal() {
   const [synopsis, setSynopsis] = useState("");
   const [price, setPrice] = useState("");
   const [condition, setCondition] = useState("");
+  const [scannerVisible, setScannerVisible] = useState(false);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
@@ -79,7 +80,6 @@ export default function Modal() {
             </TouchableOpacity>
           </View>
 
-          {/* ISBN com QR Code */}
           <View style={styles.inputContainer}>
             <Text style={styles.floatingLabel}>ISBN</Text>
             <View style={styles.inputWithIcon}>
@@ -91,9 +91,17 @@ export default function Modal() {
                 value={isbn}
                 onChangeText={setIsbn}
               />
-              <TouchableOpacity style={styles.iconScan}>
+              <TouchableOpacity
+                style={styles.iconScan}
+                onPress={() => setScannerVisible(true)}
+              >
                 <Ionicons name="barcode-outline" size={24} color="#6c63ff" />
               </TouchableOpacity>
+              <BarcodeScannerModal
+                visible={scannerVisible}
+                onClose={() => setScannerVisible(false)}
+                onScanned={(code) => setIsbn(code)}
+              />
             </View>
           </View>
 
@@ -185,13 +193,13 @@ export default function Modal() {
             <Text style={styles.floatingLabel}>Imagens Adicionais</Text>
             <View style={styles.boxContainer}>
               <View style={styles.attachmentsRow}>
-
                 {/* Imagem 1 */}
-                <TouchableOpacity style={styles.attachmentBox} activeOpacity={0.7}>
+                <TouchableOpacity
+                  style={styles.attachmentBox}
+                  activeOpacity={0.7}
+                >
                   <Ionicons name="add" size={24} color="#6c63ff" />
                 </TouchableOpacity>
-
-
               </View>
             </View>
           </View>
@@ -252,7 +260,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   inputContainerUp: {
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 20,
   },
   floatingLabel: {
