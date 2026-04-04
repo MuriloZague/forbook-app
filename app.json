@@ -31,6 +31,7 @@
       "expo-router",
       [
         "expo-splash-screen",
+        "expo-camera",
         {
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
@@ -38,7 +39,8 @@
           "backgroundColor": "#ffffff",
           "dark": {
             "backgroundColor": "#000000"
-          }
+          },
+          "cameraPermission": "Precisamos da câmera para escanear o ISBN do livro."
         }
       ],
       "expo-font"
