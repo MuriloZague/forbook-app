@@ -191,21 +191,6 @@ export default function Modal() {
                   <Ionicons name="add" size={24} color="#6c63ff" />
                 </TouchableOpacity>
 
-                {/* Imagem 2 */}
-                <TouchableOpacity style={styles.attachmentBox} activeOpacity={0.7}>
-                  <Ionicons name="add" size={24} color="#6c63ff" />
-                </TouchableOpacity>
-
-                {/* Imagem 3 */}
-                <TouchableOpacity style={styles.attachmentBox} activeOpacity={0.7}>
-                  <Ionicons name="add" size={24} color="#6c63ff" />
-                </TouchableOpacity>
-
-                {/* Imagem 4 */}
-                <TouchableOpacity style={styles.attachmentBox} activeOpacity={0.7}>
-                  <Ionicons name="add" size={24} color="#6c63ff" />
-                </TouchableOpacity>
-
 
               </View>
             </View>
