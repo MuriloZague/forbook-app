@@ -2,7 +2,7 @@ import StepIndicator from "@/src/components/stepIndicator";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { router } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Dimensions,
   KeyboardAvoidingView,
@@ -17,8 +17,10 @@ import {
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import Animated, {
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
+  withSequence,
   withTiming,
 } from "react-native-reanimated";
 
@@ -58,12 +60,55 @@ export default function LoginScreen() {
   const [step, setStep] = useState(1);
 
   const translateX = useSharedValue(0);
+  const shakeX = useSharedValue(0);
 
   const PAGE_WIDTH = Dimensions.get("window").width - 40;
 
-  const [estado, setEstado] = useState("");
+  // Step 1 fields
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [nascimento, setNascimento] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+
+  // Step 2 fields
+  const [cep, setCep] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [numero, setNumero] = useState("");
+  const [complemento, setComplemento] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
+
+  // Validation errors
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+
+  // Step 1 validation
+  const isStep1Valid = useMemo(
+    () =>
+      nome.trim() !== "" &&
+      email.trim() !== "" &&
+      cpf.trim() !== "" &&
+      telefone.trim() !== "" &&
+      nascimento.trim() !== "" &&
+      senha.trim() !== "" &&
+      confirmarSenha.trim() !== "",
+    [nome, email, cpf, telefone, nascimento, senha, confirmarSenha]
+  );
+
+  // Step 2 validation
+  const isStep2Valid = useMemo(
+    () =>
+      cep.trim() !== "" &&
+      endereco.trim() !== "" &&
+      numero.trim() !== "" &&
+      bairro.trim() !== "" &&
+      cidade.trim() !== "" &&
+      estado.trim() !== "",
+    [cep, endereco, numero, bairro, cidade, estado]
+  );
 
   const scrollViewRef = React.useRef<ScrollView>(null);
 
@@ -82,18 +127,78 @@ export default function LoginScreen() {
   };
 
   const handleNext = useCallback(() => {
+    if (!isStep1Valid) {
+      const newErrors: Record<string, boolean> = {};
+      if (!nome.trim()) newErrors.nome = true;
+      if (!email.trim()) newErrors.email = true;
+      if (!cpf.trim()) newErrors.cpf = true;
+      if (!telefone.trim()) newErrors.telefone = true;
+      if (!nascimento.trim()) newErrors.nascimento = true;
+      if (!senha.trim()) newErrors.senha = true;
+      if (!confirmarSenha.trim()) newErrors.confirmarSenha = true;
+      setErrors(newErrors);
+      cancelAnimation(shakeX);
+      shakeX.value = withSequence(
+        withTiming(0, { duration: 30 }),
+        withTiming(-8, { duration: 50 }),
+        withTiming(8, { duration: 100 }),
+        withTiming(-6, { duration: 100 }),
+        withTiming(6, { duration: 100 }),
+        withTiming(-4, { duration: 100 }),
+        withTiming(4, { duration: 100 }),
+        withTiming(0, { duration: 100 })
+      );
+      return;
+    }
+    setErrors({});
     translateX.value = withTiming(-(width - 40), { duration: 300 });
     setStep(2);
-  }, []);
+  }, [isStep1Valid, nome, email, cpf, telefone, nascimento, senha, confirmarSenha]);
 
   const handleBack = useCallback(() => {
+    if (!isStep2Valid) {
+      const newErrors: Record<string, boolean> = {};
+      if (!cep.trim()) newErrors.cep = true;
+      if (!endereco.trim()) newErrors.endereco = true;
+      if (!numero.trim()) newErrors.numero = true;
+      if (!bairro.trim()) newErrors.bairro = true;
+      if (!cidade.trim()) newErrors.cidade = true;
+      if (!estado.trim()) newErrors.estado = true;
+      setErrors(newErrors);
+      shakeX.value = withSequence(
+        withTiming(-8, { duration: 50 }),
+        withTiming(8, { duration: 100 }),
+        withTiming(-6, { duration: 100 }),
+        withTiming(6, { duration: 100 }),
+        withTiming(-4, { duration: 100 }),
+        withTiming(4, { duration: 100 }),
+        withTiming(0, { duration: 100 })
+      );
+      return;
+    }
+    setErrors({});
     translateX.value = withTiming(0, { duration: 300 });
     setStep(1);
-  }, []);
+  }, [isStep2Valid, cep, endereco, numero, bairro, cidade, estado]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
+
+  const shakeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: shakeX.value }],
+  }));
+
+  const clearError = useCallback((field: string) => {
+    setErrors((prev) => {
+      if (prev[field]) {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      }
+      return prev;
+    });
+  }, []);
 
   return (
     <SafeAreaProvider style={styles.main}>
@@ -127,76 +232,94 @@ export default function LoginScreen() {
 
             <View style={styles.sliderContainer}>
               <Animated.View style={[styles.slider, animatedStyle]}>
+                <Animated.View style={[styles.shakeWrapper, shakeStyle]}>
                 <View style={styles.formPage}>
                   <View>
                     <Text style={styles.label}>Nome Completo</Text>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, errors.nome && styles.inputError]}
+                      value={nome}
+                      onChangeText={(t) => { setNome(t); clearError("nome"); }}
                       placeholderTextColor="#6C63FF"
                       placeholder="Preencha com seu Nome"
                     />
+                    {errors.nome && <Text style={styles.errorText}>Preencha o campo</Text>}
                   </View>
                   <View>
                     <Text style={styles.label}>Email</Text>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, errors.email && styles.inputError]}
+                      value={email}
+                      onChangeText={(t) => { setEmail(t); clearError("email"); }}
                       placeholderTextColor="#6C63FF"
                       placeholder="Preencha com seu Email"
                     />
+                    {errors.email && <Text style={styles.errorText}>Preencha o campo</Text>}
                   </View>
                   <View>
                     <Text style={styles.label}>CPF</Text>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, errors.cpf && styles.inputError]}
+                      value={cpf}
+                      onChangeText={(t) => { setCpf(t); clearError("cpf"); }}
                       keyboardType="numeric"
                       placeholderTextColor="#6C63FF"
                       placeholder="000.000.000-00"
                     />
+                    {errors.cpf && <Text style={styles.errorText}>Preencha o campo</Text>}
                   </View>
                   <View style={styles.row}>
                     <View style={styles.inputTelefone}>
                       <Text style={styles.label}>Telefone</Text>
                       <TextInput
-                        style={styles.input}
+                        style={[styles.input, errors.telefone && styles.inputError]}
+                        value={telefone}
+                        onChangeText={(t) => { setTelefone(t); clearError("telefone"); }}
                         keyboardType="numeric"
                         placeholderTextColor="#6C63FF"
                         placeholder="+55 (00) 00000-0000"
                       />
+                      {errors.telefone && <Text style={styles.errorText}>Preencha o campo</Text>}
                     </View>
 
                     <View style={styles.inputNascimento}>
                       <Text style={styles.label}>Nascimento</Text>
                       <TextInput
-                        style={styles.input}
+                        style={[styles.input, errors.nascimento && styles.inputError]}
+                        value={nascimento}
+                        onChangeText={(t) => { setNascimento(t); clearError("nascimento"); }}
                         keyboardType="numeric"
                         placeholderTextColor="#6C63FF"
                         placeholder="dd/mm/aaaa"
                       />
+                      {errors.nascimento && <Text style={styles.errorText}>Preencha o campo</Text>}
                     </View>
                   </View>
                   <View style={{ gap: 6 }}>
                     <View>
                       <Text style={styles.label}>Senha</Text>
                       <TextInput
-                        style={styles.input}
+                        style={[styles.input, errors.senha && styles.inputError]}
                         secureTextEntry
                         value={senha}
-                        onChangeText={setSenha}
+                        onChangeText={(t) => { setSenha(t); clearError("senha"); }}
                         onPress={handlePasswordFocus}
                         placeholderTextColor="#6C63FF"
                         placeholder="Preencha com sua Senha"
                       />
+                      {errors.senha && <Text style={styles.errorText}>Preencha o campo</Text>}
                     </View>
                     <View>
                       <TextInput
-                        style={styles.input}
+                        style={[styles.input, errors.confirmarSenha && styles.inputError]}
                         secureTextEntry
                         value={confirmarSenha}
-                        onChangeText={setConfirmarSenha}
+                        onChangeText={(t) => { setConfirmarSenha(t); clearError("confirmarSenha"); }}
                         onPress={handlePasswordFocus}
                         placeholderTextColor="#6C63FF"
                         placeholder="Confirme sua Senha"
                       />
+                      {errors.confirmarSenha && <Text style={styles.errorText}>Preencha o campo</Text>}
                     </View>
                     <View>
                       <View style={styles.requisiteRow}>
@@ -244,42 +367,55 @@ export default function LoginScreen() {
                     </View>
                   </View>
                 </View>
+                </Animated.View>
 
+                <Animated.View style={[styles.shakeWrapper, shakeStyle]}>
                 <View style={styles.formPage}>
                   <View>
                     <Text style={styles.label}>CEP</Text>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, errors.cep && styles.inputError]}
+                      value={cep}
+                      onChangeText={(t) => { setCep(t); clearError("cep"); }}
                       keyboardType="numeric"
                       placeholderTextColor="#6C63FF"
                       placeholder="00000-000"
                     />
+                    {errors.cep && <Text style={styles.errorText}>Preencha o campo</Text>}
                   </View>
 
                   <View>
                     <Text style={styles.label}>Endereço</Text>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, errors.endereco && styles.inputError]}
+                      value={endereco}
+                      onChangeText={(t) => { setEndereco(t); clearError("endereco"); }}
                       placeholderTextColor="#6C63FF"
                       placeholder="Preencha com seu Endereço"
                     />
+                    {errors.endereco && <Text style={styles.errorText}>Preencha o campo</Text>}
                   </View>
 
                   <View style={styles.row}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.label}>Nº</Text>
                       <TextInput
-                        style={styles.input}
+                        style={[styles.input, errors.numero && styles.inputError]}
+                        value={numero}
+                        onChangeText={(t) => { setNumero(t); clearError("numero"); }}
                         keyboardType="numeric"
                         placeholderTextColor="#6C63FF"
                         placeholder="Nº"
                       />
+                      {errors.numero && <Text style={styles.errorText}>Preencha o campo</Text>}
                     </View>
 
                     <View style={{ flex: 4 }}>
                       <Text style={styles.label}>Complemento</Text>
                       <TextInput
                         style={styles.input}
+                        value={complemento}
+                        onChangeText={(t) => { setComplemento(t); clearError("complemento"); }}
                         placeholderTextColor="#6C63FF"
                         placeholder="Preencha com seu Complemento"
                       />
@@ -289,28 +425,34 @@ export default function LoginScreen() {
                   <View>
                     <Text style={styles.label}>Bairro</Text>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, errors.bairro && styles.inputError]}
+                      value={bairro}
+                      onChangeText={(t) => { setBairro(t); clearError("bairro"); }}
                       placeholderTextColor="#6C63FF"
                       placeholder="Preencha com seu Bairro"
                     />
+                    {errors.bairro && <Text style={styles.errorText}>Preencha o campo</Text>}
                   </View>
 
                   <View style={styles.row}>
                     <View style={{ flex: 2 }}>
                       <Text style={styles.label}>Cidade</Text>
                       <TextInput
-                        style={styles.input}
+                        style={[styles.input, errors.cidade && styles.inputError]}
+                        value={cidade}
+                        onChangeText={(t) => { setCidade(t); clearError("cidade"); }}
                         placeholderTextColor="#6C63FF"
                         placeholder="Preencha com sua Cidade"
                       />
+                      {errors.cidade && <Text style={styles.errorText}>Preencha o campo</Text>}
                     </View>
 
                     <View style={{ flex: 1 }}>
                       <Text style={styles.label}>Estado</Text>
-                      <View style={styles.pickerWrapper}>
+                      <View style={[styles.pickerWrapper, errors.estado && styles.inputError]}>
                         <Picker
                           selectedValue={estado}
-                          onValueChange={(val) => setEstado(val)}
+                          onValueChange={(val) => { setEstado(val); clearError("estado"); }}
                           style={styles.picker}
                           dropdownIconColor="#6C63FF"
                         >
@@ -320,15 +462,20 @@ export default function LoginScreen() {
                           ))}
                         </Picker>
                       </View>
+                      {errors.estado && <Text style={styles.errorText}>Preencha o campo</Text>}
                     </View>
                   </View>
                 </View>
+                </Animated.View>
               </Animated.View>
             </View>
 
-            <View style={styles.btnContainer}>
+            <Animated.View style={[styles.btnContainer, shakeStyle]}>
               {step === 1 ? (
-                <TouchableOpacity style={styles.btn} onPress={handleNext}>
+                <TouchableOpacity
+                  style={styles.btn}
+                  onPress={handleNext}
+                >
                   <View style={styles.btnContent}>
                     <Text style={styles.btnText}>Continuar</Text>
                     <Ionicons name="arrow-forward" size={22} color="white" />
@@ -339,7 +486,7 @@ export default function LoginScreen() {
                   <Text style={styles.btnText}>CRIAR CONTA</Text>
                 </TouchableOpacity>
               )}
-            </View>
+            </Animated.View>
           </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
@@ -406,6 +553,9 @@ const styles = StyleSheet.create({
     width: width - 40,
     gap: 16,
   },
+  shakeWrapper: {
+    width: width - 40,
+  },
   input: {
     borderWidth: 2,
     borderColor: "#6C63FF",
@@ -414,6 +564,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "montserratRegular",
     color: "black",
+  },
+  inputError: {
+    borderColor: "#FF4444",
+  },
+  errorText: {
+    color: "#FF4444",
+    fontSize: 12,
+    fontFamily: "montserratRegular",
+    marginTop: 4,
+    marginLeft: 4,
   },
 
   label: {
