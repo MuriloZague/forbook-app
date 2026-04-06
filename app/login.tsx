@@ -35,6 +35,7 @@ export default function LoginScreen() {
               placeholder="Preencha com seu Email"
               placeholderTextColor="#A6A8AA"
               style={styles.input}
+              secureTextEntry
             />
           </View>
 

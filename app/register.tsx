@@ -309,6 +309,7 @@ export default function LoginScreen() {
                             clearError("telefone");
                           }}
                           keyboardType="numeric"
+                          secureTextEntry
                           placeholderTextColor="#6C63FF"
                           placeholder="+55 (00) 00000-0000"
                         />
@@ -323,6 +324,7 @@ export default function LoginScreen() {
                             errors.nascimento && styles.inputError,
                           ]}
                           value={nascimento}
+                          secureTextEntry
                           onChangeText={(t) => {
                             setNascimento(t);
                             clearError("nascimento");
@@ -501,6 +503,7 @@ export default function LoginScreen() {
                           styles.input,
                           errors.bairro && styles.inputError,
                         ]}
+                        secureTextEntry
                         value={bairro}
                         onChangeText={(t) => {
                           setBairro(t);
