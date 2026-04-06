@@ -39,11 +39,15 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npx expo start   
      ```
 
-## Esses comandos geram o arquivo para development build
+## Esses comandos geram o arquivo para development build:
 
 
    ```bash
    --> para buildar uma versao final do aplicativo usar:
    
-   npx expo run:android --variant release   
+   npx expo run:android --variant release
+
+   --> versão de produção real:
+   
+   npx eas build --platform android   
    ```
