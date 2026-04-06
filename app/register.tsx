@@ -60,7 +60,8 @@ export default function LoginScreen() {
   const [step, setStep] = useState(1);
 
   const translateX = useSharedValue(0);
-  const shakeX = useSharedValue(0);
+  const shakeStep1 = useSharedValue(0);
+  const shakeStep2 = useSharedValue(0);
 
   const PAGE_WIDTH = Dimensions.get("window").width - 40;
 
@@ -137,11 +138,11 @@ export default function LoginScreen() {
       if (!senha.trim()) newErrors.senha = true;
       if (!confirmarSenha.trim()) newErrors.confirmarSenha = true;
       setErrors(newErrors);
-      cancelAnimation(shakeX);
-      shakeX.value = withSequence(
+      cancelAnimation(shakeStep1);
+      shakeStep1.value = withSequence(
         withTiming(0, { duration: 30 }),
-        withTiming(-8, { duration: 50 }),
-        withTiming(8, { duration: 100 }),
+        withTiming(-5, { duration: 50 }),
+        withTiming(5, { duration: 100 }),
         withTiming(-6, { duration: 100 }),
         withTiming(6, { duration: 100 }),
         withTiming(-4, { duration: 100 }),
@@ -174,11 +175,12 @@ export default function LoginScreen() {
       if (!cidade.trim()) newErrors.cidade = true;
       if (!estado.trim()) newErrors.estado = true;
       setErrors(newErrors);
-      shakeX.value = withSequence(
-        withTiming(-8, { duration: 50 }),
-        withTiming(8, { duration: 100 }),
-        withTiming(-6, { duration: 100 }),
-        withTiming(6, { duration: 100 }),
+      cancelAnimation(shakeStep2);
+      shakeStep2.value = withSequence(
+        withTiming(-5, { duration: 50 }),
+        withTiming(5, { duration: 100 }),
+        withTiming(-5, { duration: 100 }),
+        withTiming(5, { duration: 100 }),
         withTiming(-4, { duration: 100 }),
         withTiming(4, { duration: 100 }),
         withTiming(0, { duration: 100 }),
@@ -194,8 +196,12 @@ export default function LoginScreen() {
     transform: [{ translateX: translateX.value }],
   }));
 
-  const shakeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: shakeX.value }],
+  const shakeStyle1 = useAnimatedStyle(() => ({
+    transform: [{ translateX: shakeStep1.value }],
+  }));
+
+  const shakeStyle2 = useAnimatedStyle(() => ({
+    transform: [{ translateX: shakeStep2.value }],
   }));
 
   const clearError = useCallback((field: string) => {
@@ -241,7 +247,7 @@ export default function LoginScreen() {
 
             <View style={styles.sliderContainer}>
               <Animated.View style={[styles.slider, animatedStyle]}>
-                <Animated.View style={[styles.shakeWrapper, shakeStyle]}>
+                <Animated.View style={[styles.shakeWrapper, shakeStyle1]}>
                   <View style={styles.formPage}>
                     <View>
                       <Text style={styles.label}>Nome Completo</Text>
@@ -414,7 +420,10 @@ export default function LoginScreen() {
                   </View>
                 </Animated.View>
 
-                <Animated.View style={[styles.shakeWrapper, shakeStyle]}>
+                <Animated.View
+                  style={[styles.shakeWrapper, step === 1 ? {} : shakeStyle2, { opacity: step === 2 ? 1 : 0 }]}
+                  pointerEvents={step === 2 ? "auto" : "none"}
+                >
                   <View style={styles.formPage}>
                     <View>
                       <Text style={styles.label}>CEP</Text>
@@ -429,9 +438,7 @@ export default function LoginScreen() {
                         placeholderTextColor="#6C63FF"
                         placeholder="00000-000"
                       />
-                      {errors.cep && (
-                        <Text style={styles.errorText}>Preencha o campo</Text>
-                      )}
+                      
                     </View>
 
                     <View>
@@ -449,9 +456,7 @@ export default function LoginScreen() {
                         placeholderTextColor="#6C63FF"
                         placeholder="Preencha com seu Endereço"
                       />
-                      {errors.endereco && (
-                        <Text style={styles.errorText}>Preencha o campo</Text>
-                      )}
+                      
                     </View>
 
                     <View style={styles.row}>
@@ -471,9 +476,7 @@ export default function LoginScreen() {
                           placeholderTextColor="#6C63FF"
                           placeholder="Nº"
                         />
-                        {errors.numero && (
-                          <Text style={styles.errorText}>Preencha o campo</Text>
-                        )}
+                        
                       </View>
 
                       <View style={{ flex: 4 }}>
@@ -506,9 +509,7 @@ export default function LoginScreen() {
                         placeholderTextColor="#6C63FF"
                         placeholder="Preencha com seu Bairro"
                       />
-                      {errors.bairro && (
-                        <Text style={styles.errorText}>Preencha o campo</Text>
-                      )}
+                      
                     </View>
 
                     <View style={styles.row}>
@@ -527,9 +528,7 @@ export default function LoginScreen() {
                           placeholderTextColor="#6C63FF"
                           placeholder="Preencha com sua Cidade"
                         />
-                        {errors.cidade && (
-                          <Text style={styles.errorText}>Preencha o campo</Text>
-                        )}
+                        
                       </View>
 
                       <View style={{ flex: 1 }}>
@@ -555,9 +554,7 @@ export default function LoginScreen() {
                             ))}
                           </Picker>
                         </View>
-                        {errors.estado && (
-                          <Text style={styles.errorText}>Preencha o campo</Text>
-                        )}
+                       
                       </View>
                     </View>
                   </View>
@@ -565,7 +562,7 @@ export default function LoginScreen() {
               </Animated.View>
             </View>
 
-            <Animated.View style={[styles.btnContainer, shakeStyle]}>
+            <Animated.View style={[styles.btnContainer, step === 1 ? shakeStyle1 : shakeStyle2]}>
               {step === 1 ? (
                 <>
                   <TouchableOpacity style={styles.btn} onPress={handleNext}>
@@ -574,9 +571,7 @@ export default function LoginScreen() {
                       <Ionicons name="arrow-forward" size={22} color="white" />
                     </View>
                   </TouchableOpacity>
-                  {errors.nome && (
-                    <Text style={styles.errorText}>Preencha todos os campos!</Text>
-                  )}
+                  
                 </>
               ) : (
                 <TouchableOpacity style={styles.btn} onPress={handleBack}>
