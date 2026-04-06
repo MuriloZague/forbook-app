@@ -95,7 +95,7 @@ export default function LoginScreen() {
       nascimento.trim() !== "" &&
       senha.trim() !== "" &&
       confirmarSenha.trim() !== "",
-    [nome, email, cpf, telefone, nascimento, senha, confirmarSenha]
+    [nome, email, cpf, telefone, nascimento, senha, confirmarSenha],
   );
 
   // Step 2 validation
@@ -107,7 +107,7 @@ export default function LoginScreen() {
       bairro.trim() !== "" &&
       cidade.trim() !== "" &&
       estado.trim() !== "",
-    [cep, endereco, numero, bairro, cidade, estado]
+    [cep, endereco, numero, bairro, cidade, estado],
   );
 
   const scrollViewRef = React.useRef<ScrollView>(null);
@@ -146,14 +146,23 @@ export default function LoginScreen() {
         withTiming(6, { duration: 100 }),
         withTiming(-4, { duration: 100 }),
         withTiming(4, { duration: 100 }),
-        withTiming(0, { duration: 100 })
+        withTiming(0, { duration: 100 }),
       );
       return;
     }
     setErrors({});
     translateX.value = withTiming(-(width - 40), { duration: 300 });
     setStep(2);
-  }, [isStep1Valid, nome, email, cpf, telefone, nascimento, senha, confirmarSenha]);
+  }, [
+    isStep1Valid,
+    nome,
+    email,
+    cpf,
+    telefone,
+    nascimento,
+    senha,
+    confirmarSenha,
+  ]);
 
   const handleBack = useCallback(() => {
     if (!isStep2Valid) {
@@ -172,7 +181,7 @@ export default function LoginScreen() {
         withTiming(6, { duration: 100 }),
         withTiming(-4, { duration: 100 }),
         withTiming(4, { duration: 100 }),
-        withTiming(0, { duration: 100 })
+        withTiming(0, { duration: 100 }),
       );
       return;
     }
@@ -233,254 +242,342 @@ export default function LoginScreen() {
             <View style={styles.sliderContainer}>
               <Animated.View style={[styles.slider, animatedStyle]}>
                 <Animated.View style={[styles.shakeWrapper, shakeStyle]}>
-                <View style={styles.formPage}>
-                  <View>
-                    <Text style={styles.label}>Nome Completo</Text>
-                    <TextInput
-                      style={[styles.input, errors.nome && styles.inputError]}
-                      value={nome}
-                      onChangeText={(t) => { setNome(t); clearError("nome"); }}
-                      placeholderTextColor="#6C63FF"
-                      placeholder="Preencha com seu Nome"
-                    />
-                    {errors.nome && <Text style={styles.errorText}>Preencha o campo</Text>}
-                  </View>
-                  <View>
-                    <Text style={styles.label}>Email</Text>
-                    <TextInput
-                      style={[styles.input, errors.email && styles.inputError]}
-                      value={email}
-                      onChangeText={(t) => { setEmail(t); clearError("email"); }}
-                      placeholderTextColor="#6C63FF"
-                      placeholder="Preencha com seu Email"
-                    />
-                    {errors.email && <Text style={styles.errorText}>Preencha o campo</Text>}
-                  </View>
-                  <View>
-                    <Text style={styles.label}>CPF</Text>
-                    <TextInput
-                      style={[styles.input, errors.cpf && styles.inputError]}
-                      value={cpf}
-                      onChangeText={(t) => { setCpf(t); clearError("cpf"); }}
-                      keyboardType="numeric"
-                      placeholderTextColor="#6C63FF"
-                      placeholder="000.000.000-00"
-                    />
-                    {errors.cpf && <Text style={styles.errorText}>Preencha o campo</Text>}
-                  </View>
-                  <View style={styles.row}>
-                    <View style={styles.inputTelefone}>
-                      <Text style={styles.label}>Telefone</Text>
+                  <View style={styles.formPage}>
+                    <View>
+                      <Text style={styles.label}>Nome Completo</Text>
                       <TextInput
-                        style={[styles.input, errors.telefone && styles.inputError]}
-                        value={telefone}
-                        onChangeText={(t) => { setTelefone(t); clearError("telefone"); }}
+                        style={[styles.input, errors.nome && styles.inputError]}
+                        value={nome}
+                        onChangeText={(t) => {
+                          setNome(t);
+                          clearError("nome");
+                        }}
+                        placeholderTextColor="#6C63FF"
+                        placeholder="Preencha com seu Nome"
+                      />
+                      {/*  {errors.nome && <Text style={styles.errorText}>Preencha o campo</Text>}*/}
+                    </View>
+                    <View>
+                      <Text style={styles.label}>Email</Text>
+                      <TextInput
+                        style={[
+                          styles.input,
+                          errors.email && styles.inputError,
+                        ]}
+                        value={email}
+                        onChangeText={(t) => {
+                          setEmail(t);
+                          clearError("email");
+                        }}
+                        placeholderTextColor="#6C63FF"
+                        placeholder="Preencha com seu Email"
+                      />
+                      {/*  {errors.nome && <Text style={styles.errorText}>Preencha o campo</Text>}*/}
+                    </View>
+                    <View>
+                      <Text style={styles.label}>CPF</Text>
+                      <TextInput
+                        style={[styles.input, errors.cpf && styles.inputError]}
+                        value={cpf}
+                        onChangeText={(t) => {
+                          setCpf(t);
+                          clearError("cpf");
+                        }}
                         keyboardType="numeric"
                         placeholderTextColor="#6C63FF"
-                        placeholder="+55 (00) 00000-0000"
+                        placeholder="000.000.000-00"
                       />
-                      {errors.telefone && <Text style={styles.errorText}>Preencha o campo</Text>}
+                      {/*  {errors.nome && <Text style={styles.errorText}>Preencha o campo</Text>}*/}
                     </View>
+                    <View style={styles.row}>
+                      <View style={styles.inputTelefone}>
+                        <Text style={styles.label}>Telefone</Text>
+                        <TextInput
+                          style={[
+                            styles.input,
+                            errors.telefone && styles.inputError,
+                          ]}
+                          value={telefone}
+                          onChangeText={(t) => {
+                            setTelefone(t);
+                            clearError("telefone");
+                          }}
+                          keyboardType="numeric"
+                          placeholderTextColor="#6C63FF"
+                          placeholder="+55 (00) 00000-0000"
+                        />
+                        {/*  {errors.nome && <Text style={styles.errorText}>Preencha o campo</Text>}*/}
+                      </View>
 
-                    <View style={styles.inputNascimento}>
-                      <Text style={styles.label}>Nascimento</Text>
-                      <TextInput
-                        style={[styles.input, errors.nascimento && styles.inputError]}
-                        value={nascimento}
-                        onChangeText={(t) => { setNascimento(t); clearError("nascimento"); }}
-                        keyboardType="numeric"
-                        placeholderTextColor="#6C63FF"
-                        placeholder="dd/mm/aaaa"
-                      />
-                      {errors.nascimento && <Text style={styles.errorText}>Preencha o campo</Text>}
+                      <View style={styles.inputNascimento}>
+                        <Text style={styles.label}>Nascimento</Text>
+                        <TextInput
+                          style={[
+                            styles.input,
+                            errors.nascimento && styles.inputError,
+                          ]}
+                          value={nascimento}
+                          onChangeText={(t) => {
+                            setNascimento(t);
+                            clearError("nascimento");
+                          }}
+                          keyboardType="numeric"
+                          placeholderTextColor="#6C63FF"
+                          placeholder="dd/mm/aaaa"
+                        />
+                        {/*  {errors.nome && <Text style={styles.errorText}>Preencha o campo</Text>}*/}
+                      </View>
+                    </View>
+                    <View style={{ gap: 6 }}>
+                      <View>
+                        <Text style={styles.label}>Senha</Text>
+                        <TextInput
+                          style={[
+                            styles.input,
+                            errors.senha && styles.inputError,
+                          ]}
+                          secureTextEntry
+                          value={senha}
+                          onChangeText={(t) => {
+                            setSenha(t);
+                            clearError("senha");
+                          }}
+                          onPress={handlePasswordFocus}
+                          placeholderTextColor="#6C63FF"
+                          placeholder="Preencha com sua Senha"
+                        />
+                        {/*  {errors.nome && <Text style={styles.errorText}>Preencha o campo</Text>}*/}
+                      </View>
+                      <View>
+                        <TextInput
+                          style={[
+                            styles.input,
+                            errors.confirmarSenha && styles.inputError,
+                          ]}
+                          secureTextEntry
+                          value={confirmarSenha}
+                          onChangeText={(t) => {
+                            setConfirmarSenha(t);
+                            clearError("confirmarSenha");
+                          }}
+                          onPress={handlePasswordFocus}
+                          placeholderTextColor="#6C63FF"
+                          placeholder="Confirme sua Senha"
+                        />
+                        {/*  {errors.nome && <Text style={styles.errorText}>Preencha o campo</Text>}*/}
+                      </View>
+                      <View>
+                        <View style={styles.requisiteRow}>
+                          <Ionicons
+                            name={
+                              temMinimo8Caracteres
+                                ? "checkmark-circle"
+                                : "close-circle"
+                            }
+                            size={16}
+                            color={temMinimo8Caracteres ? "#4CAF50" : "#ff6584"}
+                          />
+                          <Text style={styles.requisitesText}>
+                            8 ou mais caracteres
+                          </Text>
+                        </View>
+                        <View style={styles.requisiteRow}>
+                          <Ionicons
+                            name={
+                              temLetraMaiuscula
+                                ? "checkmark-circle"
+                                : "close-circle"
+                            }
+                            size={16}
+                            color={temLetraMaiuscula ? "#4CAF50" : "#ff6584"}
+                          />
+                          <Text style={styles.requisitesText}>
+                            Uma letra maiúscula
+                          </Text>
+                        </View>
+                        <View style={styles.requisiteRow}>
+                          <Ionicons
+                            name={
+                              temLetraMinuscula
+                                ? "checkmark-circle"
+                                : "close-circle"
+                            }
+                            size={16}
+                            color={temLetraMinuscula ? "#4CAF50" : "#ff6584"}
+                          />
+                          <Text style={styles.requisitesText}>
+                            Uma letra minúscula
+                          </Text>
+                        </View>
+                      </View>
                     </View>
                   </View>
-                  <View style={{ gap: 6 }}>
-                    <View>
-                      <Text style={styles.label}>Senha</Text>
-                      <TextInput
-                        style={[styles.input, errors.senha && styles.inputError]}
-                        secureTextEntry
-                        value={senha}
-                        onChangeText={(t) => { setSenha(t); clearError("senha"); }}
-                        onPress={handlePasswordFocus}
-                        placeholderTextColor="#6C63FF"
-                        placeholder="Preencha com sua Senha"
-                      />
-                      {errors.senha && <Text style={styles.errorText}>Preencha o campo</Text>}
-                    </View>
-                    <View>
-                      <TextInput
-                        style={[styles.input, errors.confirmarSenha && styles.inputError]}
-                        secureTextEntry
-                        value={confirmarSenha}
-                        onChangeText={(t) => { setConfirmarSenha(t); clearError("confirmarSenha"); }}
-                        onPress={handlePasswordFocus}
-                        placeholderTextColor="#6C63FF"
-                        placeholder="Confirme sua Senha"
-                      />
-                      {errors.confirmarSenha && <Text style={styles.errorText}>Preencha o campo</Text>}
-                    </View>
-                    <View>
-                      <View style={styles.requisiteRow}>
-                        <Ionicons
-                          name={
-                            temMinimo8Caracteres
-                              ? "checkmark-circle"
-                              : "close-circle"
-                          }
-                          size={16}
-                          color={temMinimo8Caracteres ? "#4CAF50" : "#ff6584"}
-                        />
-                        <Text style={styles.requisitesText}>
-                          8 ou mais caracteres
-                        </Text>
-                      </View>
-                      <View style={styles.requisiteRow}>
-                        <Ionicons
-                          name={
-                            temLetraMaiuscula
-                              ? "checkmark-circle"
-                              : "close-circle"
-                          }
-                          size={16}
-                          color={temLetraMaiuscula ? "#4CAF50" : "#ff6584"}
-                        />
-                        <Text style={styles.requisitesText}>
-                          Uma letra maiúscula
-                        </Text>
-                      </View>
-                      <View style={styles.requisiteRow}>
-                        <Ionicons
-                          name={
-                            temLetraMinuscula
-                              ? "checkmark-circle"
-                              : "close-circle"
-                          }
-                          size={16}
-                          color={temLetraMinuscula ? "#4CAF50" : "#ff6584"}
-                        />
-                        <Text style={styles.requisitesText}>
-                          Uma letra minúscula
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                </View>
                 </Animated.View>
 
                 <Animated.View style={[styles.shakeWrapper, shakeStyle]}>
-                <View style={styles.formPage}>
-                  <View>
-                    <Text style={styles.label}>CEP</Text>
-                    <TextInput
-                      style={[styles.input, errors.cep && styles.inputError]}
-                      value={cep}
-                      onChangeText={(t) => { setCep(t); clearError("cep"); }}
-                      keyboardType="numeric"
-                      placeholderTextColor="#6C63FF"
-                      placeholder="00000-000"
-                    />
-                    {errors.cep && <Text style={styles.errorText}>Preencha o campo</Text>}
-                  </View>
-
-                  <View>
-                    <Text style={styles.label}>Endereço</Text>
-                    <TextInput
-                      style={[styles.input, errors.endereco && styles.inputError]}
-                      value={endereco}
-                      onChangeText={(t) => { setEndereco(t); clearError("endereco"); }}
-                      placeholderTextColor="#6C63FF"
-                      placeholder="Preencha com seu Endereço"
-                    />
-                    {errors.endereco && <Text style={styles.errorText}>Preencha o campo</Text>}
-                  </View>
-
-                  <View style={styles.row}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.label}>Nº</Text>
+                  <View style={styles.formPage}>
+                    <View>
+                      <Text style={styles.label}>CEP</Text>
                       <TextInput
-                        style={[styles.input, errors.numero && styles.inputError]}
-                        value={numero}
-                        onChangeText={(t) => { setNumero(t); clearError("numero"); }}
+                        style={[styles.input, errors.cep && styles.inputError]}
+                        value={cep}
+                        onChangeText={(t) => {
+                          setCep(t);
+                          clearError("cep");
+                        }}
                         keyboardType="numeric"
                         placeholderTextColor="#6C63FF"
-                        placeholder="Nº"
+                        placeholder="00000-000"
                       />
-                      {errors.numero && <Text style={styles.errorText}>Preencha o campo</Text>}
+                      {errors.cep && (
+                        <Text style={styles.errorText}>Preencha o campo</Text>
+                      )}
                     </View>
 
-                    <View style={{ flex: 4 }}>
-                      <Text style={styles.label}>Complemento</Text>
+                    <View>
+                      <Text style={styles.label}>Endereço</Text>
                       <TextInput
-                        style={styles.input}
-                        value={complemento}
-                        onChangeText={(t) => { setComplemento(t); clearError("complemento"); }}
+                        style={[
+                          styles.input,
+                          errors.endereco && styles.inputError,
+                        ]}
+                        value={endereco}
+                        onChangeText={(t) => {
+                          setEndereco(t);
+                          clearError("endereco");
+                        }}
                         placeholderTextColor="#6C63FF"
-                        placeholder="Preencha com seu Complemento"
+                        placeholder="Preencha com seu Endereço"
                       />
-                    </View>
-                  </View>
-
-                  <View>
-                    <Text style={styles.label}>Bairro</Text>
-                    <TextInput
-                      style={[styles.input, errors.bairro && styles.inputError]}
-                      value={bairro}
-                      onChangeText={(t) => { setBairro(t); clearError("bairro"); }}
-                      placeholderTextColor="#6C63FF"
-                      placeholder="Preencha com seu Bairro"
-                    />
-                    {errors.bairro && <Text style={styles.errorText}>Preencha o campo</Text>}
-                  </View>
-
-                  <View style={styles.row}>
-                    <View style={{ flex: 2 }}>
-                      <Text style={styles.label}>Cidade</Text>
-                      <TextInput
-                        style={[styles.input, errors.cidade && styles.inputError]}
-                        value={cidade}
-                        onChangeText={(t) => { setCidade(t); clearError("cidade"); }}
-                        placeholderTextColor="#6C63FF"
-                        placeholder="Preencha com sua Cidade"
-                      />
-                      {errors.cidade && <Text style={styles.errorText}>Preencha o campo</Text>}
+                      {errors.endereco && (
+                        <Text style={styles.errorText}>Preencha o campo</Text>
+                      )}
                     </View>
 
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.label}>Estado</Text>
-                      <View style={[styles.pickerWrapper, errors.estado && styles.inputError]}>
-                        <Picker
-                          selectedValue={estado}
-                          onValueChange={(val) => { setEstado(val); clearError("estado"); }}
-                          style={styles.picker}
-                          dropdownIconColor="#6C63FF"
-                        >
-                          <Picker.Item label="Selecione" value="" />
-                          {ESTADOS.map((uf) => (
-                            <Picker.Item key={uf} label={uf} value={uf} />
-                          ))}
-                        </Picker>
+                    <View style={styles.row}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.label}>Nº</Text>
+                        <TextInput
+                          style={[
+                            styles.input,
+                            errors.numero && styles.inputError,
+                          ]}
+                          value={numero}
+                          onChangeText={(t) => {
+                            setNumero(t);
+                            clearError("numero");
+                          }}
+                          keyboardType="numeric"
+                          placeholderTextColor="#6C63FF"
+                          placeholder="Nº"
+                        />
+                        {errors.numero && (
+                          <Text style={styles.errorText}>Preencha o campo</Text>
+                        )}
                       </View>
-                      {errors.estado && <Text style={styles.errorText}>Preencha o campo</Text>}
+
+                      <View style={{ flex: 4 }}>
+                        <Text style={styles.label}>Complemento</Text>
+                        <TextInput
+                          style={styles.input}
+                          value={complemento}
+                          onChangeText={(t) => {
+                            setComplemento(t);
+                            clearError("complemento");
+                          }}
+                          placeholderTextColor="#6C63FF"
+                          placeholder="Preencha com seu Complemento"
+                        />
+                      </View>
+                    </View>
+
+                    <View>
+                      <Text style={styles.label}>Bairro</Text>
+                      <TextInput
+                        style={[
+                          styles.input,
+                          errors.bairro && styles.inputError,
+                        ]}
+                        value={bairro}
+                        onChangeText={(t) => {
+                          setBairro(t);
+                          clearError("bairro");
+                        }}
+                        placeholderTextColor="#6C63FF"
+                        placeholder="Preencha com seu Bairro"
+                      />
+                      {errors.bairro && (
+                        <Text style={styles.errorText}>Preencha o campo</Text>
+                      )}
+                    </View>
+
+                    <View style={styles.row}>
+                      <View style={{ flex: 2 }}>
+                        <Text style={styles.label}>Cidade</Text>
+                        <TextInput
+                          style={[
+                            styles.input,
+                            errors.cidade && styles.inputError,
+                          ]}
+                          value={cidade}
+                          onChangeText={(t) => {
+                            setCidade(t);
+                            clearError("cidade");
+                          }}
+                          placeholderTextColor="#6C63FF"
+                          placeholder="Preencha com sua Cidade"
+                        />
+                        {errors.cidade && (
+                          <Text style={styles.errorText}>Preencha o campo</Text>
+                        )}
+                      </View>
+
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.label}>Estado</Text>
+                        <View
+                          style={[
+                            styles.pickerWrapper,
+                            errors.estado && styles.inputError,
+                          ]}
+                        >
+                          <Picker
+                            selectedValue={estado}
+                            onValueChange={(val) => {
+                              setEstado(val);
+                              clearError("estado");
+                            }}
+                            style={styles.picker}
+                            dropdownIconColor="#6C63FF"
+                          >
+                            <Picker.Item label="Selecione" value="" />
+                            {ESTADOS.map((uf) => (
+                              <Picker.Item key={uf} label={uf} value={uf} />
+                            ))}
+                          </Picker>
+                        </View>
+                        {errors.estado && (
+                          <Text style={styles.errorText}>Preencha o campo</Text>
+                        )}
+                      </View>
                     </View>
                   </View>
-                </View>
                 </Animated.View>
               </Animated.View>
             </View>
 
             <Animated.View style={[styles.btnContainer, shakeStyle]}>
               {step === 1 ? (
-                <TouchableOpacity
-                  style={styles.btn}
-                  onPress={handleNext}
-                >
-                  <View style={styles.btnContent}>
-                    <Text style={styles.btnText}>Continuar</Text>
-                    <Ionicons name="arrow-forward" size={22} color="white" />
-                  </View>
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity style={styles.btn} onPress={handleNext}>
+                    <View style={styles.btnContent}>
+                      <Text style={styles.btnText}>Continuar</Text>
+                      <Ionicons name="arrow-forward" size={22} color="white" />
+                    </View>
+                  </TouchableOpacity>
+                  {errors.nome && (
+                    <Text style={styles.errorText}>Preencha todos os campos!</Text>
+                  )}
+                </>
               ) : (
                 <TouchableOpacity style={styles.btn} onPress={handleBack}>
                   <Text style={styles.btnText}>CRIAR CONTA</Text>
@@ -498,7 +595,7 @@ const styles = StyleSheet.create({
   main: {
     flex: 1,
     backgroundColor: "#F0F2F5",
-    paddingHorizontal: 20,
+    marginHorizontal: 20,
   },
 
   keyboardAvoid: {
@@ -566,14 +663,13 @@ const styles = StyleSheet.create({
     color: "black",
   },
   inputError: {
-    borderColor: "#FF4444",
+    borderColor: "#ff6584",
   },
   errorText: {
-    color: "#FF4444",
-    fontSize: 12,
-    fontFamily: "montserratRegular",
-    marginTop: 4,
-    marginLeft: 4,
+    color: "#ff6584",
+    fontSize: 14,
+    fontFamily: "montserratBold",
+    marginTop: 16,
   },
 
   label: {
