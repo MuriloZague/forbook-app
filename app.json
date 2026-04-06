@@ -41,6 +41,12 @@
           }
         }
       ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Precisamos da câmera para escanear o ISBN do livro!"
+        }
+      ],
       "expo-font"
     ],
     "experiments": {
