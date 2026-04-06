@@ -423,7 +423,11 @@ export default function LoginScreen() {
                 </Animated.View>
 
                 <Animated.View
-                  style={[styles.shakeWrapper, step === 1 ? {} : shakeStyle2, { opacity: step === 2 ? 1 : 0 }]}
+                  style={[
+                    styles.shakeWrapper,
+                    step === 1 ? {} : shakeStyle2,
+                    { opacity: step === 2 ? 1 : 0 },
+                  ]}
                   pointerEvents={step === 2 ? "auto" : "none"}
                 >
                   <View style={styles.formPage}>
@@ -440,7 +444,6 @@ export default function LoginScreen() {
                         placeholderTextColor="#6C63FF"
                         placeholder="00000-000"
                       />
-                      
                     </View>
 
                     <View>
@@ -458,7 +461,6 @@ export default function LoginScreen() {
                         placeholderTextColor="#6C63FF"
                         placeholder="Preencha com seu Endereço"
                       />
-                      
                     </View>
 
                     <View style={styles.row}>
@@ -478,7 +480,6 @@ export default function LoginScreen() {
                           placeholderTextColor="#6C63FF"
                           placeholder="Nº"
                         />
-                        
                       </View>
 
                       <View style={{ flex: 4 }}>
@@ -512,7 +513,6 @@ export default function LoginScreen() {
                         placeholderTextColor="#6C63FF"
                         placeholder="Preencha com seu Bairro"
                       />
-                      
                     </View>
 
                     <View style={styles.row}>
@@ -531,7 +531,6 @@ export default function LoginScreen() {
                           placeholderTextColor="#6C63FF"
                           placeholder="Preencha com sua Cidade"
                         />
-                        
                       </View>
 
                       <View style={{ flex: 1 }}>
@@ -557,7 +556,6 @@ export default function LoginScreen() {
                             ))}
                           </Picker>
                         </View>
-                       
                       </View>
                     </View>
                   </View>
@@ -565,7 +563,12 @@ export default function LoginScreen() {
               </Animated.View>
             </View>
 
-            <Animated.View style={[styles.btnContainer, step === 1 ? shakeStyle1 : shakeStyle2]}>
+            <Animated.View
+              style={[
+                styles.btnContainer,
+                step === 1 ? shakeStyle1 : shakeStyle2,
+              ]}
+            >
               {step === 1 ? (
                 <>
                   <TouchableOpacity style={styles.btn} onPress={handleNext}>
@@ -574,7 +577,6 @@ export default function LoginScreen() {
                       <Ionicons name="arrow-forward" size={22} color="white" />
                     </View>
                   </TouchableOpacity>
-                  
                 </>
               ) : (
                 <TouchableOpacity style={styles.btn} onPress={handleBack}>
