@@ -45,5 +45,5 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    ```bash
    --> para buildar uma versao final do aplicativo usar:
    
-   npx expo run:android --variant release   
+   npx eas build --profile preview --platform android
    ```
