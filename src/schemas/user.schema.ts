@@ -25,7 +25,7 @@ export const userCreateBodySchema = z.object({
     name: z.string("Nome deve ser um texto").trim().min(2, "Nome deve ter no mínimo 2 caracteres"),
     phoneNumber: z.string("Telefone deve ser um texto").trim().min(10, "Telefone inválido").max(20, "Telefone inválido"),
     cpf: z.string("CPF deve ser um texto").trim().regex(/^\d{11}$/, "CPF deve conter 11 dígitos (apenas números)"),
-    birthDate: z.string().trim().min(1, "Data de nascimento é obrigatória"),
+    birthDate: z.string().trim().min(8, "Data de nascimento é obrigatória"),
     address: addressCreateSchema,
 });
 

@@ -170,12 +170,9 @@ export default function LoginScreen() {
     const result = userCreateBodySchema.safeParse(data);
 
     const filtered: Record<string, string> = {};
-    if (result.success) {
-      if (senha !== confirmarSenha) {
-        filtered.confirmPassword = "As senhas não coincidem";
-      }
-    } else {
-      const errs = extractErrors(result.error);
+
+    if (!result.success) {
+      const zodErr = extractErrors(result.error);
       const step1Mapping: Record<string, string> = {
         email: "email",
         password: "senha",
@@ -185,19 +182,23 @@ export default function LoginScreen() {
         birthDate: "nascimento",
       };
       for (const [zodField, localField] of Object.entries(step1Mapping)) {
-        if (errs[zodField]) filtered[localField] = errs[zodField];
+        if (zodErr[zodField]) filtered[localField] = zodErr[zodField];
       }
-      if (senha !== confirmarSenha)
-        filtered.confirmPassword = "As senhas não coincidem";
     }
 
     if (!nome.trim()) filtered.nome = "Preencha o campo";
     if (!email.trim()) filtered.email = "Preencha o campo";
-    if (!cpf.trim()) filtered.cpf = "Preencha o campo";
-    if (!telefone.trim()) filtered.telefone = "Preencha o campo";
-    if (!nascimento.trim()) filtered.nascimento = "Preencha o campo";
     if (!senha.trim()) filtered.senha = "Preencha o campo";
     if (!confirmarSenha.trim()) filtered.confirmPassword = "Preencha o campo";
+    if (senha !== confirmarSenha && senha.trim() && confirmarSenha.trim())
+      filtered.confirmPassword = "As senhas não coincidem";
+
+    if (!temMinimo8Caracteres && senha.trim())
+      filtered.senha = "Mínimo de 8 caracteres";
+    if (!temLetraMaiuscula && senha.trim())
+      filtered.senha = "Precisa de uma letra maiúscula";
+    if (!temLetraMinuscula && senha.trim() && !filtered.senha)
+      filtered.senha = "Precisa de uma letra minúscula";
 
     if (Object.keys(filtered).length > 0) {
       setErrors(filtered);
@@ -224,9 +225,9 @@ export default function LoginScreen() {
       email: email.trim(),
       password: senha,
       name: nome.trim(),
-      cpf: cpf.trim(),
-      phoneNumber: telefone.trim(),
-      birthDate: nascimento.trim(),
+      cpf: cpf.replace(/\D/g, ""),
+      phoneNumber: telefone.replace(/\D/g, ""),
+      birthDate: nascimento.replace(/\D/g, ""),
       address: {
         street: endereco.trim(),
         number: numero.trim(),
