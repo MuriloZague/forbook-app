@@ -2,7 +2,7 @@ import StepIndicator from "@/src/components/stepIndicator";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { router } from "expo-router";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState, useRef } from "react";
 import {
   Dimensions,
   KeyboardAvoidingView,
@@ -63,6 +63,35 @@ const ESTADOS = [
   "TO",
 ];
 
+const formatCpf = (value: string): string => {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length > 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+  if (digits.length > 6) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  if (digits.length > 3) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  return digits;
+};
+
+const formatPhone = (value: string): string => {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (!digits) return "";
+  if (digits.length <= 2) {
+    return `( ${digits}`;
+  }
+  const ddd = digits.slice(0, 2);
+  const rest = digits.slice(2);
+  if (rest.length > 5) {
+    return `(${ddd}) ${rest.slice(0, 5)}-${rest.slice(5)}`;
+  }
+  return `(${ddd}) ${rest}`;
+};
+
+const formatDate = (value: string): string => {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  if (digits.length > 4) return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+  if (digits.length > 2) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return digits;
+};
+
 export default function LoginScreen() {
   const [step, setStep] = useState(1);
 
@@ -92,6 +121,9 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   const scrollViewRef = React.useRef<ScrollView>(null);
+  const cpfRef = useRef("");
+  const telefoneRef = useRef("");
+  const nascimentoRef = useRef("");
 
   const clearFieldError = (field: string) => {
     if (errors[field])
@@ -122,9 +154,9 @@ export default function LoginScreen() {
       email,
       password: senha,
       name: nome,
-      cpf,
-      phoneNumber: telefone,
-      birthDate: nascimento,
+      cpf: cpf.replace(/\D/g, ""),
+      phoneNumber: telefone.replace(/\D/g, ""),
+      birthDate: nascimento.replace(/\D/g, ""),
       address: {
         street: "",
         number: "",
@@ -378,6 +410,7 @@ export default function LoginScreen() {
                           displayErrors.nome && styles.inputError,
                         ]}
                         value={nome}
+                        maxLength={100}
                         onChangeText={(t) => {
                           setNome(t);
                           clearFieldError("nome");
@@ -423,10 +456,11 @@ export default function LoginScreen() {
                         ]}
                         value={cpf}
                         onChangeText={(t) => {
-                          setCpf(t);
+                          setCpf(formatCpf(t));
                           clearFieldError("cpf");
                         }}
                         keyboardType="numeric"
+                        maxLength={14}
                         placeholderTextColor="#6C63FF"
                         placeholder="000.000.000-00"
                       />
@@ -445,13 +479,14 @@ export default function LoginScreen() {
                             displayErrors.telefone && styles.inputError,
                           ]}
                           value={telefone}
+                          maxLength={15}
                           onChangeText={(t) => {
-                            setTelefone(t);
+                            setTelefone(formatPhone(t));
                             clearFieldError("telefone");
                           }}
                           keyboardType="numeric"
                           placeholderTextColor="#6C63FF"
-                          placeholder="+55 (00) 00000-0000"
+                          placeholder="(00) 00000-0000"
                         />
                         {displayErrors.telefone && (
                           <Text style={styles.errorText}>
@@ -467,8 +502,9 @@ export default function LoginScreen() {
                             displayErrors.nascimento && styles.inputError,
                           ]}
                           value={nascimento}
+                          maxLength={10}
                           onChangeText={(t) => {
-                            setNascimento(t);
+                            setNascimento(formatDate(t));
                             clearFieldError("nascimento");
                           }}
                           keyboardType="numeric"
@@ -490,6 +526,7 @@ export default function LoginScreen() {
                             styles.input,
                             displayErrors.senha && styles.inputError,
                           ]}
+                          maxLength={100}
                           secureTextEntry
                           value={senha}
                           onChangeText={(t) => {
@@ -514,6 +551,7 @@ export default function LoginScreen() {
                           ]}
                           secureTextEntry
                           value={confirmarSenha}
+                          maxLength={100}
                           onChangeText={(t) => {
                             setConfirmarSenha(t);
                             clearFieldError("confirmPassword");
@@ -851,7 +889,8 @@ const styles = StyleSheet.create({
     color: "#ff6584",
     fontSize: 10,
     fontFamily: "montserratBold",
-    marginTop: 4,
+    marginTop: 1,
+    marginLeft: 2,
   },
   label: {
     position: "absolute",

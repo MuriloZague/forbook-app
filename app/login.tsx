@@ -216,9 +216,9 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "#ff6584",
-    fontSize: 13,
+    fontSize: 10,
     fontFamily: "montserratBold",
-    marginTop: 4,
+    marginTop: 2
   },
   highlightedTextForm: {
     fontFamily: "montserratBold",
