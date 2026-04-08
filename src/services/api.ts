@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3002";
+const API_URL = "";
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     const res = await fetch(`${API_URL}${path}`, {

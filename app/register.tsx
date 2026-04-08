@@ -65,8 +65,10 @@ const ESTADOS = [
 
 const formatCpf = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 11);
-  if (digits.length > 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
-  if (digits.length > 6) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  if (digits.length > 9)
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+  if (digits.length > 6)
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
   if (digits.length > 3) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
   return digits;
 };
@@ -87,7 +89,8 @@ const formatPhone = (value: string): string => {
 
 const formatDate = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 8);
-  if (digits.length > 4) return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+  if (digits.length > 4)
+    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
   if (digits.length > 2) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
   return digits;
 };
@@ -227,7 +230,14 @@ export default function LoginScreen() {
       name: nome.trim(),
       cpf: cpf.replace(/\D/g, ""),
       phoneNumber: telefone.replace(/\D/g, ""),
-      birthDate: nascimento.replace(/\D/g, ""),
+      birthDate: (() => {
+        const digits = nascimento.replace(/\D/g, "");
+        const d = digits.slice(0, 2);
+        const m = digits.slice(2, 4);
+        const y = digits.slice(4, 8);
+        return `${y}-${m}-${d}`;
+      })(),
+
       address: {
         street: endereco.trim(),
         number: numero.trim(),
@@ -239,9 +249,15 @@ export default function LoginScreen() {
       },
     };
 
+    console.log("Payload:", JSON.stringify(payload, null, 2));
+
     const result = userCreateBodySchema.safeParse(payload);
 
     if (!result.success) {
+      console.log(
+        "Erros Zod:",
+        JSON.stringify(result.error.flatten(), null, 2),
+      );
       const errs = extractErrors(result.error);
       console.log("Zod errors:", JSON.stringify(errs));
 
