@@ -2,8 +2,10 @@ import StepIndicator from "@/src/components/stepIndicator";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { router } from "expo-router";
-import React, { useCallback, useState, useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
@@ -13,8 +15,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
-  Alert,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
@@ -26,12 +26,14 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { userCreateBodySchema } from "@/src/schemas/user.schema";
 import { extractErrors } from "@/src/lib/zod-errors";
-import { userService } from "@/src/services/user.service";
+import { userCreateBodySchema } from "@/src/schemas/user.schema";
 import { ApiError } from "@/src/services/api";
+import { userService } from "@/src/services/user.service";
 
 const { width } = Dimensions.get("window");
+const HORIZONTAL_MARGIN = 12;
+const FORM_WIDTH = width - HORIZONTAL_MARGIN * 2;
 
 const ESTADOS = [
   "AC",
@@ -219,7 +221,7 @@ export default function LoginScreen() {
       return;
     }
     setErrors({});
-    translateX.value = withTiming(-(width - 40), { duration: 300 });
+    translateX.value = withTiming(-FORM_WIDTH, { duration: 300 });
     setStep(2);
   }, [email, senha, nome, cpf, telefone, nascimento, confirmarSenha]);
 
@@ -842,7 +844,7 @@ const styles = StyleSheet.create({
   main: {
     flex: 1,
     backgroundColor: "#F0F2F5",
-    marginHorizontal: 20,
+    marginHorizontal: HORIZONTAL_MARGIN,
   },
   keyboardAvoid: {
     flex: 1,
@@ -857,7 +859,7 @@ const styles = StyleSheet.create({
     paddingTop: 36,
   },
   sliderContainer: {
-    width: width - 40,
+    width: FORM_WIDTH,
     overflow: "hidden",
     paddingTop: 12,
   },
@@ -881,14 +883,14 @@ const styles = StyleSheet.create({
   },
   slider: {
     flexDirection: "row",
-    width: (width - 40) * 2,
+    width: FORM_WIDTH * 2,
   },
   formPage: {
-    width: width - 40,
+    width: FORM_WIDTH,
     gap: 16,
   },
   shakeWrapper: {
-    width: width - 40,
+    width: FORM_WIDTH,
   },
   input: {
     borderWidth: 2,
