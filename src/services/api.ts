@@ -1,4 +1,4 @@
-const API_URL = "";
+const API_URL = process.env.EXPO_PUBLIC_API_URL!;
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     const res = await fetch(`${API_URL}${path}`, {
