@@ -131,7 +131,7 @@ export default function Modal() {
 
           {/* Sinopse */}
           <View style={styles.inputContainer}>
-            <Text style={styles.floatingLabel}>Sinopse / Observações</Text>
+            <Text style={styles.floatingLabel}>Descrição / Observações</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               placeholder="Descreva sobre o livro..."
