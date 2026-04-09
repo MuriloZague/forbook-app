@@ -188,7 +188,6 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     position: "relative",
-    marginTop: 8,
   },
   label: {
     position: "absolute",
