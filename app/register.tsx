@@ -404,15 +404,24 @@ export default function LoginScreen() {
           >
             <View style={styles.titleContent}>
               <Text style={styles.bigTitle}>Crie sua conta</Text>
-              <Text style={styles.minorTitle}>
-                Já possui uma conta?{" "}
-                <Text
-                  style={styles.linkText}
-                  onPress={() => router.push("/login")}
-                >
-                  Entre agora!
+              {step === 1 ? (
+                <Text style={styles.minorTitle}>
+                  Já possui uma conta?{" "}
+                  <Text
+                    style={styles.linkText}
+                    onPress={() => router.push("/login")}
+                  >
+                    Entre agora!
+                  </Text>
                 </Text>
-              </Text>
+              ) : (
+                <TouchableOpacity onPress={() => handleBack()}>
+                  <View style={styles.backButton}>
+                    <Ionicons name="arrow-back" size={20} color="#6C63FF" />
+                    <Text style={styles.backButtonText}>Voltar</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
             </View>
 
             <StepIndicator step={step} total={2} />
@@ -880,6 +889,16 @@ const styles = StyleSheet.create({
     fontFamily: "montserratBold",
     color: "#6C63FF",
     textDecorationLine: "underline",
+  },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  backButtonText: {
+    fontFamily: "montserratBold",
+    fontSize: 16,
+    color: "#6C63FF",
   },
   slider: {
     flexDirection: "row",
