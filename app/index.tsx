@@ -42,6 +42,7 @@ export default function TelaInicial() {
           source={require("../assets/images/Logo.png")}
           style={{ width: 84, height: 52 }}
         />
+        <Text style={{marginTop: 8, fontFamily: 'lexendRegular'}}>v0.2.0</Text>
       </View>
     </SafeAreaProvider>
   );

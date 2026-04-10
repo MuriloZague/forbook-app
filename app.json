@@ -21,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.murilada.forbook"
+      "package": "com.forbook.dev"
     },
     "web": {
       "output": "static",

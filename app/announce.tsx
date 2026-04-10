@@ -131,7 +131,7 @@ export default function Modal() {
 
           {/* Sinopse */}
           <View style={styles.inputContainer}>
-            <Text style={styles.floatingLabel}>Sinopse / Observações</Text>
+            <Text style={styles.floatingLabel}>Descrição / Observações</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               placeholder="Descreva sobre o livro..."
@@ -224,7 +224,7 @@ export default function Modal() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#F0F2F5",
   },
   title: {
     fontSize: 16,
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -10,
     left: 12,
-    backgroundColor: "#ffffff", // Tem que ser igual ao fundo da tela
+    backgroundColor: "#F0F2F5", // Tem que ser igual ao fundo da tela
     paddingHorizontal: 4,
     fontSize: 13,
     color: "#6c63ff",
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: "#f8f8f8",
+    backgroundColor: "#F0F2F5",
     borderWidth: 1,
     borderColor: "#e0e0e0",
   },

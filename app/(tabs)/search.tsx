@@ -89,10 +89,10 @@ export default function SearchScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F0F2F5",
   },
   headerWrapper: {
-    backgroundColor: "#fff",
+    backgroundColor: "#F0F2F5",
   },
   categoryWrapper: {
     height: 2,

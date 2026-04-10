@@ -225,12 +225,12 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  wrapper: { paddingBottom: IOS_PAD, backgroundColor: "#fff" },
+  wrapper: { paddingBottom: IOS_PAD, backgroundColor: "#F0F2F5" },
   bar: {
     flexDirection: "row",
     alignItems: "center",
     height: BAR_HEIGHT,
-    backgroundColor: "#fff",
+    backgroundColor: "#F0F2F5",
     borderTopWidth: 1,
     borderTopColor: "#e8e8e8",
   },
