@@ -98,6 +98,41 @@ const formatDate = (value: string): string => {
   return digits;
 };
 
+const formatCep = (value: string): string => {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  if (digits.length > 5) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  return digits;
+};
+
+type CorreiosCepResponse = {
+  erro: boolean | string;
+  mensagem: string;
+  total?: number;
+  dados?: Array<{
+    uf: string;
+    localidade: string;
+    logradouroDNEC: string;
+    bairro: string;
+    cep: string;
+  }>;
+};
+
+type ViaCepResponse = {
+  cep?: string;
+  logradouro?: string;
+  bairro?: string;
+  localidade?: string;
+  uf?: string;
+  erro?: boolean;
+};
+
+type CepAddressData = {
+  street: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+};
+
 export default function LoginScreen() {
   const [step, setStep] = useState(1);
 
@@ -125,11 +160,14 @@ export default function LoginScreen() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
 
   const scrollViewRef = React.useRef<ScrollView>(null);
   const cpfRef = useRef("");
   const telefoneRef = useRef("");
   const nascimentoRef = useRef("");
+  const lastCepFetchedRef = useRef("");
+  const cepRequestRef = useRef(0);
 
   const clearFieldError = (field: string) => {
     if (errors[field])
@@ -158,6 +196,124 @@ export default function LoginScreen() {
       Alert.alert("Erro", "Não foi possível abrir o navegador.");
     }
   };
+
+  const handleCepLookup = useCallback(async (cepValue: string) => {
+    const digits = cepValue.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+
+    const requestId = ++cepRequestRef.current;
+    setCepLoading(true);
+
+    try {
+      const lookupViaCorreios = async (): Promise<CepAddressData | null> => {
+        const params = new URLSearchParams({
+          cep: digits,
+          capt: "1",
+          inicio: "1",
+          final: "50",
+        });
+
+        const response = await fetch(
+          "https://buscacepinter.correios.com.br/app/cep/carrega-cep.php",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/x-www-form-urlencoded; charset=UTF-8",
+            },
+            body: params.toString(),
+          },
+        );
+
+        const result = (await response.json()) as CorreiosCepResponse;
+        const hasError = result.erro === true || result.erro === "true";
+        const firstAddress = result.dados?.[0];
+
+        if (!response.ok || hasError || !firstAddress) return null;
+
+        return {
+          street: firstAddress.logradouroDNEC ?? "",
+          neighborhood: firstAddress.bairro ?? "",
+          city: firstAddress.localidade ?? "",
+          state: firstAddress.uf ?? "",
+        };
+      };
+
+      const lookupViaViaCep = async (): Promise<CepAddressData | null> => {
+        const response = await fetch(
+          `https://viacep.com.br/ws/${digits}/json/`,
+        );
+        const result = (await response.json()) as ViaCepResponse;
+
+        if (!response.ok || result.erro) return null;
+
+        return {
+          street: result.logradouro ?? "",
+          neighborhood: result.bairro ?? "",
+          city: result.localidade ?? "",
+          state: result.uf ?? "",
+        };
+      };
+
+      let addressData: CepAddressData | null = null;
+
+      if (Platform.OS === "web") {
+        // Correios blocks browser cross-origin requests; web uses a CORS-friendly CEP source.
+        addressData = await lookupViaViaCep();
+      } else {
+        try {
+          addressData = await lookupViaCorreios();
+        } catch {
+          addressData = await lookupViaViaCep();
+        }
+      }
+
+      if (requestId !== cepRequestRef.current) return;
+
+      if (!addressData) {
+        setEndereco("");
+        setBairro("");
+        setCidade("");
+        setEstado("");
+        setErrors((prev) => ({
+          ...prev,
+          cep: "CEP não encontrado.",
+        }));
+        return;
+      }
+
+      setEndereco(addressData.street);
+      setBairro(addressData.neighborhood);
+      setCidade(addressData.city);
+      setEstado(addressData.state);
+      lastCepFetchedRef.current = digits;
+
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.cep;
+        delete next.endereco;
+        delete next.bairro;
+        delete next.cidade;
+        delete next.estado;
+        return next;
+      });
+    } catch {
+      if (requestId !== cepRequestRef.current) return;
+
+      setEndereco("");
+      setBairro("");
+      setCidade("");
+      setEstado("");
+      setErrors((prev) => ({
+        ...prev,
+        cep: "Não foi possível consultar o CEP agora.",
+      }));
+    } finally {
+      if (requestId === cepRequestRef.current) {
+        setCepLoading(false);
+      }
+    }
+  }, []);
 
   // Password requirements (kept as visual indicators)
   const temMinimo8Caracteres = senha.length >= 8;
@@ -323,6 +479,8 @@ export default function LoginScreen() {
       Alert.alert("Sucesso", "Conta criada com sucesso!", [
         { text: "OK", onPress: () => router.push("/login") },
       ]);
+      router.push("/(tabs)/home");
+
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422 && error.errors) {
@@ -671,13 +829,37 @@ export default function LoginScreen() {
                           ]}
                           value={cep}
                           onChangeText={(t) => {
-                            setCep(t);
+                            const formattedCep = formatCep(t);
+                            const digits = formattedCep.replace(/\D/g, "");
+
+                            setCep(formattedCep);
                             clearFieldError("cep");
+
+                            if (digits.length < 8) {
+                              lastCepFetchedRef.current = "";
+                              setEndereco("");
+                              setBairro("");
+                              setCidade("");
+                              setEstado("");
+                              return;
+                            }
+
+                            if (digits !== lastCepFetchedRef.current) {
+                              void handleCepLookup(formattedCep);
+                            }
                           }}
                           keyboardType="numeric"
+                          maxLength={9}
                           placeholderTextColor="#6C63FF"
                           placeholder="00000-000"
                         />
+                        {cepLoading && (
+                          <ActivityIndicator
+                            style={styles.cepLoadingIndicator}
+                            color="#6C63FF"
+                            size="small"
+                          />
+                        )}
                         {displayErrors.cep && (
                           <Text style={styles.errorText}>
                             {displayErrors.cep}
@@ -714,9 +896,11 @@ export default function LoginScreen() {
                       <TextInput
                         style={[
                           styles.input,
+                          styles.readOnlyInput,
                           displayErrors.endereco && styles.inputError,
                         ]}
                         value={endereco}
+                        editable={false}
                         onChangeText={(t) => {
                           setEndereco(t);
                           clearFieldError("endereco");
@@ -775,9 +959,11 @@ export default function LoginScreen() {
                       <TextInput
                         style={[
                           styles.input,
+                          styles.readOnlyInput,
                           displayErrors.bairro && styles.inputError,
                         ]}
                         value={bairro}
+                        editable={false}
                         onChangeText={(t) => {
                           setBairro(t);
                           clearFieldError("bairro");
@@ -798,9 +984,11 @@ export default function LoginScreen() {
                         <TextInput
                           style={[
                             styles.input,
+                            styles.readOnlyInput,
                             displayErrors.cidade && styles.inputError,
                           ]}
                           value={cidade}
+                          editable={false}
                           onChangeText={(t) => {
                             setCidade(t);
                             clearFieldError("cidade");
@@ -958,6 +1146,14 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: "#ff6584",
+  },
+  readOnlyInput: {
+    backgroundColor: "#E8EAF2",
+    color: "#5B5B5B",
+  },
+  cepLoadingIndicator: {
+    marginTop: 8,
+    alignSelf: "flex-start",
   },
   errorText: {
     color: "#ff6584",
