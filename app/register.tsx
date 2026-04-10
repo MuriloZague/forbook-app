@@ -8,6 +8,7 @@ import {
   Alert,
   Dimensions,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -146,6 +147,16 @@ export default function LoginScreen() {
         animated: true,
       });
     }, 100);
+  };
+
+  const handleCepHelpPress = async () => {
+    const url = "https://buscacepinter.correios.com.br/app/endereco/index.php";
+
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert("Erro", "Não foi possível abrir o navegador.");
+    }
   };
 
   // Password requirements (kept as visual indicators)
@@ -650,27 +661,52 @@ export default function LoginScreen() {
                   pointerEvents={step === 2 ? "auto" : "none"}
                 >
                   <View style={styles.formPage}>
-                    <View>
-                      <Text style={styles.label}>CEP</Text>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          displayErrors.cep && styles.inputError,
-                        ]}
-                        value={cep}
-                        onChangeText={(t) => {
-                          setCep(t);
-                          clearFieldError("cep");
-                        }}
-                        keyboardType="numeric"
-                        placeholderTextColor="#6C63FF"
-                        placeholder="00000-000"
-                      />
-                      {displayErrors.cep && (
-                        <Text style={styles.errorText}>
-                          {displayErrors.cep}
-                        </Text>
-                      )}
+                    <View style={styles.row}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.label}>CEP</Text>
+                        <TextInput
+                          style={[
+                            styles.input,
+                            displayErrors.cep && styles.inputError,
+                          ]}
+                          value={cep}
+                          onChangeText={(t) => {
+                            setCep(t);
+                            clearFieldError("cep");
+                          }}
+                          keyboardType="numeric"
+                          placeholderTextColor="#6C63FF"
+                          placeholder="00000-000"
+                        />
+                        {displayErrors.cep && (
+                          <Text style={styles.errorText}>
+                            {displayErrors.cep}
+                          </Text>
+                        )}
+                      </View>
+
+                      <View style={{ flex: 1 }}>
+                        <TouchableOpacity
+                          style={{
+                            backgroundColor: "#6C63FF",
+                            padding: 12,
+                            borderRadius: 12,
+                            paddingVertical: 16,
+                          }}
+                          activeOpacity={0.7}
+                          onPress={handleCepHelpPress}
+                        >
+                          <Text
+                            style={{
+                              color: "#fff",
+                              fontFamily: "montserratBold",
+                              fontSize: 14,
+                            }}
+                          >
+                            NÃO SABE O CEP?
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
 
                     <View>
