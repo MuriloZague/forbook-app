@@ -161,6 +161,7 @@ export default function LoginScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const scrollViewRef = React.useRef<ScrollView>(null);
   const cpfRef = useRef("");
@@ -393,6 +394,8 @@ export default function LoginScreen() {
   }, [email, senha, nome, cpf, telefone, nascimento, confirmarSenha]);
 
   const handleConfirmar = useCallback(async () => {
+    setSubmitError("");
+
     const payload = {
       email: email.trim(),
       password: senha,
@@ -457,6 +460,7 @@ export default function LoginScreen() {
         filtered.confirmPassword = "As senhas não coincidem";
 
       setErrors(filtered);
+      setSubmitError("Verifique os dados e tente novamente.");
 
       cancelAnimation(shakeStep2);
       shakeStep2.value = withSequence(
@@ -476,11 +480,11 @@ export default function LoginScreen() {
 
     try {
       await userService.create(result.data);
+      setSubmitError("");
       Alert.alert("Sucesso", "Conta criada com sucesso!", [
         { text: "OK", onPress: () => router.push("/login") },
       ]);
       router.push("/(tabs)/home");
-
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422 && error.errors) {
@@ -492,11 +496,12 @@ export default function LoginScreen() {
               ]),
             ),
           );
+          setSubmitError("Verifique os campos obrigatórios.");
         } else {
-          Alert.alert("Erro", error.message);
+          setSubmitError(error.message || "Não foi possível criar a conta.");
         }
       } else {
-        Alert.alert("Erro", "Não foi possível conectar ao servidor.");
+        setSubmitError("Não foi possível conectar ao servidor.");
       }
     } finally {
       setLoading(false);
@@ -520,6 +525,7 @@ export default function LoginScreen() {
 
   const handleBack = useCallback(() => {
     setErrors({});
+    setSubmitError("");
     translateX.value = withTiming(0, { duration: 300 });
     setStep(1);
   }, []);
@@ -1044,6 +1050,11 @@ export default function LoginScreen() {
                 step === 1 ? shakeStyle1 : shakeStyle2,
               ]}
             >
+              {step === 2 && !!submitError && (
+                <View style={styles.submitErrorOverlay} pointerEvents="none">
+                  <Text style={styles.submitErrorText}>{submitError}</Text>
+                </View>
+              )}
               {step === 1 ? (
                 <TouchableOpacity style={styles.btn} onPress={handleNext}>
                   <View style={styles.btnContent}>
@@ -1174,6 +1185,21 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     alignItems: "center",
+    position: "relative",
+  },
+  submitErrorOverlay: {
+    position: "absolute",
+    bottom: "100%",
+    marginBottom: 6,
+    width: "100%",
+    alignItems: "center",
+  },
+  submitErrorText: {
+    color: "#ff6584",
+    fontSize: 13,
+    fontFamily: "montserratBold",
+    textAlign: "center",
+    paddingHorizontal: 8,
   },
   btn: {
     backgroundColor: "#6C63FF",
