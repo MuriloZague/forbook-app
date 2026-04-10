@@ -20,8 +20,10 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const clearFieldError = (field: string) => {
+    if (submitError) setSubmitError("");
     if (errors[field])
       setErrors((p) => {
         const n = { ...p };
@@ -31,10 +33,13 @@ export default function LoginScreen() {
   };
 
   const validateAndSubmit = async () => {
+    setSubmitError("");
+
     const result = loginBodySchema.safeParse({ email, password });
 
     if (!result.success) {
       setErrors(extractErrors(result.error));
+      setSubmitError("Verifique os dados e tente novamente.");
       return;
     }
 
@@ -43,6 +48,7 @@ export default function LoginScreen() {
 
     try {
       await authService.login({ email, password: result.data.password });
+      setSubmitError("");
       Alert.alert(
         "Código enviado",
         "Verifique seu e-mail e insira o código de confirmação.",
@@ -51,6 +57,7 @@ export default function LoginScreen() {
       );
       // Quando tiver tela de confirmação, descomente:
       // router.push(`/confirm-login?email=${encodeURIComponent(email)}`);
+      router.push("/(tabs)/home");
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422 && error.errors) {
@@ -62,11 +69,12 @@ export default function LoginScreen() {
               ]),
             ),
           );
+          setSubmitError("Verifique os campos obrigatórios.");
         } else {
-          Alert.alert("Erro", error.message);
+          setSubmitError(error.message || "Não foi possível fazer login.");
         }
       } else {
-        Alert.alert("Erro", "Não foi possível conectar ao servidor.");
+        setSubmitError("Não foi possível conectar ao servidor.");
       }
     } finally {
       setLoading(false);
@@ -134,6 +142,11 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.btnContainer}>
+          {!!submitError && (
+            <View style={styles.submitErrorOverlay} pointerEvents="none">
+              <Text style={styles.submitErrorText}>{submitError}</Text>
+            </View>
+          )}
           <TouchableOpacity
             style={styles.btn}
             activeOpacity={0.7}
@@ -217,7 +230,7 @@ const styles = StyleSheet.create({
     color: "#ff6584",
     fontSize: 10,
     fontFamily: "montserratBold",
-    marginTop: 2
+    marginTop: 2,
   },
   highlightedTextForm: {
     fontFamily: "montserratBold",
@@ -230,6 +243,21 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     alignItems: "center",
+    position: "relative",
+  },
+  submitErrorOverlay: {
+    position: "absolute",
+    bottom: "100%",
+    marginBottom: 6,
+    width: "100%",
+    alignItems: "center",
+  },
+  submitErrorText: {
+    color: "#ff6584",
+    fontSize: 13,
+    fontFamily: "montserratBold",
+    textAlign: "center",
+    paddingHorizontal: 8,
   },
   btn: {
     backgroundColor: "#6C63FF",
