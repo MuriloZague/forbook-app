@@ -1,15 +1,15 @@
 import Notification from "@/assets/images/Notification.svg";
 import User2 from "@/assets/images/User.svg";
+import AppTopHeader from "@/src/components/appTopHeader";
 import BookCard from "@/src/components/bookCard";
+import HorizontalOptionBar from "@/src/components/horizontalOptionBar";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -186,27 +186,28 @@ export default function HomeScreen() {
   function toggleFavorite(id: string) {
     setFavorites((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+
       return next;
     });
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.headerWrapper}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity>
-            <View style={styles.userLogo}>
-              <User2 width={22} height={22} />
-            </View>
-          </TouchableOpacity>
-          <Text style={styles.title}>Forbook</Text>
-          <TouchableOpacity>
-            <Notification width={28} height={28} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.headerShadow} />
-      </View>
+      <AppTopHeader
+        title="Forbook"
+        userContent={
+          <View style={styles.userLogo}>
+            <User2 width={22} height={22} />
+          </View>
+        }
+        notificationContent={<Notification width={28} height={28} />}
+      />
       <View style={styles.wellcomeContent}>
         <Text style={styles.wellcomeText}>
           Bem vindo,{" "}
@@ -216,33 +217,18 @@ export default function HomeScreen() {
         </Text>
       </View>
       <View style={styles.categoryContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
+        <HorizontalOptionBar
+          items={TABS}
+          activeKey={activeCategory}
+          onSelect={(key) => setActiveCategory(key as Category)}
+          scrollable
+          showSeparators
           contentContainerStyle={styles.categoryBar}
-        >
-          {TABS.map((tab, index) => {
-            const isActive = activeCategory === tab.key;
-            return (
-              <View key={tab.key} style={styles.tabWrapper}>
-                {index > 0 && <View style={styles.tabSeparator} />}
-                <TouchableOpacity
-                  onPress={() => setActiveCategory(tab.key)}
-                  style={styles.tabButton}
-                >
-                  <Text
-                    style={[
-                      styles.textCategory,
-                      isActive && styles.textCategoryActive,
-                    ]}
-                  >
-                    {tab.label}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            );
-          })}
-        </ScrollView>
+          optionStyle={styles.tabButton}
+          labelStyle={styles.textCategory}
+          activeLabelStyle={styles.textCategoryActive}
+          separatorStyle={styles.tabSeparator}
+        />
         <View style={styles.categoryWrapper}></View>
       </View>
       <Text style={styles.titleMain}>{SECTION_TITLE[activeCategory]}</Text>
@@ -294,29 +280,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  headerWrapper: {
-    backgroundColor: "#F0F2F5",
-  },
   categoryWrapper: {
     height: 1,
     backgroundColor: "#c4c8ce",
-  },
-  headerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 22,
-    paddingBottom: 16,
-    paddingTop: 12,
-  },
-  headerShadow: {
-    height: 2,
-    backgroundColor: "#0000007a",
-    opacity: 0.25,
-  },
-  title: {
-    fontFamily: "lexendBlack",
-    fontSize: 30,
   },
   wellcomeContent: {
     paddingTop: 24,
@@ -331,11 +297,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 4,
-  },
-
-  tabWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
   },
 
   tabButton: {

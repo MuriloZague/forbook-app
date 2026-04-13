@@ -1,4 +1,7 @@
+import FloatingLabelInput from "@/src/components/floatingLabelInput";
+import PrimaryButton from "@/src/components/primaryButton";
 import StepIndicator from "@/src/components/stepIndicator";
+import SubmitErrorBanner from "@/src/components/submitErrorBanner";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { router } from "expo-router";
@@ -13,7 +16,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -108,13 +110,13 @@ type CorreiosCepResponse = {
   erro: boolean | string;
   mensagem: string;
   total?: number;
-  dados?: Array<{
+  dados?: {
     uf: string;
     localidade: string;
     logradouroDNEC: string;
     bairro: string;
     cep: string;
-  }>;
+  }[];
 };
 
 type ViaCepResponse = {
@@ -164,9 +166,6 @@ export default function LoginScreen() {
   const [submitError, setSubmitError] = useState("");
 
   const scrollViewRef = React.useRef<ScrollView>(null);
-  const cpfRef = useRef("");
-  const telefoneRef = useRef("");
-  const nascimentoRef = useRef("");
   const lastCepFetchedRef = useRef("");
   const cepRequestRef = useRef(0);
 
@@ -605,82 +604,57 @@ export default function LoginScreen() {
               <Animated.View style={[styles.slider, animatedStyle]}>
                 <Animated.View style={[styles.shakeWrapper, shakeStyle1]}>
                   <View style={styles.formPage}>
-                    <View>
-                      <Text style={styles.label}>Nome Completo</Text>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          displayErrors.nome && styles.inputError,
-                        ]}
-                        value={nome}
-                        maxLength={100}
-                        onChangeText={(t) => {
-                          setNome(t);
-                          clearFieldError("nome");
-                        }}
-                        placeholderTextColor="#6C63FF"
-                        placeholder="Preencha com seu Nome"
-                      />
-                      {displayErrors.nome && (
-                        <Text style={styles.errorText}>
-                          {displayErrors.nome}
-                        </Text>
-                      )}
-                    </View>
-                    <View>
-                      <Text style={styles.label}>Email</Text>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          displayErrors.email && styles.inputError,
-                        ]}
-                        value={email}
-                        onChangeText={(t) => {
-                          setEmail(t);
-                          clearFieldError("email");
-                        }}
-                        placeholderTextColor="#6C63FF"
-                        placeholder="Preencha com seu Email"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                      />
-                      {displayErrors.email && (
-                        <Text style={styles.errorText}>
-                          {displayErrors.email}
-                        </Text>
-                      )}
-                    </View>
-                    <View>
-                      <Text style={styles.label}>CPF</Text>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          displayErrors.cpf && styles.inputError,
-                        ]}
-                        value={cpf}
-                        onChangeText={(t) => {
-                          setCpf(formatCpf(t));
-                          clearFieldError("cpf");
-                        }}
-                        keyboardType="numeric"
-                        maxLength={14}
-                        placeholderTextColor="#6C63FF"
-                        placeholder="000.000.000-00"
-                      />
-                      {displayErrors.cpf && (
-                        <Text style={styles.errorText}>
-                          {displayErrors.cpf}
-                        </Text>
-                      )}
-                    </View>
+                    <FloatingLabelInput
+                      label="Nome Completo"
+                      value={nome}
+                      maxLength={100}
+                      onChangeText={(t) => {
+                        setNome(t);
+                        clearFieldError("nome");
+                      }}
+                      placeholderTextColor="#6C63FF"
+                      placeholder="Preencha com seu Nome"
+                      labelStyle={styles.label}
+                      inputStyle={styles.inputText}
+                      error={displayErrors.nome}
+                      errorStyle={styles.errorText}
+                    />
+                    <FloatingLabelInput
+                      label="Email"
+                      value={email}
+                      onChangeText={(t) => {
+                        setEmail(t);
+                        clearFieldError("email");
+                      }}
+                      placeholderTextColor="#6C63FF"
+                      placeholder="Preencha com seu Email"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      labelStyle={styles.label}
+                      inputStyle={styles.inputText}
+                      error={displayErrors.email}
+                      errorStyle={styles.errorText}
+                    />
+                    <FloatingLabelInput
+                      label="CPF"
+                      value={cpf}
+                      onChangeText={(t) => {
+                        setCpf(formatCpf(t));
+                        clearFieldError("cpf");
+                      }}
+                      keyboardType="numeric"
+                      maxLength={14}
+                      placeholderTextColor="#6C63FF"
+                      placeholder="000.000.000-00"
+                      labelStyle={styles.label}
+                      inputStyle={styles.inputText}
+                      error={displayErrors.cpf}
+                      errorStyle={styles.errorText}
+                    />
                     <View style={styles.row}>
                       <View style={styles.inputTelefone}>
-                        <Text style={styles.label}>Telefone</Text>
-                        <TextInput
-                          style={[
-                            styles.input,
-                            displayErrors.telefone && styles.inputError,
-                          ]}
+                        <FloatingLabelInput
+                          label="Telefone"
                           value={telefone}
                           maxLength={15}
                           onChangeText={(t) => {
@@ -690,20 +664,15 @@ export default function LoginScreen() {
                           keyboardType="numeric"
                           placeholderTextColor="#6C63FF"
                           placeholder="(00) 00000-0000"
+                          labelStyle={styles.label}
+                          inputStyle={styles.inputText}
+                          error={displayErrors.telefone}
+                          errorStyle={styles.errorText}
                         />
-                        {displayErrors.telefone && (
-                          <Text style={styles.errorText}>
-                            {displayErrors.telefone}
-                          </Text>
-                        )}
                       </View>
                       <View style={styles.inputNascimento}>
-                        <Text style={styles.label}>Nascimento</Text>
-                        <TextInput
-                          style={[
-                            styles.input,
-                            displayErrors.nascimento && styles.inputError,
-                          ]}
+                        <FloatingLabelInput
+                          label="Nascimento"
                           value={nascimento}
                           maxLength={10}
                           onChangeText={(t) => {
@@ -713,61 +682,45 @@ export default function LoginScreen() {
                           keyboardType="numeric"
                           placeholderTextColor="#6C63FF"
                           placeholder="dd/mm/aaaa"
+                          labelStyle={styles.label}
+                          inputStyle={styles.inputText}
+                          error={displayErrors.nascimento}
+                          errorStyle={styles.errorText}
                         />
-                        {displayErrors.nascimento && (
-                          <Text style={styles.errorText}>
-                            {displayErrors.nascimento}
-                          </Text>
-                        )}
                       </View>
                     </View>
                     <View style={{ gap: 6 }}>
-                      <View>
-                        <Text style={styles.label}>Senha</Text>
-                        <TextInput
-                          style={[
-                            styles.input,
-                            displayErrors.senha && styles.inputError,
-                          ]}
-                          maxLength={100}
-                          secureTextEntry
-                          value={senha}
-                          onChangeText={(t) => {
-                            setSenha(t);
-                            clearFieldError("senha");
-                          }}
-                          placeholderTextColor="#6C63FF"
-                          placeholder="Preencha com sua Senha"
-                          onPress={handlePasswordFocus}
-                        />
-                        {displayErrors.senha && (
-                          <Text style={styles.errorText}>
-                            {displayErrors.senha}
-                          </Text>
-                        )}
-                      </View>
-                      <View>
-                        <TextInput
-                          style={[
-                            styles.input,
-                            displayErrors.confirmPassword && styles.inputError,
-                          ]}
-                          secureTextEntry
-                          value={confirmarSenha}
-                          maxLength={100}
-                          onChangeText={(t) => {
-                            setConfirmarSenha(t);
-                            clearFieldError("confirmPassword");
-                          }}
-                          placeholderTextColor="#6C63FF"
-                          placeholder="Confirme sua Senha"
-                        />
-                        {displayErrors.confirmPassword && (
-                          <Text style={styles.errorText}>
-                            {displayErrors.confirmPassword}
-                          </Text>
-                        )}
-                      </View>
+                      <FloatingLabelInput
+                        label="Senha"
+                        maxLength={100}
+                        secureTextEntry
+                        value={senha}
+                        onChangeText={(t) => {
+                          setSenha(t);
+                          clearFieldError("senha");
+                        }}
+                        placeholderTextColor="#6C63FF"
+                        placeholder="Preencha com sua Senha"
+                        onFocus={handlePasswordFocus}
+                        labelStyle={styles.label}
+                        inputStyle={styles.inputText}
+                        error={displayErrors.senha}
+                        errorStyle={styles.errorText}
+                      />
+                      <FloatingLabelInput
+                        secureTextEntry
+                        value={confirmarSenha}
+                        maxLength={100}
+                        onChangeText={(t) => {
+                          setConfirmarSenha(t);
+                          clearFieldError("confirmPassword");
+                        }}
+                        placeholderTextColor="#6C63FF"
+                        placeholder="Confirme sua Senha"
+                        inputStyle={styles.inputText}
+                        error={displayErrors.confirmPassword}
+                        errorStyle={styles.errorText}
+                      />
                       <View>
                         <View style={styles.requisiteRow}>
                           <Ionicons
@@ -827,12 +780,8 @@ export default function LoginScreen() {
                   <View style={styles.formPage}>
                     <View style={styles.row}>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.label}>CEP</Text>
-                        <TextInput
-                          style={[
-                            styles.input,
-                            displayErrors.cep && styles.inputError,
-                          ]}
+                        <FloatingLabelInput
+                          label="CEP"
                           value={cep}
                           onChangeText={(t) => {
                             const formattedCep = formatCep(t);
@@ -858,6 +807,10 @@ export default function LoginScreen() {
                           maxLength={9}
                           placeholderTextColor="#6C63FF"
                           placeholder="00000-000"
+                          labelStyle={styles.label}
+                          inputStyle={styles.inputText}
+                          error={displayErrors.cep}
+                          errorStyle={styles.errorText}
                         />
                         {cepLoading && (
                           <ActivityIndicator
@@ -866,70 +819,37 @@ export default function LoginScreen() {
                             size="small"
                           />
                         )}
-                        {displayErrors.cep && (
-                          <Text style={styles.errorText}>
-                            {displayErrors.cep}
-                          </Text>
-                        )}
                       </View>
 
                       <View style={{ flex: 1 }}>
-                        <TouchableOpacity
-                          style={{
-                            backgroundColor: "#6C63FF",
-                            padding: 12,
-                            borderRadius: 12,
-                            paddingVertical: 16,
-                          }}
+                        <PrimaryButton
+                          style={styles.cepHelpButton}
                           activeOpacity={0.7}
                           onPress={handleCepHelpPress}
                         >
-                          <Text
-                            style={{
-                              color: "#fff",
-                              fontFamily: "montserratBold",
-                              fontSize: 14,
-                              textAlign: 'center',
-                            }}
-                          >
+                          <Text style={styles.cepHelpButtonText}>
                             NÃO SABE O CEP?
                           </Text>
-                        </TouchableOpacity>
+                        </PrimaryButton>
                       </View>
                     </View>
 
-                    <View>
-                      <Text style={styles.label}>Endereço</Text>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          styles.readOnlyInput,
-                          displayErrors.endereco && styles.inputError,
-                        ]}
-                        value={endereco}
-                        editable={false}
-                        onChangeText={(t) => {
-                          setEndereco(t);
-                          clearFieldError("endereco");
-                        }}
-                        placeholderTextColor="#6C63FF"
-                        placeholder="Preencha com seu Endereço"
-                      />
-                      {displayErrors.endereco && (
-                        <Text style={styles.errorText}>
-                          {displayErrors.endereco}
-                        </Text>
-                      )}
-                    </View>
+                    <FloatingLabelInput
+                      label="Endereço"
+                      value={endereco}
+                      editable={false}
+                      placeholderTextColor="#6C63FF"
+                      placeholder="Preencha com seu Endereço"
+                      labelStyle={styles.label}
+                      inputStyle={[styles.inputText, styles.readOnlyInput]}
+                      error={displayErrors.endereco}
+                      errorStyle={styles.errorText}
+                    />
 
                     <View style={styles.row}>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.label}>Nº</Text>
-                        <TextInput
-                          style={[
-                            styles.input,
-                            displayErrors.numero && styles.inputError,
-                          ]}
+                        <FloatingLabelInput
+                          label="Nº"
                           value={numero}
                           onChangeText={(t) => {
                             setNumero(t);
@@ -938,18 +858,16 @@ export default function LoginScreen() {
                           keyboardType="numeric"
                           placeholderTextColor="#6C63FF"
                           placeholder="Nº"
+                          labelStyle={styles.label}
+                          inputStyle={styles.inputText}
+                          error={displayErrors.numero}
+                          errorStyle={styles.errorText}
                         />
-                        {displayErrors.numero && (
-                          <Text style={styles.errorText}>
-                            {displayErrors.numero}
-                          </Text>
-                        )}
                       </View>
 
                       <View style={{ flex: 4 }}>
-                        <Text style={styles.label}>Complemento</Text>
-                        <TextInput
-                          style={styles.input}
+                        <FloatingLabelInput
+                          label="Complemento"
                           value={complemento}
                           onChangeText={(t) => {
                             setComplemento(t);
@@ -957,57 +875,37 @@ export default function LoginScreen() {
                           }}
                           placeholderTextColor="#6C63FF"
                           placeholder="Preencha com seu Complemento"
+                          labelStyle={styles.label}
+                          inputStyle={styles.inputText}
                         />
                       </View>
                     </View>
 
-                    <View>
-                      <Text style={styles.label}>Bairro</Text>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          styles.readOnlyInput,
-                          displayErrors.bairro && styles.inputError,
-                        ]}
-                        value={bairro}
-                        editable={false}
-                        onChangeText={(t) => {
-                          setBairro(t);
-                          clearFieldError("bairro");
-                        }}
-                        placeholderTextColor="#6C63FF"
-                        placeholder="Preencha com seu Bairro"
-                      />
-                      {displayErrors.bairro && (
-                        <Text style={styles.errorText}>
-                          {displayErrors.bairro}
-                        </Text>
-                      )}
-                    </View>
+                    <FloatingLabelInput
+                      label="Bairro"
+                      value={bairro}
+                      editable={false}
+                      placeholderTextColor="#6C63FF"
+                      placeholder="Preencha com seu Bairro"
+                      labelStyle={styles.label}
+                      inputStyle={[styles.inputText, styles.readOnlyInput]}
+                      error={displayErrors.bairro}
+                      errorStyle={styles.errorText}
+                    />
 
                     <View style={styles.row}>
                       <View style={{ flex: 2 }}>
-                        <Text style={styles.label}>Cidade</Text>
-                        <TextInput
-                          style={[
-                            styles.input,
-                            styles.readOnlyInput,
-                            displayErrors.cidade && styles.inputError,
-                          ]}
+                        <FloatingLabelInput
+                          label="Cidade"
                           value={cidade}
                           editable={false}
-                          onChangeText={(t) => {
-                            setCidade(t);
-                            clearFieldError("cidade");
-                          }}
                           placeholderTextColor="#6C63FF"
                           placeholder="Preencha com sua Cidade"
+                          labelStyle={styles.label}
+                          inputStyle={[styles.inputText, styles.readOnlyInput]}
+                          error={displayErrors.cidade}
+                          errorStyle={styles.errorText}
                         />
-                        {displayErrors.cidade && (
-                          <Text style={styles.errorText}>
-                            {displayErrors.cidade}
-                          </Text>
-                        )}
                       </View>
 
                       <View style={{ flex: 1 }}>
@@ -1051,31 +949,23 @@ export default function LoginScreen() {
                 step === 1 ? shakeStyle1 : shakeStyle2,
               ]}
             >
-              {step === 2 && !!submitError && (
-                <View style={styles.submitErrorOverlay} pointerEvents="none">
-                  <Text style={styles.submitErrorText}>{submitError}</Text>
-                </View>
-              )}
+              {step === 2 ? <SubmitErrorBanner message={submitError} /> : null}
+
               {step === 1 ? (
-                <TouchableOpacity style={styles.btn} onPress={handleNext}>
+                <PrimaryButton style={styles.btn} onPress={handleNext}>
                   <View style={styles.btnContent}>
                     <Text style={styles.btnText}>Continuar</Text>
                     <Ionicons name="arrow-forward" size={22} color="white" />
                   </View>
-                </TouchableOpacity>
+                </PrimaryButton>
               ) : (
-                <TouchableOpacity
+                <PrimaryButton
                   style={styles.btn}
                   activeOpacity={0.7}
                   onPress={handleConfirmar}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="white" size="small" />
-                  ) : (
-                    <Text style={styles.btnText}>CRIAR CONTA</Text>
-                  )}
-                </TouchableOpacity>
+                  loading={loading}
+                  label="CRIAR CONTA"
+                />
               )}
             </Animated.View>
           </ScrollView>
@@ -1095,13 +985,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 5,
   },
   content: {
     flex: 1,
     justifyContent: "flex-start",
     gap: 8,
-    paddingTop: 36,
+    paddingTop: 22,
   },
   sliderContainer: {
     width: FORM_WIDTH,
@@ -1147,11 +1037,7 @@ const styles = StyleSheet.create({
   shakeWrapper: {
     width: FORM_WIDTH,
   },
-  input: {
-    borderWidth: 2,
-    borderColor: "#6C63FF",
-    borderRadius: 12,
-    padding: 14,
+  inputText: {
     fontSize: 14,
     fontFamily: "montserratRegular",
     color: "black",
@@ -1162,6 +1048,7 @@ const styles = StyleSheet.create({
   readOnlyInput: {
     backgroundColor: "#E8EAF2",
     color: "#5B5B5B",
+    borderRadius: 12,
   },
   cepLoadingIndicator: {
     marginTop: 8,
@@ -1178,7 +1065,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -10,
     left: 12,
-    backgroundColor: "#F0F2F5",
+    backgroundColor: "#f0f2f5",
     paddingHorizontal: 4,
     fontSize: 14,
     zIndex: 1,
@@ -1188,24 +1075,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "relative",
   },
-  submitErrorOverlay: {
-    position: "absolute",
-    bottom: "100%",
-    marginBottom: 6,
-    width: "100%",
-    alignItems: "center",
-  },
-  submitErrorText: {
-    color: "#ff6584",
-    fontSize: 13,
-    fontFamily: "montserratBold",
-    textAlign: "center",
-    paddingHorizontal: 8,
-  },
   btn: {
-    backgroundColor: "#6C63FF",
     width: "56%",
-    borderRadius: 12,
     paddingVertical: 12,
     marginTop: 12,
   },
@@ -1224,6 +1095,16 @@ const styles = StyleSheet.create({
   },
   inputNascimento: {
     flex: 1,
+  },
+  cepHelpButton: {
+    padding: 12,
+    paddingVertical: 16,
+  },
+  cepHelpButtonText: {
+    color: "#fff",
+    fontFamily: "montserratBold",
+    fontSize: 14,
+    textAlign: "center",
   },
   pickerWrapper: {
     borderWidth: 2,
