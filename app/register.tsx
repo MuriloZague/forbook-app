@@ -889,6 +889,7 @@ export default function LoginScreen() {
                               color: "#fff",
                               fontFamily: "montserratBold",
                               fontSize: 14,
+                              textAlign: 'center',
                             }}
                           >
                             NÃO SABE O CEP?
