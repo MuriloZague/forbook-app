@@ -390,7 +390,20 @@ export default function LoginScreen() {
     setErrors({});
     translateX.value = withTiming(-FORM_WIDTH, { duration: 300 });
     setStep(2);
-  }, [email, senha, nome, cpf, telefone, nascimento, confirmarSenha]);
+  }, [
+    email,
+    senha,
+    nome,
+    cpf,
+    telefone,
+    nascimento,
+    confirmarSenha,
+    temMinimo8Caracteres,
+    temLetraMaiuscula,
+    temLetraMinuscula,
+    shakeStep1,
+    translateX,
+  ]);
 
   const handleConfirmar = useCallback(async () => {
     setSubmitError("");
@@ -520,6 +533,7 @@ export default function LoginScreen() {
     estado,
     cep,
     confirmarSenha,
+    shakeStep2,
   ]);
 
   const handleBack = useCallback(() => {
@@ -527,7 +541,7 @@ export default function LoginScreen() {
     setSubmitError("");
     translateX.value = withTiming(0, { duration: 300 });
     setStep(1);
-  }, []);
+  }, [translateX]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
