@@ -1,11 +1,13 @@
-import { Ionicons } from "@expo/vector-icons";
+import ListItemRow from "@/src/components/listItemRow";
+import SectionDivider from "@/src/components/sectionDivider";
+import SectionTitle from "@/src/components/sectionTitle";
 import { useRouter } from "expo-router"; // Importação adicionada
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -31,86 +33,103 @@ export default function MenuScreen() {
           </View>
         </View>
 
-        <View style={styles.divider} />
+        <SectionDivider style={styles.divider} />
 
         <View style={styles.section}>
-          <Text style={styles.sectionSubtitle}>Minhas atividades</Text>
+          <SectionTitle style={styles.sectionSubtitle}>
+            Minhas atividades
+          </SectionTitle>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <Ionicons name="storefront-outline" size={24} color="#6C63FF" />
-            <Text style={styles.menuItemText}>Meus anúncios</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
-            <Ionicons name="bag-outline" size={24} color="#6C63FF" />
-            <Text style={styles.menuItemText}>Minhas compras</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
-            <Ionicons name="notifications-outline" size={24} color="#6C63FF" />
-            <Text style={styles.menuItemText}>Notificações</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
-            <Ionicons name="heart-outline" size={24} color="#6C63FF" />
-            <Text style={styles.menuItemText}>Livros favoritos</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
-            <Ionicons name="star-outline" size={24} color="#6C63FF" />
-            <Text style={styles.menuItemText}>Minhas avaliações</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
-            <Ionicons name="time-outline" size={24} color="#6C63FF" />
-            <Text style={styles.menuItemText}>Histórico de visualizações</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
+          <ListItemRow
+            label="Meus anúncios"
+            iconName="storefront-outline"
             style={styles.menuItem}
+            labelStyle={styles.menuItemText}
+          />
+
+          <ListItemRow
+            label="Minhas compras"
+            iconName="bag-outline"
+            style={styles.menuItem}
+            labelStyle={styles.menuItemText}
+          />
+
+          <ListItemRow
+            label="Notificações"
+            iconName="notifications-outline"
+            style={styles.menuItem}
+            labelStyle={styles.menuItemText}
+          />
+
+          <ListItemRow
+            label="Livros favoritos"
+            iconName="heart-outline"
+            style={styles.menuItem}
+            labelStyle={styles.menuItemText}
+          />
+
+          <ListItemRow
+            label="Minhas avaliações"
+            iconName="star-outline"
+            style={styles.menuItem}
+            labelStyle={styles.menuItemText}
+          />
+
+          <ListItemRow
+            label="Histórico de visualizações"
+            iconName="time-outline"
+            style={styles.menuItem}
+            labelStyle={styles.menuItemText}
+          />
+
+          <ListItemRow
+            label="Configurações"
+            iconName="settings-outline"
+            style={styles.menuItem}
+            labelStyle={styles.menuItemText}
             onPress={() => router.push("/settings")}
-          >
-            <Ionicons name="settings-outline" size={24} color="#6C63FF" />
-            <Text style={styles.menuItemText}>Configurações</Text>
-          </TouchableOpacity>
+          />
         </View>
 
-        <View style={styles.divider} />
+        <SectionDivider style={styles.divider} />
 
         <View style={styles.section}>
-          {/* Botão de Termos e condições atualizado com o onPress */}
-          <TouchableOpacity
+          <ListItemRow
+            label="Termos e condições"
             style={styles.menuItem}
+            labelStyle={styles.menuItemText}
             onPress={() => router.push("/terms")}
-          >
-            <Text style={styles.menuItemText}>Termos e condições</Text>
-          </TouchableOpacity>
+          />
 
-          <TouchableOpacity
+          <ListItemRow
+            label="Políticas de privacidade"
             style={styles.menuItem}
+            labelStyle={styles.menuItemText}
             onPress={() => router.push("/politics")}
-          >
-            <Text style={styles.menuItemText}>Políticas de privacidade</Text>
-          </TouchableOpacity>
+          />
 
-          <TouchableOpacity
+          <ListItemRow
+            label="Ajuda"
             style={styles.menuItem}
+            labelStyle={styles.menuItemText}
             onPress={() => router.push("/help")}
-          >
-            <Text style={styles.menuItemText}>Ajuda</Text>
-          </TouchableOpacity>
+          />
         </View>
 
-        <View style={styles.divider} />
+        <SectionDivider style={styles.divider} />
 
         <View style={styles.sectionFinal}>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuItemTextLogout}>Sair</Text>
-          </TouchableOpacity>
+          <ListItemRow
+            label="Sair"
+            style={styles.menuItem}
+            labelStyle={styles.menuItemTextLogout}
+          />
 
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuItemTextLogout}>Excluir Conta</Text>
-          </TouchableOpacity>
+          <ListItemRow
+            label="Excluir Conta"
+            style={styles.menuItem}
+            labelStyle={styles.menuItemTextLogout}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -159,7 +178,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   sectionSubtitle: {
-    fontFamily: "lexendRegular",
     fontSize: 16,
     color: "#a6a8aa",
   },
@@ -216,11 +234,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
     paddingVertical: 12,
+    marginBottom: 0,
   },
   menuItemText: {
     fontFamily: "montserratBold",

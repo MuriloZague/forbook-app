@@ -1,19 +1,22 @@
+import BarcodeScannerModal from "@/src/components/barcodeScannerModal";
+import FloatingLabelInput from "@/src/components/floatingLabelInput";
+import OptionChips from "@/src/components/optionChips";
+import PrimaryButton from "@/src/components/primaryButton";
+import ScreenHeader from "@/src/components/screenHeader";
+import { useTransition } from "@/src/context/transition-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  TextInput,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { router } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import BarcodeScannerModal from "@/src/components/barcodeScannerModal";
-import { useTransition } from "@/src/context/transition-context";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Modal() {
@@ -36,14 +39,14 @@ export default function Modal() {
       });
     });
     return unsubscribe;
-  }, []);
+  }, [navigation, overlayRef]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       overlayRef.current?.playExit();
     }, 50);
     return () => clearTimeout(timer);
-  }, []);
+  }, [overlayRef]);
 
   function handleClose() {
     router.back();
@@ -59,13 +62,16 @@ export default function Modal() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose} style={styles.iconButton}>
-            <Ionicons name="close" size={32} color="#6C63FF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Criar Anúncio</Text>
-          <View style={{ width: 32 }} />
-        </View>
+        <ScreenHeader
+          title="Criar Anúncio"
+          onBackPress={handleClose}
+          iconName="close"
+          iconSize={32}
+          iconColor="#6C63FF"
+          titleFontFamily="lexendBlack"
+          borderBottomColor="#f0f0f0"
+          rightPlaceholderWidth={32}
+        />
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -81,66 +87,70 @@ export default function Modal() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.floatingLabel}>ISBN</Text>
-            <View style={styles.inputWithIcon}>
-              <TextInput
-                style={styles.flexInput}
-                placeholder="Ex: 978-85-359..."
-                placeholderTextColor="#a6a8aa"
-                keyboardType="numeric"
-                value={isbn}
-                onChangeText={setIsbn}
-              />
-              <TouchableOpacity
-                style={styles.iconScan}
-                onPress={() => setScannerVisible(true)}
-              >
-                <Ionicons name="barcode-outline" size={24} color="#6c63ff" />
-              </TouchableOpacity>
-              <BarcodeScannerModal
-                visible={scannerVisible}
-                onClose={() => setScannerVisible(false)}
-                onScanned={(code) => setIsbn(code)}
-              />
-            </View>
+            <FloatingLabelInput
+              label="ISBN"
+              value={isbn}
+              onChangeText={setIsbn}
+              placeholder="Ex: 978-85-359..."
+              placeholderTextColor="#a6a8aa"
+              keyboardType="numeric"
+              labelStyle={styles.floatingLabel}
+              inputStyle={styles.input}
+              rightElement={
+                <TouchableOpacity
+                  style={styles.iconScan}
+                  onPress={() => setScannerVisible(true)}
+                >
+                  <Ionicons name="barcode-outline" size={24} color="#6c63ff" />
+                </TouchableOpacity>
+              }
+            />
+            <BarcodeScannerModal
+              visible={scannerVisible}
+              onClose={() => setScannerVisible(false)}
+              onScanned={(code) => setIsbn(code)}
+            />
           </View>
 
           {/* Título */}
           <View style={styles.inputContainer}>
-            <Text style={styles.floatingLabel}>Título do Livro</Text>
-            <TextInput
-              style={styles.input}
+            <FloatingLabelInput
+              label="Título do Livro"
               placeholder="Ex: O Senhor dos Anéis"
               placeholderTextColor="#a6a8aa"
               value={title}
               onChangeText={setTitle}
+              labelStyle={styles.floatingLabel}
+              inputStyle={styles.input}
             />
           </View>
 
           {/* Autor */}
           <View style={styles.inputContainer}>
-            <Text style={styles.floatingLabel}>Autor(a)</Text>
-            <TextInput
-              style={styles.input}
+            <FloatingLabelInput
+              label="Autor(a)"
               placeholder="Ex: J.R.R. Tolkien"
               placeholderTextColor="#a6a8aa"
               value={author}
               onChangeText={setAuthor}
+              labelStyle={styles.floatingLabel}
+              inputStyle={styles.input}
             />
           </View>
 
           {/* Sinopse */}
           <View style={styles.inputContainer}>
-            <Text style={styles.floatingLabel}>Descrição / Observações</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
+            <FloatingLabelInput
+              label="Descrição / Observações"
+              inputStyle={[styles.input, styles.textArea]}
               placeholder="Descreva sobre o livro..."
               placeholderTextColor="#a6a8aa"
-              multiline={true}
+              multiline
               numberOfLines={4}
               textAlignVertical="top"
               value={synopsis}
               onChangeText={setSynopsis}
+              labelStyle={styles.floatingLabel}
             />
           </View>
 
@@ -148,43 +158,30 @@ export default function Modal() {
           <View style={styles.inputContainer}>
             <Text style={styles.floatingLabel}>Estado do Livro</Text>
             <View style={styles.boxContainer}>
-              <View style={styles.chipsContainer}>
-                {["Novo", "Usado (Bom)", "Com Grifos", "Danificado"].map(
-                  (item) => (
-                    <TouchableOpacity
-                      key={item}
-                      style={[
-                        styles.chip,
-                        condition === item && styles.chipSelected,
-                      ]}
-                      onPress={() => setCondition(item)}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.chipText,
-                          condition === item && styles.chipTextSelected,
-                        ]}
-                      >
-                        {item}
-                      </Text>
-                    </TouchableOpacity>
-                  ),
-                )}
-              </View>
+              <OptionChips
+                options={["Novo", "Usado (Bom)", "Com Grifos", "Danificado"]}
+                selectedValue={condition}
+                onSelect={setCondition}
+                containerStyle={styles.chipsContainer}
+                chipStyle={styles.chip}
+                selectedChipStyle={styles.chipSelected}
+                textStyle={styles.chipText}
+                selectedTextStyle={styles.chipTextSelected}
+              />
             </View>
           </View>
 
           {/* Valor */}
           <View style={styles.inputContainer}>
-            <Text style={styles.floatingLabel}>Valor (R$)</Text>
-            <TextInput
-              style={styles.input}
+            <FloatingLabelInput
+              label="Valor (R$)"
+              inputStyle={styles.input}
               placeholder="0,00"
               placeholderTextColor="#a6a8aa"
               keyboardType="numeric"
               value={price}
               onChangeText={setPrice}
+              labelStyle={styles.floatingLabel}
             />
           </View>
 
@@ -206,13 +203,13 @@ export default function Modal() {
 
           <View style={{ height: 24 }} />
 
-          <TouchableOpacity
+          <PrimaryButton
             style={styles.submitButton}
             onPress={handleAnnounce}
             activeOpacity={0.8}
           >
             <Text style={styles.submitButtonText}>Publicar Anúncio</Text>
-          </TouchableOpacity>
+          </PrimaryButton>
 
           <View style={{ height: 40 }} />
         </ScrollView>
@@ -232,23 +229,6 @@ const styles = StyleSheet.create({
     fontFamily: "montserratBold",
     marginVertical: 8,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  iconButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontFamily: "lexendBlack",
-    color: "#000",
-  },
   scrollContent: {
     padding: 20,
     paddingTop: 8,
@@ -264,47 +244,19 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   floatingLabel: {
-    position: "absolute",
-    top: -10,
-    left: 12,
-    backgroundColor: "#F0F2F5", // Tem que ser igual ao fundo da tela
-    paddingHorizontal: 4,
     fontSize: 13,
     color: "#6c63ff",
     fontFamily: "lexendBold",
-    zIndex: 2,
   },
   input: {
-    backgroundColor: "transparent",
-    borderWidth: 2,
-    borderColor: "#6C63FF",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
     fontFamily: "lexendRegular",
     fontSize: 15,
     color: "#333",
   },
 
-  // Estilo específico do ISBN com ícone
-  inputWithIcon: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#6C63FF",
-    borderRadius: 12,
-    backgroundColor: "transparent",
-  },
-  flexInput: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    fontFamily: "lexendRegular",
-    fontSize: 15,
-    color: "#333",
-  },
   iconScan: {
-    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   // Outros estilos
@@ -376,11 +328,7 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
   },
   submitButton: {
-    backgroundColor: "#6c63ff",
-    borderRadius: 12,
     paddingVertical: 18,
-    alignItems: "center",
-    justifyContent: "center",
     marginTop: 16,
   },
   submitButtonText: {

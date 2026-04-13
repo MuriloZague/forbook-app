@@ -1,16 +1,8 @@
+import PrimaryButton from "@/src/components/primaryButton";
 import { router } from "expo-router";
 import React from "react";
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-
-const { width, height } = Dimensions.get("window");
 
 export default function TelaInicial() {
   return (
@@ -21,20 +13,20 @@ export default function TelaInicial() {
           <Text style={styles.bigTitle}>FORBOOK</Text>
         </View>
         <View style={styles.btnContent}>
-          <TouchableOpacity
+          <PrimaryButton
             style={styles.btn}
             activeOpacity={0.6}
             onPress={() => router.push("/login")}
           >
             <Text style={styles.btnText}>ENTRAR</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </PrimaryButton>
+          <PrimaryButton
             style={styles.btn}
             activeOpacity={0.6}
             onPress={() => router.push("/register")}
           >
             <Text style={styles.btnText}>CRIAR CONTA</Text>
-          </TouchableOpacity>
+          </PrimaryButton>
         </View>
       </View>
       <View style={styles.imgLogo}>
@@ -42,7 +34,9 @@ export default function TelaInicial() {
           source={require("../assets/images/Logo.png")}
           style={{ width: 84, height: 52 }}
         />
-        <Text style={{marginTop: 8, fontFamily: 'lexendRegular'}}>v0.2.0</Text>
+        <Text style={{ marginTop: 12, fontFamily: "lexendRegular" }}>
+          v0.3.0
+        </Text>
       </View>
     </SafeAreaProvider>
   );
@@ -76,9 +70,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   btn: {
-    backgroundColor: "#6C63FF",
     width: "56%",
-    borderRadius: 12,
     paddingVertical: 8,
   },
   btnText: {

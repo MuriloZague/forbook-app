@@ -19,7 +19,7 @@ import Animated, {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
-  withSpring
+  withSpring,
 } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
 import { scheduleOnRN } from "react-native-worklets";
@@ -97,7 +97,6 @@ function BookmarkShape() {
 function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const { progress, overlayRef } = useTransition();
   const dragY = useSharedValue(0); // 👈 novo
-  const dragProgress = useSharedValue(0);
 
   const btnAnimStyle = useAnimatedStyle(() => ({
     transform: [
@@ -216,7 +215,6 @@ export default function TabsLayout() {
       >
         <Tabs.Screen name="home" />
         <Tabs.Screen name="search" />
-        <Tabs.Screen name="create" />
         <Tabs.Screen name="chat" />
         <Tabs.Screen name="menu" />
       </Tabs>

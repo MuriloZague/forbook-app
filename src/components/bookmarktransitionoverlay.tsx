@@ -6,7 +6,6 @@ import Animated, {
   cancelAnimation,
   Easing,
   interpolate,
-  runOnUI,
   SharedValue,
   useAnimatedStyle,
   useSharedValue,
@@ -18,7 +17,6 @@ const { width: SW, height: SH } = Dimensions.get("window");
 
 const PURPLE = "#6c63ff";
 const BAR_HEIGHT = 74;
-const BTN_WIDTH = 112;
 const BTN_RISE = 18;
 const BTN_HEIGHT = BAR_HEIGHT + BTN_RISE;
 const IOS_PAD = Platform.OS === "ios" ? 20 : 0;
@@ -110,35 +108,38 @@ const BookmarkTransitionOverlay = forwardRef<BookmarkTransitionHandle, Props>(
       [progress, isVisible],
     );
 
-    const playEnter = useCallback((onCovered: () => void) => {
-      scheduleOnUI(() => {
-        "worklet";
-        cancelAnimation(progress);
+    const playEnter = useCallback(
+      (onCovered: () => void) => {
+        scheduleOnUI(() => {
+          "worklet";
+          cancelAnimation(progress);
 
-        isVisible.value = 1;
-        progress.value = 2;
+          isVisible.value = 1;
+          progress.value = 2;
 
-        progress.value = withTiming(
-          1,
-          { duration: T_EXIT, easing: EASE_UP },
-          (finished) => {
-            if (finished) {
-              scheduleOnRN(onCovered);
+          progress.value = withTiming(
+            1,
+            { duration: T_EXIT, easing: EASE_UP },
+            (finished) => {
+              if (finished) {
+                scheduleOnRN(onCovered);
 
-              progress.value = withTiming(
-                0,
-                { duration: T_RISE, easing: EASE_OUT },
-                (done) => {
-                  if (done) {
-                    isVisible.value = 0;
-                  }
-                },
-              );
-            }
-          },
-        );
-      });
-    }, []);
+                progress.value = withTiming(
+                  0,
+                  { duration: T_RISE, easing: EASE_OUT },
+                  (done) => {
+                    if (done) {
+                      isVisible.value = 0;
+                    }
+                  },
+                );
+              }
+            },
+          );
+        });
+      },
+      [progress, isVisible],
+    );
 
     useImperativeHandle(ref, () => ({ trigger, playExit, playEnter }), [
       trigger,

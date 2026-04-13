@@ -1,18 +1,13 @@
+import FloatingLabelInput from "@/src/components/floatingLabelInput";
+import PrimaryButton from "@/src/components/primaryButton";
+import SubmitErrorBanner from "@/src/components/submitErrorBanner";
 import { extractErrors } from "@/src/lib/zod-errors";
 import { loginBodySchema } from "@/src/schemas/auth.schema";
 import { ApiError } from "@/src/services/api";
 import { authService } from "@/src/services/auth.service";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
@@ -81,6 +76,10 @@ export default function LoginScreen() {
     }
   };
 
+  const loginSemSenha = () => {
+    router.push("/(tabs)/home");
+  }
+
   const goToRegister = () => router.push("/register");
 
   return (
@@ -97,41 +96,33 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.formContent}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              placeholder="Preencha com seu Email"
-              placeholderTextColor="#A6A8AA"
-              style={[styles.input, errors.email && styles.inputError]}
-              value={email}
-              onChangeText={(t) => {
-                setEmail(t);
-                clearFieldError("email");
-              }}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            {errors.email && (
-              <Text style={styles.errorText}>{errors.email}</Text>
-            )}
-          </View>
+          <FloatingLabelInput
+            label="Email"
+            placeholder="Preencha com seu Email"
+            placeholderTextColor="#A6A8AA"
+            value={email}
+            onChangeText={(t) => {
+              setEmail(t);
+              clearFieldError("email");
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            error={errors.email}
+          />
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Senha</Text>
-            <TextInput
+          <View>
+            <FloatingLabelInput
+              label="Senha"
               placeholder="Preencha com sua Senha"
               placeholderTextColor="#A6A8AA"
-              style={[styles.input, errors.password && styles.inputError]}
               value={password}
               onChangeText={(t) => {
                 setPassword(t);
                 clearFieldError("password");
               }}
               secureTextEntry
+              error={errors.password}
             />
-            {errors.password && (
-              <Text style={styles.errorText}>{errors.password}</Text>
-            )}
 
             <TouchableOpacity activeOpacity={0.7}>
               <Text style={styles.highlightedTextForm}>
@@ -142,23 +133,14 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.btnContainer}>
-          {!!submitError && (
-            <View style={styles.submitErrorOverlay} pointerEvents="none">
-              <Text style={styles.submitErrorText}>{submitError}</Text>
-            </View>
-          )}
-          <TouchableOpacity
+          <SubmitErrorBanner message={submitError} />
+
+          <PrimaryButton
             style={styles.btn}
-            activeOpacity={0.7}
-            onPress={validateAndSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="white" size="small" />
-            ) : (
-              <Text style={styles.btnText}>ENTRAR</Text>
-            )}
-          </TouchableOpacity>
+            onPress={loginSemSenha}
+            loading={loading}
+            label="ENTRAR"
+          />
         </View>
       </View>
     </SafeAreaProvider>
@@ -169,7 +151,7 @@ const styles = StyleSheet.create({
   main: {
     flex: 1,
     backgroundColor: "#F0F2F5",
-    paddingHorizontal: 22,
+    paddingHorizontal: 12,
   },
   content: {
     flex: 1,
@@ -197,40 +179,7 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
   formContent: {
-    gap: 26,
-  },
-  inputContainer: {
-    position: "relative",
-  },
-  label: {
-    position: "absolute",
-    top: -10,
-    left: 12,
-    backgroundColor: "#F0F2F5",
-    paddingHorizontal: 4,
-    fontSize: 14,
-    zIndex: 1,
-    fontFamily: "montserratBold",
-  },
-  input: {
-    borderWidth: 2,
-    borderColor: "#6C63FF",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    fontSize: 15,
-    color: "#000",
-    fontFamily: "montserratRegular",
-    backgroundColor: "transparent",
-  },
-  inputError: {
-    borderColor: "#ff6584",
-  },
-  errorText: {
-    color: "#ff6584",
-    fontSize: 10,
-    fontFamily: "montserratBold",
-    marginTop: 2,
+    gap: 24,
   },
   highlightedTextForm: {
     fontFamily: "montserratBold",
@@ -245,30 +194,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "relative",
   },
-  submitErrorOverlay: {
-    position: "absolute",
-    bottom: "100%",
-    marginBottom: 6,
-    width: "100%",
-    alignItems: "center",
-  },
-  submitErrorText: {
-    color: "#ff6584",
-    fontSize: 13,
-    fontFamily: "montserratBold",
-    textAlign: "center",
-    paddingHorizontal: 8,
-  },
   btn: {
-    backgroundColor: "#6C63FF",
     width: "65%",
-    borderRadius: 12,
     paddingVertical: 14,
-  },
-  btnText: {
-    fontFamily: "montserratBold",
-    color: "white",
-    fontSize: 20,
-    textAlign: "center",
   },
 });

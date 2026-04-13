@@ -4,33 +4,36 @@ import Notification from "@/assets/images/Notification.svg";
 import Order from "@/assets/images/order.svg";
 import Sign from "@/assets/images/sign.svg";
 import User2 from "@/assets/images/User.svg";
+import AppTopHeader from "@/src/components/appTopHeader";
+import HorizontalOptionBar from "@/src/components/horizontalOptionBar";
 import { Ionicons } from "@expo/vector-icons";
 import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SearchScreen() {
+  const filterOptions = [
+    { key: "offers", label: "Ofertas", icon: <Sign /> },
+    { key: "filters", label: "Filtros", icon: <Config /> },
+    { key: "sort", label: "Ordenar", icon: <Order /> },
+  ];
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.headerWrapper}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity>
-            <View style={styles.userLogo}>
-              <User2 width={22} height={22} />
-            </View>
-          </TouchableOpacity>
-          <Text style={styles.title}>Forbook</Text>
-          <TouchableOpacity>
-            <Notification width={28} height={28} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.headerShadow} />
-      </View>
+      <AppTopHeader
+        title="Forbook"
+        userContent={
+          <View style={styles.userLogo}>
+            <User2 width={22} height={22} />
+          </View>
+        }
+        notificationContent={<Notification width={28} height={28} />}
+      />
 
       <View style={styles.searchMain}>
         <View style={styles.searchContent}>
@@ -54,26 +57,16 @@ export default function SearchScreen() {
             </TouchableOpacity>
           </View>
         </View>
-        <View style={styles.categoryContainer}>
-          <TouchableOpacity style={styles.categoryBtn}>
-            <Sign />
-            <Text style={styles.categoryText}>Ofertas</Text>
-          </TouchableOpacity>
-
-          <View style={styles.tabSeparator}></View>
-
-          <TouchableOpacity style={styles.categoryBtn}>
-            <Config />
-            <Text style={styles.categoryText}>Filtros</Text>
-          </TouchableOpacity>
-
-          <View style={styles.tabSeparator}></View>
-
-          <TouchableOpacity style={styles.categoryBtn}>
-            <Order />
-            <Text style={styles.categoryText}>Ordenar</Text>
-          </TouchableOpacity>
-        </View>
+        <HorizontalOptionBar
+          items={filterOptions}
+          scrollable={false}
+          showSeparators
+          containerStyle={styles.categoryContainer}
+          contentContainerStyle={styles.categoryRow}
+          optionStyle={styles.categoryBtn}
+          labelStyle={styles.categoryText}
+          separatorStyle={styles.tabSeparator}
+        />
         <View style={styles.categoryWrapperH}></View>
       </View>
 
@@ -91,9 +84,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F0F2F5",
   },
-  headerWrapper: {
-    backgroundColor: "#F0F2F5",
-  },
   categoryWrapper: {
     height: 2,
     backgroundColor: "#c4c8ce",
@@ -102,23 +92,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: "#c4c8ce",
     marginHorizontal: 18,
-  },
-  headerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 22,
-    paddingBottom: 16,
-    paddingTop: 12,
-  },
-  headerShadow: {
-    height: 2,
-    backgroundColor: "#0000007a",
-    opacity: 0.25,
-  },
-  title: {
-    fontFamily: "lexendBlack",
-    fontSize: 30,
   },
   searchContent: {
     paddingTop: 24,
@@ -153,10 +126,13 @@ const styles = StyleSheet.create({
   },
   categoryContainer: {
     marginVertical: 8,
+    paddingHorizontal: 24,
+  },
+  categoryRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 24,
     justifyContent: "space-around",
+    width: "100%",
   },
 
   tabSeparator: {
@@ -175,6 +151,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
+    paddingHorizontal: 0,
   },
   resultsMain: {
     margin: 20,
