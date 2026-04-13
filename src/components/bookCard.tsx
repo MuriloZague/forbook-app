@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
     borderRadius: 10,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#F0F2F5",
     overflow: "hidden",
     // sombra iOS
     //shadowColor: "#000",
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
 
   card2: {
     width: CARD_WIDTH,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#F0F2F5",
     overflow: "hidden",
     margin: 8,
   },
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: "100%",
     aspectRatio: 0.78,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#F0F2F5",
   },
   image: {
     width: "100%",

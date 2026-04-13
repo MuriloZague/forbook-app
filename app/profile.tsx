@@ -34,7 +34,7 @@ export default function Profile() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff'
+    backgroundColor: '#F0F2F5'
   },
   headerContainer: {
     flexDirection: "row",

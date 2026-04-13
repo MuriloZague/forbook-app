@@ -283,7 +283,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F0F2F5",
   },
   userLogo: {
     borderWidth: 2,
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerWrapper: {
-    backgroundColor: "#fff",
+    backgroundColor: "#F0F2F5",
   },
   categoryWrapper: {
     height: 1,
