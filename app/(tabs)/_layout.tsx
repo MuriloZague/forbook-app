@@ -216,7 +216,6 @@ export default function TabsLayout() {
       >
         <Tabs.Screen name="home" />
         <Tabs.Screen name="search" />
-        <Tabs.Screen name="create" />
         <Tabs.Screen name="chat" />
         <Tabs.Screen name="menu" />
       </Tabs>
