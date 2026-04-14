@@ -155,7 +155,7 @@ export default function LoginScreen() {
 
           <PrimaryButton
             style={styles.btn}
-            onPress={loginSemSenha}
+            onPress={validateAndSubmit}
             loading={loading}
             label="ENTRAR"
           />
