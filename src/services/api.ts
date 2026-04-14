@@ -9,7 +9,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     const body = await res.json();
 
     if (!res.ok) {
-        throw new ApiError(body.message ?? "Erro desconhecido", res.status, body.errors);
+        throw new ApiError(body.title ?? "Erro desconhecido", res.status, body.errors);
     }
 
     return body;

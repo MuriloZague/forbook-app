@@ -19,7 +19,7 @@ export default function SettingsScreen() {
 
   // Definindo as cores dinâmicas baseadas no estado do darkModeEnabled
   const theme = {
-    background: darkModeEnabled ? "#121212" : "#fff",
+    background: darkModeEnabled ? "#121212" : "#F0F2F5",
     textPrimary: darkModeEnabled ? "#ffffff" : "#333333",
     textSecondary: darkModeEnabled ? "#a6a8aa" : "#a6a8aa", // Mantive o cinza para subtítulos
     headerTitle: darkModeEnabled ? "#ffffff" : "#000000",
@@ -47,7 +47,7 @@ export default function SettingsScreen() {
         </SectionTitle>
 
         <ListItemRow
-          label="Editar Perfil"
+          label="EU NAO SEI"
           iconName="person-outline"
           iconColor={theme.iconColor}
           style={styles.settingItem}
@@ -58,7 +58,7 @@ export default function SettingsScreen() {
         />
 
         <ListItemRow
-          label="Alterar Senha"
+          label="O QUE COLOCAR AQUI HAHAHA"
           iconName="lock-closed-outline"
           iconColor={theme.iconColor}
           style={styles.settingItem}
@@ -95,7 +95,7 @@ export default function SettingsScreen() {
         />
 
         <ListItemRow
-          label="Modo Escuro"
+          label="Modo Escuro (desconsiderar)"
           iconName="moon-outline"
           iconColor={theme.iconColor}
           style={styles.settingItem}
