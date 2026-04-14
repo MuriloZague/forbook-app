@@ -77,7 +77,6 @@ export default function LoginScreen() {
   };
 
   const loginSemSenha = () => {
-
     const result = loginBodySchema.safeParse({ email, password });
 
     if (!result.success) {
@@ -88,14 +87,13 @@ export default function LoginScreen() {
     setLoading(true);
     setTimeout(() => {
       if (email === "teste@gmail.com" && password === "12345678") {
-        setLoading(false)
+        setLoading(false);
         router.push("/(tabs)/home");
       }
-      setLoading(false)
+      setLoading(false);
       setSubmitError("Email ou senha incorretos");
     }, 1000);
-
-  }
+  };
 
   const goToRegister = () => router.push("/register");
 
@@ -141,7 +139,10 @@ export default function LoginScreen() {
               error={errors.password}
             />
 
-            <TouchableOpacity activeOpacity={0.7}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => router.push("/forgot-password-email")}
+            >
               <Text style={styles.highlightedTextForm}>
                 Esqueci minha senha
               </Text>
