@@ -3,11 +3,11 @@ import SectionDivider from "@/src/components/sectionDivider";
 import SectionTitle from "@/src/components/sectionTitle";
 import { useRouter } from "expo-router"; // Importação adicionada
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -45,6 +45,7 @@ export default function MenuScreen() {
             iconName="storefront-outline"
             style={styles.menuItem}
             labelStyle={styles.menuItemText}
+            onPress={() => router.push("/myannounces")}
           />
 
           <ListItemRow
@@ -52,6 +53,7 @@ export default function MenuScreen() {
             iconName="bag-outline"
             style={styles.menuItem}
             labelStyle={styles.menuItemText}
+            onPress={() => router.push("/mypurchases")}
           />
 
           <ListItemRow
@@ -59,6 +61,7 @@ export default function MenuScreen() {
             iconName="notifications-outline"
             style={styles.menuItem}
             labelStyle={styles.menuItemText}
+            onPress={() => router.push("/notifications")}
           />
 
           <ListItemRow
@@ -66,6 +69,7 @@ export default function MenuScreen() {
             iconName="heart-outline"
             style={styles.menuItem}
             labelStyle={styles.menuItemText}
+            onPress={() => router.push("/favorites")}
           />
 
           <ListItemRow
@@ -73,6 +77,7 @@ export default function MenuScreen() {
             iconName="star-outline"
             style={styles.menuItem}
             labelStyle={styles.menuItemText}
+            onPress={() => router.push("/myratings")}
           />
 
           <ListItemRow
@@ -80,6 +85,8 @@ export default function MenuScreen() {
             iconName="time-outline"
             style={styles.menuItem}
             labelStyle={styles.menuItemText}
+            onPress={() => router.push("/viewhistory")}
+
           />
 
           <ListItemRow

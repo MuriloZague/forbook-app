@@ -19,7 +19,7 @@ export default function SettingsScreen() {
 
   // Definindo as cores dinâmicas baseadas no estado do darkModeEnabled
   const theme = {
-    background: darkModeEnabled ? "#121212" : "#fff",
+    background: darkModeEnabled ? "#121212" : "#F0F2F5",
     textPrimary: darkModeEnabled ? "#ffffff" : "#333333",
     textSecondary: darkModeEnabled ? "#a6a8aa" : "#a6a8aa", // Mantive o cinza para subtítulos
     headerTitle: darkModeEnabled ? "#ffffff" : "#000000",

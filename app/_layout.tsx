@@ -78,6 +78,48 @@ function AppContent() {
             animation: "fade_from_bottom",
           }}
         />
+        <Stack.Screen
+          name="myannounces"
+          options={{
+            headerShown: false,
+            animation: "fade_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="mypurchases"
+          options={{
+            headerShown: false,
+            animation: "fade_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="notifications"
+          options={{
+            headerShown: false,
+            animation: "fade_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="favorites"
+          options={{
+            headerShown: false,
+            animation: "fade_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="myratings"
+          options={{
+            headerShown: false,
+            animation: "fade_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="viewhistory"
+          options={{
+            headerShown: false,
+            animation: "fade_from_bottom",
+          }}
+        />
       </Stack>
 
       <BookmarkTransitionOverlay ref={overlayRef} progress={progress} />
