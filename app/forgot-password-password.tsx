@@ -2,9 +2,11 @@ import FloatingLabelInput from "@/src/components/floatingLabelInput";
 import PrimaryButton from "@/src/components/primaryButton";
 import ScreenHeader from "@/src/components/screenHeader";
 import SubmitErrorBanner from "@/src/components/submitErrorBanner";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+    Keyboard,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -17,6 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function ForgotPasswordPasswordScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ email?: string | string[] }>();
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const emailParam = Array.isArray(params.email)
     ? (params.email[0] ?? "")
@@ -27,10 +30,31 @@ export default function ForgotPasswordPasswordScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const hasMinLength = useMemo(() => password.length >= 8, [password]);
   const hasUppercase = useMemo(() => /[A-Z]/.test(password), [password]);
   const hasLowercase = useMemo(() => /[a-z]/.test(password), [password]);
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSubscription = Keyboard.addListener(showEvent, () => {
+      setIsKeyboardVisible(true);
+    });
+
+    const hideSubscription = Keyboard.addListener(hideEvent, () => {
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const clearFieldError = (field: string) => {
     if (submitError) setSubmitError("");
@@ -42,6 +66,14 @@ export default function ForgotPasswordPasswordScreen() {
         return next;
       });
     }
+  };
+
+  const handlePasswordFocus = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({
+        animated: true,
+      });
+    }, 220);
   };
 
   const handleBack = () => {
@@ -110,10 +142,14 @@ export default function ForgotPasswordPasswordScreen() {
 
       <KeyboardAvoidingView
         style={styles.keyboardAvoiding}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          ref={scrollViewRef}
+          contentContainerStyle={[
+            styles.scrollContent,
+            isKeyboardVisible && styles.scrollContentKeyboardVisible,
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -134,6 +170,7 @@ export default function ForgotPasswordPasswordScreen() {
                 setPassword(text);
                 clearFieldError("password");
               }}
+              onFocus={handlePasswordFocus}
               secureTextEntry
               autoCapitalize="none"
               error={errors.password}
@@ -150,6 +187,7 @@ export default function ForgotPasswordPasswordScreen() {
                 setConfirmPassword(text);
                 clearFieldError("confirmPassword");
               }}
+              onFocus={handlePasswordFocus}
               secureTextEntry
               autoCapitalize="none"
               error={errors.confirmPassword}
@@ -159,21 +197,32 @@ export default function ForgotPasswordPasswordScreen() {
           </View>
 
           <View style={styles.rulesBlock}>
-            <Text
-              style={[styles.ruleText, hasMinLength && styles.ruleTextValid]}
-            >
-              x 8 ou mais caracteres
-            </Text>
-            <Text
-              style={[styles.ruleText, hasUppercase && styles.ruleTextValid]}
-            >
-              x Uma letra maiuscula
-            </Text>
-            <Text
-              style={[styles.ruleText, hasLowercase && styles.ruleTextValid]}
-            >
-              x Uma letra minuscula
-            </Text>
+            <View style={styles.requisiteRow}>
+              <Ionicons
+                name={hasMinLength ? "checkmark-circle" : "close-circle"}
+                size={16}
+                color={hasMinLength ? "#4CAF50" : "#ff6584"}
+              />
+              <Text style={styles.requisitesText}>8 ou mais caracteres</Text>
+            </View>
+
+            <View style={styles.requisiteRow}>
+              <Ionicons
+                name={hasUppercase ? "checkmark-circle" : "close-circle"}
+                size={16}
+                color={hasUppercase ? "#4CAF50" : "#ff6584"}
+              />
+              <Text style={styles.requisitesText}>Uma letra maiuscula</Text>
+            </View>
+
+            <View style={styles.requisiteRow}>
+              <Ionicons
+                name={hasLowercase ? "checkmark-circle" : "close-circle"}
+                size={16}
+                color={hasLowercase ? "#4CAF50" : "#ff6584"}
+              />
+              <Text style={styles.requisitesText}>Uma letra minuscula</Text>
+            </View>
           </View>
 
           <View style={styles.buttonContainer}>
@@ -212,6 +261,10 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 24,
   },
+  scrollContentKeyboardVisible: {
+    justifyContent: "flex-start",
+    paddingBottom: 30,
+  },
   titleBlock: {
     gap: 10,
   },
@@ -240,17 +293,18 @@ const styles = StyleSheet.create({
   },
   rulesBlock: {
     marginTop: 18,
-    gap: 4,
     paddingHorizontal: 6,
   },
-  ruleText: {
+  requisitesText: {
     fontFamily: "montserratRegular",
-    color: "#1F2125",
-    fontSize: 17,
+    marginLeft: 8,
+    color: "black",
   },
-  ruleTextValid: {
-    color: "#6C63FF",
-    fontFamily: "montserratBold",
+  requisiteRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginVertical: 4,
   },
   buttonContainer: {
     marginTop: 34,
