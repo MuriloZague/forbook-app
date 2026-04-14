@@ -258,12 +258,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingTop: 24,
     paddingBottom: 24,
   },
   scrollContentKeyboardVisible: {
     justifyContent: "flex-start",
-    paddingBottom: 30,
+    paddingBottom: 12,
   },
   titleBlock: {
     gap: 10,
