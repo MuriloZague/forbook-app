@@ -77,7 +77,24 @@ export default function LoginScreen() {
   };
 
   const loginSemSenha = () => {
-    router.push("/(tabs)/home");
+
+    const result = loginBodySchema.safeParse({ email, password });
+
+    if (!result.success) {
+      setErrors(extractErrors(result.error));
+      setSubmitError("Verifique os dados e tente novamente.");
+      return;
+    }
+    setLoading(true);
+    setTimeout(() => {
+      if (email === "teste@gmail.com" && password === "12345678") {
+        setLoading(false)
+        router.push("/(tabs)/home");
+      }
+      setLoading(false)
+      setSubmitError("Email ou senha incorretos");
+    }, 1000);
+
   }
 
   const goToRegister = () => router.push("/register");
