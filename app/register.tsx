@@ -605,7 +605,7 @@ export default function LoginScreen() {
               ) : (
                 <TouchableOpacity onPress={() => handleBack()}>
                   <View style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={20} color="#6C63FF" />
+                    <Ionicons name="arrow-back" size={18} color="#6C63FF" />
                     <Text style={styles.backButtonText}>Voltar</Text>
                   </View>
                 </TouchableOpacity>
