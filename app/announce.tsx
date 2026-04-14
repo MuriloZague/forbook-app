@@ -187,10 +187,34 @@ export default function Modal() {
 
           {/* Imagens Adicionais */}
           <View style={styles.inputContainer}>
-            <Text style={styles.floatingLabel}>Imagens Adicionais</Text>
-            <View style={styles.boxContainer}>
+            <Text style={{fontSize: 14, fontFamily: 'lexendBold',color: "#a6a8aa"}}>5 anexos restantes</Text>
+            <View style={styles.attachmentContainer}>
               <View style={styles.attachmentsRow}>
                 {/* Imagem 1 */}
+                <TouchableOpacity
+                  style={styles.attachmentBox}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add" size={24} color="#6c63ff" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.attachmentBox}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add" size={24} color="#6c63ff" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.attachmentBox}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add" size={24} color="#6c63ff" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.attachmentBox}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add" size={24} color="#6c63ff" />
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.attachmentBox}
                   activeOpacity={0.7}
@@ -316,9 +340,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
   },
+  attachmentContainer: {
+    marginVertical: 12,
+  },
   attachmentBox: {
-    width: 78,
-    height: 78,
+    width: 68,
+    height: 74,
     backgroundColor: "#f0f0ff",
     borderRadius: 12,
     justifyContent: "center",
