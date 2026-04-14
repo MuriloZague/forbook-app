@@ -47,7 +47,7 @@ export default function SettingsScreen() {
         </SectionTitle>
 
         <ListItemRow
-          label="Editar Perfil"
+          label="EU NAO SEI"
           iconName="person-outline"
           iconColor={theme.iconColor}
           style={styles.settingItem}
@@ -58,7 +58,7 @@ export default function SettingsScreen() {
         />
 
         <ListItemRow
-          label="Alterar Senha"
+          label="O QUE COLOCAR AQUI HAHAHA"
           iconName="lock-closed-outline"
           iconColor={theme.iconColor}
           style={styles.settingItem}
@@ -95,7 +95,7 @@ export default function SettingsScreen() {
         />
 
         <ListItemRow
-          label="Modo Escuro"
+          label="Modo Escuro (desconsiderar)"
           iconName="moon-outline"
           iconColor={theme.iconColor}
           style={styles.settingItem}
