@@ -493,10 +493,12 @@ export default function LoginScreen() {
     try {
       await userService.create(result.data);
       setSubmitError("");
+
       Alert.alert("Sucesso", "Conta criada com sucesso!", [
         { text: "OK", onPress: () => router.push("/login") },
       ]);
       router.push("/(tabs)/home");
+      
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422 && error.errors) {
