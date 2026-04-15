@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#F0F2F5",
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
   },
   header: {
     paddingHorizontal: 0,
