@@ -1,4 +1,5 @@
 import ScreenHeader from "@/src/components/screenHeader";
+import BookImageViewerModal from "@/src/components/bookImageViewerModal";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
@@ -67,6 +68,8 @@ export default function BookDetailsScreen() {
   const [isFavorited, setIsFavorited] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false);
+  const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
+  const [viewerImageIndex, setViewerImageIndex] = useState(0);
   const [synopsisExtraHeight, setSynopsisExtraHeight] = useState(0);
   const listRef = useRef<FlatList<string>>(null);
   const synopsisAnim = useRef(new Animated.Value(0)).current;
@@ -162,6 +165,23 @@ export default function BookDetailsScreen() {
 
   function handleSynopsisToggle() {
     setIsSynopsisExpanded((prev) => !prev);
+  }
+
+  function handleOpenImageViewer(index: number) {
+    setViewerImageIndex(index);
+    setIsImageViewerVisible(true);
+  }
+
+  function handleCloseImageViewer() {
+    setIsImageViewerVisible(false);
+    setCurrentImageIndex(viewerImageIndex);
+
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToIndex({
+        index: viewerImageIndex,
+        animated: false,
+      });
+    });
   }
 
   function scrollToImage(index: number) {
@@ -273,14 +293,18 @@ export default function BookDetailsScreen() {
                   });
                 });
               }}
-              renderItem={({ item }) => (
-                <View style={styles.slide}>
+              renderItem={({ item, index }) => (
+                <TouchableOpacity
+                  style={styles.slide}
+                  activeOpacity={0.95}
+                  onPress={() => handleOpenImageViewer(index)}
+                >
                   <Image
                     source={{ uri: item }}
                     style={styles.bookImage}
                     contentFit="cover"
                   />
-                </View>
+                </TouchableOpacity>
               )}
             />
 
@@ -388,6 +412,14 @@ export default function BookDetailsScreen() {
             style={{ height: synopsisBottomSpacerHeight }}
           />
         </ScrollView>
+
+        <BookImageViewerModal
+          visible={isImageViewerVisible}
+          imageUris={galleryImages}
+          imageIndex={viewerImageIndex}
+          onImageIndexChange={(index) => setViewerImageIndex(index)}
+          onRequestClose={handleCloseImageViewer}
+        />
 
         <View
           style={[
