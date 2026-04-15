@@ -1005,7 +1005,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-start",
     gap: 8,
-    paddingTop: 22,
+    paddingTop: 32,
   },
   sliderContainer: {
     width: FORM_WIDTH,
@@ -1019,7 +1019,7 @@ const styles = StyleSheet.create({
   bigTitle: {
     fontFamily: "lexendBlack",
     fontSize: 60,
-    lineHeight: 54,
+    lineHeight: 57,
   },
   minorTitle: {
     fontFamily: "montserratRegular",
