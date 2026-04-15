@@ -84,6 +84,7 @@ export default function LoginScreen() {
       if (email === "teste@gmail.com" && password === "12345678") {
         setLoading(false);
         router.push("/(tabs)/home");
+        return
       }
       setLoading(false);
       setSubmitError("Email ou senha incorretos");
@@ -150,7 +151,7 @@ export default function LoginScreen() {
 
           <PrimaryButton
             style={styles.btn}
-            onPress={validateAndSubmit}
+            onPress={loginSemSenha}
             loading={loading}
             label="ENTRAR"
           />
