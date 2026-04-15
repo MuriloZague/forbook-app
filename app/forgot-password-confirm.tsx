@@ -1,36 +1,11 @@
-import FloatingLabelInput from "@/src/components/floatingLabelInput";
 import PrimaryButton from "@/src/components/primaryButton";
-import ScreenHeader from "@/src/components/screenHeader";
-import SubmitErrorBanner from "@/src/components/submitErrorBanner";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
+import React from "react";
+import { StyleSheet, Text, View, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { z } from "zod";
-
-const emailSchema = z.object({
-  email: z.email("Email invalido"),
-});
 
 export default function ForgotPasswordConfirm() {
   const router = useRouter();
-
-  const [email, setEmail] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitError, setSubmitError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const clearFieldError = (field: string) => {
-    if (submitError) setSubmitError("");
-    if (errors[field]) {
-      setErrors((previous) => {
-        const next = { ...previous };
-        delete next[field];
-        return next;
-      });
-    }
-  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -52,7 +27,6 @@ export default function ForgotPasswordConfirm() {
           <PrimaryButton
             onPress={() => router.replace("/login")}
             label="Entrar na conta"
-            loading={loading}
             style={styles.primaryButton}
             textStyle={styles.buttonText}
           />
@@ -67,17 +41,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F0F2F5",
     paddingHorizontal: 12,
-  },
-  header: {
-    paddingHorizontal: 0,
-    paddingBottom: 2,
-  },
-  topArea: {
-    paddingTop: 8,
-  },
-  backButton: {
-    alignSelf: "flex-start",
-    padding: 4,
   },
   content: {
     flex: 1,
@@ -102,19 +65,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 24,
     textAlign: "center",
-  },
-  highlightText: {
-    color: "#6C63FF",
-    fontFamily: "montserratRegular",
-  },
-  formBlock: {
-    marginTop: 44,
-  },
-  inputLabel: {
-    color: "#222",
-  },
-  inputText: {
-    color: "#222",
   },
   buttonContainer: {
     marginTop: 38,
