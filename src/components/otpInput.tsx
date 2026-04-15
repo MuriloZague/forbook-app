@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     fontFamily: "montserratBold",
     fontSize: 38,
     includeFontPadding: false,
-    textAlignVertical: "center",
+    textAlign: "center",
     padding: 0,
     backgroundColor: "transparent",
   },

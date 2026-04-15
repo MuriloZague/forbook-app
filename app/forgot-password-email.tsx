@@ -1,5 +1,6 @@
 import FloatingLabelInput from "@/src/components/floatingLabelInput";
 import PrimaryButton from "@/src/components/primaryButton";
+import ScreenHeader from "@/src/components/screenHeader";
 import SubmitErrorBanner from "@/src/components/submitErrorBanner";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -64,15 +65,14 @@ export default function ForgotPasswordEmailScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.topArea}>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          style={styles.backButton}
-          onPress={handleBack}
-        >
-          <Ionicons name="arrow-back" size={28} color="#15171C" />
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title="Informe o E-mail"
+        onBackPress={handleBack}
+        borderBottomWidth={0}
+        titleFontFamily="montserratRegular"
+        titleFontSize={20}
+        containerStyle={styles.header}
+      />
 
       <View style={styles.content}>
         <View style={styles.titleBlock}>
@@ -124,6 +124,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F0F2F5",
     paddingHorizontal: 12,
+  },
+  header: {
+    paddingHorizontal: 0,
+    paddingBottom: 2,
   },
   topArea: {
     paddingTop: 8,
