@@ -33,6 +33,10 @@ function AppContent() {
           options={{ headerShown: false, animation: "ios_from_right" }}
         />
         <Stack.Screen
+          name="email-confirmation"
+          options={{ headerShown: false, animation: "ios_from_right" }}
+        />
+        <Stack.Screen
           name="forgot-password-email"
           options={{ headerShown: false, animation: "ios_from_right" }}
         />
