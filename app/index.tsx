@@ -35,7 +35,7 @@ export default function TelaInicial() {
           style={{ width: 84, height: 52 }}
         />
         <Text style={{ marginTop: 12, fontFamily: "lexendRegular" }}>
-          v0.3.0
+          v0.4.0
         </Text>
       </View>
     </SafeAreaProvider>

@@ -491,12 +491,15 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      await userService.create(result.data);
+      //DESCOMENTAR PARA CRIAR USUARIO NO APP - COMENTADO APENAS PARA TESTES
+      //await userService.create(result.data);
       setSubmitError("");
-      Alert.alert("Sucesso", "Conta criada com sucesso!", [
-        { text: "OK", onPress: () => router.push("/login") },
-      ]);
-      router.push("/(tabs)/home");
+
+      router.replace({
+        pathname: "/email-confirmation",
+        params: { email: result.data.email },
+      });
+      
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422 && error.errors) {
@@ -1092,7 +1095,6 @@ const styles = StyleSheet.create({
   btn: {
     width: "56%",
     paddingVertical: 12,
-    marginTop: 12,
   },
   btnText: {
     fontFamily: "montserratBold",

@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import {
   Dimensions,
+  GestureResponderEvent,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -31,6 +32,11 @@ export default function BookCard({
   onFavoritePress,
   onPress,
 }: BookCardProps) {
+  function handleFavoritePress(event: GestureResponderEvent) {
+    event.stopPropagation();
+    onFavoritePress?.();
+  }
+
   return (
     <TouchableOpacity
       style={styles.card2}
@@ -49,7 +55,7 @@ export default function BookCard({
 
           <TouchableOpacity
             style={styles.favoriteBtn}
-            onPress={onFavoritePress}
+            onPress={handleFavoritePress}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Ionicons

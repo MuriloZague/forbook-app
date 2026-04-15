@@ -124,7 +124,7 @@ export default function ForgotPasswordPasswordScreen() {
     setErrors({});
     setLoading(true);
 
-    router.replace("/login");
+    router.replace("/forgot-password-confirm");
 
     setLoading(false);
   };

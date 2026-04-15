@@ -94,7 +94,7 @@ export default function ForgotPasswordCodeScreen() {
 
     setLoading(true);
 
-    router.push({
+    router.replace({
       pathname: "/forgot-password-password",
       params: {
         email: rawEmail,

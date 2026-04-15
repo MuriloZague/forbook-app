@@ -44,12 +44,7 @@ export default function LoginScreen() {
     try {
       await authService.login({ email, password: result.data.password });
       setSubmitError("");
-      Alert.alert(
-        "Código enviado",
-        "Verifique seu e-mail e insira o código de confirmação.",
-        undefined,
-        { cancelable: false },
-      );
+      
       // Quando tiver tela de confirmação, descomente:
       // router.push(`/confirm-login?email=${encodeURIComponent(email)}`);
       router.push("/(tabs)/home");
@@ -89,6 +84,7 @@ export default function LoginScreen() {
       if (email === "teste@gmail.com" && password === "12345678") {
         setLoading(false);
         router.push("/(tabs)/home");
+        return
       }
       setLoading(false);
       setSubmitError("Email ou senha incorretos");
@@ -155,7 +151,7 @@ export default function LoginScreen() {
 
           <PrimaryButton
             style={styles.btn}
-            onPress={validateAndSubmit}
+            onPress={loginSemSenha}
             loading={loading}
             label="ENTRAR"
           />

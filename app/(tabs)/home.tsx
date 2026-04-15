@@ -3,6 +3,7 @@ import User2 from "@/assets/images/User.svg";
 import AppTopHeader from "@/src/components/appTopHeader";
 import BookCard from "@/src/components/bookCard";
 import HorizontalOptionBar from "@/src/components/horizontalOptionBar";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
@@ -19,6 +20,7 @@ type Category = "ofertas" | "populares" | "interesse" | "other";
 interface Book {
   id: string;
   title: string;
+  author: string;
   priceWhole: string;
   priceCents: string;
   imageUri: string;
@@ -30,6 +32,7 @@ const MOCK_DATA: Record<Category, Book[]> = {
     {
       id: "1",
       title: "Livro - O Hobbit",
+      author: "J.R.R. Tolkien",
       priceWhole: "20",
       priceCents: "99",
       imageUri:
@@ -39,6 +42,7 @@ const MOCK_DATA: Record<Category, Book[]> = {
     {
       id: "2",
       title: "Steel Ball Run. Volume 19",
+      author: "Hirohiko Araki",
       priceWhole: "55",
       priceCents: "00",
       imageUri: "https://rezised-images.knhbt.cz/880x880/16606983.webp",
@@ -47,6 +51,7 @@ const MOCK_DATA: Record<Category, Book[]> = {
     {
       id: "3",
       title: "Harry Potter e a Pedra Filosofal",
+      author: "J.K. Rowling",
       priceWhole: "32",
       priceCents: "50",
       imageUri: "https://covers.openlibrary.org/b/id/10110415-L.jpg",
@@ -55,6 +60,7 @@ const MOCK_DATA: Record<Category, Book[]> = {
     {
       id: "4",
       title: "1984 - George Orwell",
+      author: "George Orwell",
       priceWhole: "18",
       priceCents: "90",
       imageUri: "https://covers.openlibrary.org/b/id/8575708-L.jpg",
@@ -65,6 +71,7 @@ const MOCK_DATA: Record<Category, Book[]> = {
     {
       id: "p1",
       title: "Jojo's Bizarre Adventure Parte 7 Steel Ball Run 02",
+      author: "Hirohiko Araki",
       priceWhole: "54",
       priceCents: "99",
       imageUri:
@@ -74,6 +81,7 @@ const MOCK_DATA: Record<Category, Book[]> = {
     {
       id: "p2",
       title: "Frieren: Beyond Journey's End volume 2",
+      author: "Kanehito Yamada",
       priceWhole: "28",
       priceCents: "90",
       imageUri:
@@ -83,6 +91,7 @@ const MOCK_DATA: Record<Category, Book[]> = {
     {
       id: "p3",
       title: "Sapiens",
+      author: "Yuval Noah Harari",
       priceWhole: "39",
       priceCents: "99",
       imageUri: "https://covers.openlibrary.org/b/id/8592068-L.jpg",
@@ -91,6 +100,7 @@ const MOCK_DATA: Record<Category, Book[]> = {
     {
       id: "p4",
       title: "A Revolução dos Bichos",
+      author: "George Orwell",
       priceWhole: "15",
       priceCents: "00",
       imageUri: "https://covers.openlibrary.org/b/id/8406786-L.jpg",
@@ -101,6 +111,7 @@ const MOCK_DATA: Record<Category, Book[]> = {
     {
       id: "i1",
       title: "Duna",
+      author: "Frank Herbert",
       priceWhole: "52",
       priceCents: "00",
       imageUri: "https://covers.openlibrary.org/b/id/10975897-L.jpg",
@@ -109,6 +120,7 @@ const MOCK_DATA: Record<Category, Book[]> = {
     {
       id: "i2",
       title: "Fundação",
+      author: "Isaac Asimov",
       priceWhole: "34",
       priceCents: "50",
       imageUri: "https://covers.openlibrary.org/b/id/8228691-L.jpg",
@@ -117,6 +129,7 @@ const MOCK_DATA: Record<Category, Book[]> = {
     {
       id: "i3",
       title: "Neuromancer",
+      author: "William Gibson",
       priceWhole: "26",
       priceCents: "00",
       imageUri: "https://covers.openlibrary.org/b/id/9255566-L.jpg",
@@ -127,6 +140,7 @@ const MOCK_DATA: Record<Category, Book[]> = {
     {
       id: "p1",
       title: "Jojo's Bizarre Adventure Parte 7 Steel Ball Run 02",
+      author: "Hirohiko Araki",
       priceWhole: "54",
       priceCents: "99",
       imageUri:
@@ -257,7 +271,20 @@ export default function HomeScreen() {
               condition={item.condition}
               isFavorited={favorites.has(item.id)}
               onFavoritePress={() => toggleFavorite(item.id)}
-              onPress={() => console.log("Abrir livro:", item.id)}
+              onPress={() =>
+                router.push({
+                  pathname: "/book-details",
+                  params: {
+                    id: item.id,
+                    title: item.title,
+                    author: item.author,
+                    priceWhole: item.priceWhole,
+                    priceCents: item.priceCents,
+                    imageUri: item.imageUri,
+                    condition: item.condition,
+                  },
+                })
+              }
             />
           )}
         />
