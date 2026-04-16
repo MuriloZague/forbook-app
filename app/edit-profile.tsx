@@ -1,6 +1,7 @@
 import FloatingLabelInput from "@/src/components/floatingLabelInput";
 import PrimaryButton from "@/src/components/primaryButton";
 import ScreenHeader from "@/src/components/screenHeader";
+import { formatDate, formatPhone } from "@/src/lib/input-masks";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -23,7 +24,7 @@ export default function EditProfile() {
   const [city, setCity] = useState("Fernandópolis");
   const [state, setState] = useState("SP");
   const [email, setEmail] = useState("arthur.rprodovalho@gmail.com");
-  const [phone, setPhone] = useState("+55 (17) 98842-7342");
+  const [phone, setPhone] = useState("(17) 98842-7342");
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -59,8 +60,9 @@ export default function EditProfile() {
               <FloatingLabelInput
                 label="Nascimento"
                 value={birthDate}
-                onChangeText={setBirthDate}
-                keyboardType="number-pad"
+                maxLength={10}
+                onChangeText={(t) => setBirthDate(formatDate(t))}
+                keyboardType="numeric"
                 labelBackgroundColor="#F0F2F5"
                 labelStyle={styles.inputLabel}
                 inputStyle={styles.inputValue}
@@ -161,8 +163,9 @@ export default function EditProfile() {
             <FloatingLabelInput
               label="Telefone"
               value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
+              maxLength={15}
+              onChangeText={(t) => setPhone(formatPhone(t))}
+              keyboardType="numeric"
               labelBackgroundColor="#F0F2F5"
               labelStyle={styles.inputLabel}
               inputStyle={styles.inputValue}
@@ -197,10 +200,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: "lexendBold",
-    fontSize: 16,
+    fontSize: 20,
     lineHeight: 20,
     color: "#1f1f1f",
     marginBottom: 8,
+    marginTop: 4,
   },
   sectionTitle: {
     fontFamily: "lexendBold",

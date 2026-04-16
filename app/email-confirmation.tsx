@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   bigTitle: {
     fontFamily: "lexendBlack",
     fontSize: 60,
-    lineHeight: 52,
+    lineHeight: 57,
     color: "#15171C",
     includeFontPadding: false,
     textAlign: "center",
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   buttonContainer: {
-    marginTop: 44,
+    marginTop: 38,
     alignItems: "center",
     position: "relative",
   },

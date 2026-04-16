@@ -167,7 +167,6 @@ export default function Profile() {
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.changePasswordButton}
-            onPress={togglePasswordVisibility}
           >
             <Text style={styles.changePasswordText}>Alterar senha</Text>
           </TouchableOpacity>

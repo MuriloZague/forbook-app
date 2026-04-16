@@ -6,8 +6,8 @@ import { loginBodySchema } from "@/src/schemas/auth.schema";
 import { ApiError } from "@/src/services/api";
 import { authService } from "@/src/services/auth.service";
 import { router } from "expo-router";
-import React, { useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
@@ -16,6 +16,10 @@ export default function LoginScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  useEffect(() => {
+    router.prefetch("/register");
+  }, []);
 
   const clearFieldError = (field: string) => {
     if (submitError) setSubmitError("");
@@ -44,7 +48,7 @@ export default function LoginScreen() {
     try {
       await authService.login({ email, password: result.data.password });
       setSubmitError("");
-      
+
       // Quando tiver tela de confirmação, descomente:
       // router.push(`/confirm-login?email=${encodeURIComponent(email)}`);
       router.push("/(tabs)/home");
@@ -84,7 +88,7 @@ export default function LoginScreen() {
       if (email === "teste@gmail.com" && password === "12345678") {
         setLoading(false);
         router.push("/(tabs)/home");
-        return
+        return;
       }
       setLoading(false);
       setSubmitError("Email ou senha incorretos");
