@@ -9,13 +9,15 @@ import { useNavigation } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -58,194 +60,213 @@ export default function Modal() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-      >
-        <ScreenHeader
-          title="Criar Anúncio"
-          onBackPress={handleClose}
-          iconName="close"
-          iconSize={32}
-          iconColor="#6C63FF"
-          titleFontFamily="lexendBlack"
-          borderBottomColor="#f0f0f0"
-          rightPlaceholderWidth={32}
-        />
-
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {/* Capa do Livro */}
-          <View style={styles.inputContainerUp}>
-            <Text style={styles.title}>Capa do Livro</Text>
-            <TouchableOpacity style={styles.coverUploadBox} activeOpacity={0.7}>
-              <Ionicons name="camera-outline" size={40} color="#6c63ff" />
-              <Text style={styles.uploadText}>Adicionar capa principal</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.inputContainer}>
-            <FloatingLabelInput
-              label="ISBN"
-              value={isbn}
-              onChangeText={setIsbn}
-              placeholder="Ex: 978-85-359..."
-              placeholderTextColor="#a6a8aa"
-              keyboardType="numeric"
-              labelStyle={styles.floatingLabel}
-              inputStyle={styles.input}
-              rightElement={
-                <TouchableOpacity
-                  style={styles.iconScan}
-                  onPress={() => setScannerVisible(true)}
-                >
-                  <Ionicons name="barcode-outline" size={24} color="#6c63ff" />
-                </TouchableOpacity>
-              }
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.dismissArea}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+          >
+            <ScreenHeader
+              title="Criar Anúncio"
+              onBackPress={handleClose}
+              iconName="close"
+              iconSize={32}
+              iconColor="#6C63FF"
+              titleFontFamily="lexendBlack"
+              borderBottomColor="#f0f0f0"
+              rightPlaceholderWidth={32}
             />
-            <BarcodeScannerModal
-              visible={scannerVisible}
-              onClose={() => setScannerVisible(false)}
-              onScanned={(code) => setIsbn(code)}
-            />
-          </View>
 
-          {/* Título */}
-          <View style={styles.inputContainer}>
-            <FloatingLabelInput
-              label="Título do Livro"
-              placeholder="Ex: O Senhor dos Anéis"
-              placeholderTextColor="#a6a8aa"
-              value={title}
-              onChangeText={setTitle}
-              labelStyle={styles.floatingLabel}
-              inputStyle={styles.input}
-            />
-          </View>
-
-          {/* Autor */}
-          <View style={styles.inputContainer}>
-            <FloatingLabelInput
-              label="Autor(a)"
-              placeholder="Ex: J.R.R. Tolkien"
-              placeholderTextColor="#a6a8aa"
-              value={author}
-              onChangeText={setAuthor}
-              labelStyle={styles.floatingLabel}
-              inputStyle={styles.input}
-            />
-          </View>
-
-          {/* Sinopse */}
-          <View style={styles.inputContainer}>
-            <FloatingLabelInput
-              label="Descrição / Observações"
-              inputStyle={[styles.input, styles.textArea]}
-              placeholder="Descreva sobre o livro..."
-              placeholderTextColor="#a6a8aa"
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-              value={synopsis}
-              onChangeText={setSynopsis}
-              labelStyle={styles.floatingLabel}
-            />
-          </View>
-
-          {/* Estado do Livro */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.floatingLabel}>Estado do Livro</Text>
-            <View style={styles.boxContainer}>
-              <OptionChips
-                options={["Novo", "Usado (Bom)", "Com Grifos", "Danificado"]}
-                selectedValue={condition}
-                onSelect={setCondition}
-                containerStyle={styles.chipsContainer}
-                chipStyle={styles.chip}
-                selectedChipStyle={styles.chipSelected}
-                textStyle={styles.chipText}
-                selectedTextStyle={styles.chipTextSelected}
-              />
-            </View>
-          </View>
-
-          {/* Valor */}
-          <View style={styles.inputContainer}>
-            <FloatingLabelInput
-              label="Valor (R$)"
-              inputStyle={styles.input}
-              placeholder="0,00"
-              placeholderTextColor="#a6a8aa"
-              keyboardType="numeric"
-              value={price}
-              onChangeText={setPrice}
-              labelStyle={styles.floatingLabel}
-            />
-          </View>
-
-          {/* Imagens Adicionais */}
-          <View style={styles.inputContainer}>
-            <Text
-              style={{
-                fontSize: 14,
-                fontFamily: "lexendBold",
-                color: "#a6a8aa",
-              }}
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
             >
-              5 anexos restantes
-            </Text>
-            <View style={styles.attachmentContainer}>
-              <View style={styles.attachmentsRow}>
-                {/* Imagem 1 */}
+              {/* Capa do Livro */}
+              <View style={styles.inputContainerUp}>
+                <Text style={styles.title}>Capa do Livro</Text>
                 <TouchableOpacity
-                  style={styles.attachmentBox}
+                  style={styles.coverUploadBox}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="add" size={24} color="#6c63ff" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.attachmentBox}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="add" size={24} color="#6c63ff" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.attachmentBox}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="add" size={24} color="#6c63ff" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.attachmentBox}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="add" size={24} color="#6c63ff" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.attachmentBox}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="add" size={24} color="#6c63ff" />
+                  <Ionicons name="camera-outline" size={40} color="#6c63ff" />
+                  <Text style={styles.uploadText}>
+                    Adicionar capa principal
+                  </Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          </View>
 
-          <View style={{ height: 24 }} />
+              <View style={styles.inputContainer}>
+                <FloatingLabelInput
+                  label="ISBN"
+                  value={isbn}
+                  onChangeText={setIsbn}
+                  placeholder="Ex: 978-85-359..."
+                  placeholderTextColor="#a6a8aa"
+                  keyboardType="numeric"
+                  labelStyle={styles.floatingLabel}
+                  inputStyle={styles.input}
+                  rightElement={
+                    <TouchableOpacity
+                      style={styles.iconScan}
+                      onPress={() => setScannerVisible(true)}
+                    >
+                      <Ionicons
+                        name="barcode-outline"
+                        size={24}
+                        color="#6c63ff"
+                      />
+                    </TouchableOpacity>
+                  }
+                />
+                <BarcodeScannerModal
+                  visible={scannerVisible}
+                  onClose={() => setScannerVisible(false)}
+                  onScanned={(code) => setIsbn(code)}
+                />
+              </View>
 
-          <PrimaryButton
-            style={styles.submitButton}
-            onPress={handleAnnounce}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.submitButtonText}>Publicar Anúncio</Text>
-          </PrimaryButton>
+              {/* Título */}
+              <View style={styles.inputContainer}>
+                <FloatingLabelInput
+                  label="Título do Livro"
+                  placeholder="Ex: O Senhor dos Anéis"
+                  placeholderTextColor="#a6a8aa"
+                  value={title}
+                  onChangeText={setTitle}
+                  labelStyle={styles.floatingLabel}
+                  inputStyle={styles.input}
+                />
+              </View>
 
-          <View style={{ height: 40 }} />
-        </ScrollView>
-      </KeyboardAvoidingView>
+              {/* Autor */}
+              <View style={styles.inputContainer}>
+                <FloatingLabelInput
+                  label="Autor(a)"
+                  placeholder="Ex: J.R.R. Tolkien"
+                  placeholderTextColor="#a6a8aa"
+                  value={author}
+                  onChangeText={setAuthor}
+                  labelStyle={styles.floatingLabel}
+                  inputStyle={styles.input}
+                />
+              </View>
+
+              {/* Sinopse */}
+              <View style={styles.inputContainer}>
+                <FloatingLabelInput
+                  label="Descrição / Observações"
+                  inputStyle={[styles.input, styles.textArea]}
+                  placeholder="Descreva sobre o livro..."
+                  placeholderTextColor="#a6a8aa"
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  value={synopsis}
+                  onChangeText={setSynopsis}
+                  labelStyle={styles.floatingLabel}
+                />
+              </View>
+
+              {/* Estado do Livro */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.floatingLabel}>Estado do Livro</Text>
+                <View style={styles.boxContainer}>
+                  <OptionChips
+                    options={[
+                      "Novo",
+                      "Usado (Bom)",
+                      "Com Grifos",
+                      "Danificado",
+                    ]}
+                    selectedValue={condition}
+                    onSelect={setCondition}
+                    containerStyle={styles.chipsContainer}
+                    chipStyle={styles.chip}
+                    selectedChipStyle={styles.chipSelected}
+                    textStyle={styles.chipText}
+                    selectedTextStyle={styles.chipTextSelected}
+                  />
+                </View>
+              </View>
+
+              {/* Valor */}
+              <View style={styles.inputContainer}>
+                <FloatingLabelInput
+                  label="Valor (R$)"
+                  inputStyle={styles.input}
+                  placeholder="0,00"
+                  placeholderTextColor="#a6a8aa"
+                  keyboardType="numeric"
+                  value={price}
+                  onChangeText={setPrice}
+                  labelStyle={styles.floatingLabel}
+                />
+              </View>
+
+              {/* Imagens Adicionais */}
+              <View style={styles.inputContainer}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "lexendBold",
+                    color: "#a6a8aa",
+                  }}
+                >
+                  5 anexos restantes
+                </Text>
+                <View style={styles.attachmentContainer}>
+                  <View style={styles.attachmentsRow}>
+                    {/* Imagem 1 */}
+                    <TouchableOpacity
+                      style={styles.attachmentBox}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="add" size={24} color="#6c63ff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.attachmentBox}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="add" size={24} color="#6c63ff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.attachmentBox}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="add" size={24} color="#6c63ff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.attachmentBox}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="add" size={24} color="#6c63ff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.attachmentBox}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="add" size={24} color="#6c63ff" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              <View style={{ height: 24 }} />
+
+              <PrimaryButton
+                style={styles.submitButton}
+                onPress={handleAnnounce}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.submitButtonText}>Publicar Anúncio</Text>
+              </PrimaryButton>
+
+              <View style={{ height: 40 }} />
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -254,6 +275,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F0F2F5",
+  },
+  dismissArea: {
+    flex: 1,
   },
   title: {
     fontSize: 16,

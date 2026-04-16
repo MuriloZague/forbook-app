@@ -4,7 +4,13 @@ import ScreenHeader from "@/src/components/screenHeader";
 import SubmitErrorBanner from "@/src/components/submitErrorBanner";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import {
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
@@ -64,56 +70,61 @@ export default function ForgotPasswordEmailScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScreenHeader
-        title="Informe o E-mail"
-        onBackPress={handleBack}
-        borderBottomWidth={0}
-        titleFontFamily="montserratRegular"
-        titleFontSize={20}
-        containerStyle={styles.header}
-      />
-
-      <View style={styles.content}>
-        <View style={styles.titleBlock}>
-          <Text style={styles.bigTitle}>Informe{"\n"}seu E-mail</Text>
-
-          <Text style={styles.description}>
-            Para <Text style={styles.highlightText}>redefinir sua senha</Text>,
-            informe o e-mail{"\n"}cadastrado na sua conta.
-          </Text>
-        </View>
-
-        <View style={styles.formBlock}>
-          <FloatingLabelInput
-            label="Email"
-            placeholder="Preencha com seu Email"
-            placeholderTextColor="#6C63FF"
-            value={email}
-            onChangeText={(text) => {
-              setEmail(text);
-              clearFieldError("email");
-            }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            error={errors.email}
-            labelStyle={styles.inputLabel}
-            inputStyle={styles.inputText}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.dismissArea}>
+          <ScreenHeader
+            title="Informe o E-mail"
+            onBackPress={handleBack}
+            borderBottomWidth={0}
+            titleFontFamily="montserratRegular"
+            titleFontSize={20}
+            containerStyle={styles.header}
           />
-        </View>
 
-        <View style={styles.buttonContainer}>
-          <SubmitErrorBanner message={submitError} />
+          <View style={styles.content}>
+            <View style={styles.titleBlock}>
+              <Text style={styles.bigTitle}>Informe{"\n"}seu E-mail</Text>
 
-          <PrimaryButton
-            onPress={handleContinue}
-            label="CONTINUAR"
-            loading={loading}
-            style={styles.primaryButton}
-            textStyle={styles.buttonText}
-          />
+              <Text style={styles.description}>
+                Para{" "}
+                <Text style={styles.highlightText}>redefinir sua senha</Text>,
+                informe o e-mail{"\n"}cadastrado na sua conta.
+              </Text>
+            </View>
+
+            <View style={styles.formBlock}>
+              <FloatingLabelInput
+                label="Email"
+                placeholder="Preencha com seu Email"
+                placeholderTextColor="#6C63FF"
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  clearFieldError("email");
+                }}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                error={errors.email}
+                labelStyle={styles.inputLabel}
+                inputStyle={styles.inputText}
+              />
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <SubmitErrorBanner message={submitError} />
+
+              <PrimaryButton
+                onPress={handleContinue}
+                label="CONTINUAR"
+                loading={loading}
+                style={styles.primaryButton}
+                textStyle={styles.buttonText}
+              />
+            </View>
+          </View>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -127,6 +138,9 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 0,
     paddingBottom: 2,
+  },
+  dismissArea: {
+    flex: 1,
   },
   topArea: {
     paddingTop: 8,

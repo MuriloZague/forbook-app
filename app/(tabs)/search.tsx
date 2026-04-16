@@ -9,10 +9,12 @@ import HorizontalOptionBar from "@/src/components/horizontalOptionBar";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import {
+    Keyboard,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -26,57 +28,61 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <AppTopHeader
-        title="Forbook"
-        userContent={
-          <View style={styles.userLogo}>
-            <User2 width={22} height={22} />
-          </View>
-        }
-        notificationContent={<Notification width={28} height={28} />}
-        onUserPress={() => router.push("/profile")}
-      />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.dismissArea}>
+          <AppTopHeader
+            title="Forbook"
+            userContent={
+              <View style={styles.userLogo}>
+                <User2 width={22} height={22} />
+              </View>
+            }
+            notificationContent={<Notification width={28} height={28} />}
+            onUserPress={() => router.push("/profile")}
+          />
 
-      <View style={styles.searchMain}>
-        <View style={styles.searchContent}>
-          <View style={styles.searchInputWrapper}>
-            <Ionicons
-              name="search-outline"
-              size={24}
-              color="#6C63FF"
-              style={styles.searchIcon}
+          <View style={styles.searchMain}>
+            <View style={styles.searchContent}>
+              <View style={styles.searchInputWrapper}>
+                <Ionicons
+                  name="search-outline"
+                  size={24}
+                  color="#6C63FF"
+                  style={styles.searchIcon}
+                />
+                <TextInput
+                  style={styles.inputSearch}
+                  keyboardType="default"
+                  placeholderTextColor="#6C63FF"
+                  placeholder="Buscar Livros"
+                />
+              </View>
+              <View>
+                <TouchableOpacity activeOpacity={0.7}>
+                  <QrCode />
+                </TouchableOpacity>
+              </View>
+            </View>
+            <HorizontalOptionBar
+              items={filterOptions}
+              scrollable={false}
+              showSeparators
+              containerStyle={styles.categoryContainer}
+              contentContainerStyle={styles.categoryRow}
+              optionStyle={styles.categoryBtn}
+              labelStyle={styles.categoryText}
+              separatorStyle={styles.tabSeparator}
             />
-            <TextInput
-              style={styles.inputSearch}
-              keyboardType="default"
-              placeholderTextColor="#6C63FF"
-              placeholder="Buscar Livros"
-            />
+            <View style={styles.categoryWrapperH}></View>
           </View>
-          <View>
-            <TouchableOpacity activeOpacity={0.7}>
-              <QrCode />
-            </TouchableOpacity>
+
+          <View style={styles.resultsMain}>
+            <Text style={styles.textResults}>
+              $cardCount resultados encontrados
+            </Text>
           </View>
         </View>
-        <HorizontalOptionBar
-          items={filterOptions}
-          scrollable={false}
-          showSeparators
-          containerStyle={styles.categoryContainer}
-          contentContainerStyle={styles.categoryRow}
-          optionStyle={styles.categoryBtn}
-          labelStyle={styles.categoryText}
-          separatorStyle={styles.tabSeparator}
-        />
-        <View style={styles.categoryWrapperH}></View>
-      </View>
-
-      <View style={styles.resultsMain}>
-        <Text style={styles.textResults}>
-          $cardCount resultados encontrados
-        </Text>
-      </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -85,6 +91,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#F0F2F5",
+  },
+  dismissArea: {
+    flex: 1,
   },
   categoryWrapper: {
     height: 2,

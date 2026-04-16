@@ -7,7 +7,14 @@ import { ApiError } from "@/src/services/api";
 import { authService } from "@/src/services/auth.service";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
@@ -99,68 +106,70 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaProvider style={styles.main}>
-      <View style={styles.content}>
-        <View style={styles.titleContent}>
-          <Text style={styles.bigTitle}>Entre em sua conta</Text>
-          <Text style={styles.minorTitle}>
-            Não possui uma conta?{" "}
-            <Text style={styles.linkText} onPress={goToRegister}>
-              Crie uma!
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.content}>
+          <View style={styles.titleContent}>
+            <Text style={styles.bigTitle}>Entre em sua conta</Text>
+            <Text style={styles.minorTitle}>
+              Não possui uma conta?{" "}
+              <Text style={styles.linkText} onPress={goToRegister}>
+                Crie uma!
+              </Text>
             </Text>
-          </Text>
-        </View>
+          </View>
 
-        <View style={styles.formContent}>
-          <FloatingLabelInput
-            label="Email"
-            placeholder="Preencha com seu Email"
-            placeholderTextColor="#A6A8AA"
-            value={email}
-            onChangeText={(t) => {
-              setEmail(t);
-              clearFieldError("email");
-            }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            error={errors.email}
-          />
-
-          <View>
+          <View style={styles.formContent}>
             <FloatingLabelInput
-              label="Senha"
-              placeholder="Preencha com sua Senha"
+              label="Email"
+              placeholder="Preencha com seu Email"
               placeholderTextColor="#A6A8AA"
-              value={password}
+              value={email}
               onChangeText={(t) => {
-                setPassword(t);
-                clearFieldError("password");
+                setEmail(t);
+                clearFieldError("email");
               }}
-              secureTextEntry
-              error={errors.password}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              error={errors.email}
             />
 
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => router.push("/forgot-password-email")}
-            >
-              <Text style={styles.highlightedTextForm}>
-                Esqueci minha senha
-              </Text>
-            </TouchableOpacity>
+            <View>
+              <FloatingLabelInput
+                label="Senha"
+                placeholder="Preencha com sua Senha"
+                placeholderTextColor="#A6A8AA"
+                value={password}
+                onChangeText={(t) => {
+                  setPassword(t);
+                  clearFieldError("password");
+                }}
+                secureTextEntry
+                error={errors.password}
+              />
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => router.push("/forgot-password-email")}
+              >
+                <Text style={styles.highlightedTextForm}>
+                  Esqueci minha senha
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.btnContainer}>
+            <SubmitErrorBanner message={submitError} />
+
+            <PrimaryButton
+              style={styles.btn}
+              onPress={loginSemSenha}
+              loading={loading}
+              label="ENTRAR"
+            />
           </View>
         </View>
-
-        <View style={styles.btnContainer}>
-          <SubmitErrorBanner message={submitError} />
-
-          <PrimaryButton
-            style={styles.btn}
-            onPress={loginSemSenha}
-            loading={loading}
-            label="ENTRAR"
-          />
-        </View>
-      </View>
+      </TouchableWithoutFeedback>
     </SafeAreaProvider>
   );
 }

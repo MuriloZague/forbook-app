@@ -4,7 +4,14 @@ import ScreenHeader from "@/src/components/screenHeader";
 import SubmitErrorBanner from "@/src/components/submitErrorBanner";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+    Keyboard,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
@@ -107,59 +114,64 @@ export default function ForgotPasswordCodeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScreenHeader
-        title="Verificar Codigo"
-        onBackPress={handleBack}
-        borderBottomWidth={0}
-        titleFontFamily="montserratRegular"
-        titleFontSize={20}
-        containerStyle={styles.header}
-      />
-
-      <View style={styles.content}>
-        <View style={styles.titleBlock}>
-          <Text style={styles.bigTitle}>Código{"\n"}Enviado!</Text>
-          <Text style={styles.description}>
-            Codigo enviado para <Text style={styles.maskEmail}>{maskedEmail}</Text>!
-          </Text>
-        </View>
-
-        <View style={styles.otpBlock}>
-          <OtpInput
-            value={code}
-            onChangeValue={(value) => {
-              setCode(value);
-              if (submitError) setSubmitError("");
-            }}
-            autoFocus
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.dismissArea}>
+          <ScreenHeader
+            title="Verificar Codigo"
+            onBackPress={handleBack}
+            borderBottomWidth={0}
+            titleFontFamily="montserratRegular"
+            titleFontSize={20}
+            containerStyle={styles.header}
           />
-        </View>
 
-        <View style={styles.resendContainer}>
-          {secondsLeft > 0 ? (
-            <Text style={styles.resendText}>
-              Reenviar codigo em{" "}
-              <Text style={styles.resendCountdown}>{secondsLeft}s</Text>
-            </Text>
-          ) : (
-            <TouchableOpacity activeOpacity={0.7} onPress={handleResend}>
-              <Text style={styles.resendActionText}>Reenviar codigo</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+          <View style={styles.content}>
+            <View style={styles.titleBlock}>
+              <Text style={styles.bigTitle}>Código{"\n"}Enviado!</Text>
+              <Text style={styles.description}>
+                Codigo enviado para{" "}
+                <Text style={styles.maskEmail}>{maskedEmail}</Text>!
+              </Text>
+            </View>
 
-        <View style={styles.buttonContainer}>
-          <SubmitErrorBanner message={submitError} />
+            <View style={styles.otpBlock}>
+              <OtpInput
+                value={code}
+                onChangeValue={(value) => {
+                  setCode(value);
+                  if (submitError) setSubmitError("");
+                }}
+                autoFocus
+              />
+            </View>
 
-          <PrimaryButton
-            onPress={handleVerifyCode}
-            label="Verificar"
-            loading={loading}
-            style={styles.primaryButton}
-            textStyle={styles.buttonText}
-          />
+            <View style={styles.resendContainer}>
+              {secondsLeft > 0 ? (
+                <Text style={styles.resendText}>
+                  Reenviar codigo em{" "}
+                  <Text style={styles.resendCountdown}>{secondsLeft}s</Text>
+                </Text>
+              ) : (
+                <TouchableOpacity activeOpacity={0.7} onPress={handleResend}>
+                  <Text style={styles.resendActionText}>Reenviar codigo</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <SubmitErrorBanner message={submitError} />
+
+              <PrimaryButton
+                onPress={handleVerifyCode}
+                label="Verificar"
+                loading={loading}
+                style={styles.primaryButton}
+                textStyle={styles.buttonText}
+              />
+            </View>
+          </View>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -173,6 +185,9 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 0,
     paddingBottom: 2,
+  },
+  dismissArea: {
+    flex: 1,
   },
   content: {
     flex: 1,
@@ -196,10 +211,10 @@ const styles = StyleSheet.create({
     color: "#202226",
     fontSize: 16,
     lineHeight: 22,
-    textAlign: 'center',
+    textAlign: "center",
   },
   maskEmail: {
-    color: '#6C63FF'
+    color: "#6C63FF",
   },
   otpBlock: {
     marginTop: 30,

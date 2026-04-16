@@ -6,11 +6,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+    Keyboard,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
     StyleSheet,
     Text,
+    TouchableWithoutFeedback,
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -28,159 +30,167 @@ export default function EditProfile() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        style={styles.keyboard}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScreenHeader title="Editar perfil" borderBottomWidth={0} />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.dismissArea}>
+          <KeyboardAvoidingView
+            style={styles.keyboard}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+          >
+            <ScreenHeader title="Editar perfil" borderBottomWidth={0} />
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-        >
-          <Text style={styles.title}>Informações do seu perfil</Text>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.content}
+              keyboardShouldPersistTaps="handled"
+            >
+              <Text style={styles.title}>Informações do seu perfil</Text>
 
-          <Text style={styles.sectionTitle}>Dados pessoais</Text>
+              <Text style={styles.sectionTitle}>Dados pessoais</Text>
 
-          <View style={styles.fieldBlock}>
-            <FloatingLabelInput
-              label="Nome completo"
-              value={name}
-              onChangeText={setName}
-              labelBackgroundColor="#F0F2F5"
-              labelStyle={styles.inputLabel}
-              inputStyle={styles.inputValue}
-              inputContainerStyle={styles.inputContainer}
-            />
-          </View>
+              <View style={styles.fieldBlock}>
+                <FloatingLabelInput
+                  label="Nome completo"
+                  value={name}
+                  onChangeText={setName}
+                  labelBackgroundColor="#F0F2F5"
+                  labelStyle={styles.inputLabel}
+                  inputStyle={styles.inputValue}
+                  inputContainerStyle={styles.inputContainer}
+                />
+              </View>
 
-          <View style={styles.rowFields}>
-            <View style={styles.birthField}>
-              <FloatingLabelInput
-                label="Nascimento"
-                value={birthDate}
-                maxLength={10}
-                onChangeText={(t) => setBirthDate(formatDate(t))}
-                keyboardType="numeric"
-                labelBackgroundColor="#F0F2F5"
-                labelStyle={styles.inputLabel}
-                inputStyle={styles.inputValue}
-                inputContainerStyle={styles.inputContainer}
-                rightElement={
-                  <Ionicons name="calendar-outline" size={24} color="#6C63FF" />
-                }
+              <View style={styles.rowFields}>
+                <View style={styles.birthField}>
+                  <FloatingLabelInput
+                    label="Nascimento"
+                    value={birthDate}
+                    maxLength={10}
+                    onChangeText={(t) => setBirthDate(formatDate(t))}
+                    keyboardType="numeric"
+                    labelBackgroundColor="#F0F2F5"
+                    labelStyle={styles.inputLabel}
+                    inputStyle={styles.inputValue}
+                    inputContainerStyle={styles.inputContainer}
+                    rightElement={
+                      <Ionicons
+                        name="calendar-outline"
+                        size={24}
+                        color="#6C63FF"
+                      />
+                    }
+                  />
+                </View>
+              </View>
+
+              <View style={styles.rowFields}>
+                <View style={styles.addressField}>
+                  <FloatingLabelInput
+                    label="Endereço"
+                    value={street}
+                    onChangeText={setStreet}
+                    labelBackgroundColor="#F0F2F5"
+                    labelStyle={styles.inputLabel}
+                    inputStyle={styles.inputValue}
+                    inputContainerStyle={styles.inputContainer}
+                  />
+                </View>
+
+                <View style={styles.numberField}>
+                  <FloatingLabelInput
+                    label="N°"
+                    value={number}
+                    onChangeText={setNumber}
+                    keyboardType="number-pad"
+                    labelBackgroundColor="#F0F2F5"
+                    labelStyle={styles.inputLabel}
+                    inputStyle={styles.inputValue}
+                    inputContainerStyle={styles.inputContainer}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.fieldBlock}>
+                <FloatingLabelInput
+                  label="Bairro"
+                  value={neighborhood}
+                  onChangeText={setNeighborhood}
+                  labelBackgroundColor="#F0F2F5"
+                  labelStyle={styles.inputLabel}
+                  inputStyle={styles.inputValue}
+                  inputContainerStyle={styles.inputContainer}
+                />
+              </View>
+
+              <View style={styles.rowFields}>
+                <View style={styles.cityField}>
+                  <FloatingLabelInput
+                    label="Cidade"
+                    value={city}
+                    onChangeText={setCity}
+                    labelBackgroundColor="#F0F2F5"
+                    labelStyle={styles.inputLabel}
+                    inputStyle={styles.inputValue}
+                    inputContainerStyle={styles.inputContainer}
+                  />
+                </View>
+
+                <View style={styles.stateField}>
+                  <FloatingLabelInput
+                    label="Estado"
+                    value={state}
+                    onChangeText={setState}
+                    editable={false}
+                    labelBackgroundColor="#F0F2F5"
+                    labelStyle={styles.inputLabel}
+                    inputStyle={styles.inputValue}
+                    inputContainerStyle={styles.inputContainer}
+                    rightElement={
+                      <Ionicons name="chevron-down" size={20} color="#6C63FF" />
+                    }
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.sectionTitle}>Dados da conta</Text>
+
+              <View style={styles.fieldBlock}>
+                <FloatingLabelInput
+                  label="E-mail"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  labelBackgroundColor="#F0F2F5"
+                  labelStyle={styles.inputLabel}
+                  inputStyle={styles.inputValue}
+                  inputContainerStyle={styles.inputContainer}
+                />
+              </View>
+
+              <View style={styles.phoneField}>
+                <FloatingLabelInput
+                  label="Telefone"
+                  value={phone}
+                  maxLength={15}
+                  onChangeText={(t) => setPhone(formatPhone(t))}
+                  keyboardType="numeric"
+                  labelBackgroundColor="#F0F2F5"
+                  labelStyle={styles.inputLabel}
+                  inputStyle={styles.inputValue}
+                  inputContainerStyle={styles.inputContainer}
+                />
+              </View>
+
+              <PrimaryButton
+                label="Confirmar"
+                onPress={() => router.back()}
+                style={styles.confirmButton}
+                textStyle={styles.confirmText}
               />
-            </View>
-          </View>
-
-          <View style={styles.rowFields}>
-            <View style={styles.addressField}>
-              <FloatingLabelInput
-                label="Endereço"
-                value={street}
-                onChangeText={setStreet}
-                labelBackgroundColor="#F0F2F5"
-                labelStyle={styles.inputLabel}
-                inputStyle={styles.inputValue}
-                inputContainerStyle={styles.inputContainer}
-              />
-            </View>
-
-            <View style={styles.numberField}>
-              <FloatingLabelInput
-                label="N°"
-                value={number}
-                onChangeText={setNumber}
-                keyboardType="number-pad"
-                labelBackgroundColor="#F0F2F5"
-                labelStyle={styles.inputLabel}
-                inputStyle={styles.inputValue}
-                inputContainerStyle={styles.inputContainer}
-              />
-            </View>
-          </View>
-
-          <View style={styles.fieldBlock}>
-            <FloatingLabelInput
-              label="Bairro"
-              value={neighborhood}
-              onChangeText={setNeighborhood}
-              labelBackgroundColor="#F0F2F5"
-              labelStyle={styles.inputLabel}
-              inputStyle={styles.inputValue}
-              inputContainerStyle={styles.inputContainer}
-            />
-          </View>
-
-          <View style={styles.rowFields}>
-            <View style={styles.cityField}>
-              <FloatingLabelInput
-                label="Cidade"
-                value={city}
-                onChangeText={setCity}
-                labelBackgroundColor="#F0F2F5"
-                labelStyle={styles.inputLabel}
-                inputStyle={styles.inputValue}
-                inputContainerStyle={styles.inputContainer}
-              />
-            </View>
-
-            <View style={styles.stateField}>
-              <FloatingLabelInput
-                label="Estado"
-                value={state}
-                onChangeText={setState}
-                editable={false}
-                labelBackgroundColor="#F0F2F5"
-                labelStyle={styles.inputLabel}
-                inputStyle={styles.inputValue}
-                inputContainerStyle={styles.inputContainer}
-                rightElement={
-                  <Ionicons name="chevron-down" size={20} color="#6C63FF" />
-                }
-              />
-            </View>
-          </View>
-
-          <Text style={styles.sectionTitle}>Dados da conta</Text>
-
-          <View style={styles.fieldBlock}>
-            <FloatingLabelInput
-              label="E-mail"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              labelBackgroundColor="#F0F2F5"
-              labelStyle={styles.inputLabel}
-              inputStyle={styles.inputValue}
-              inputContainerStyle={styles.inputContainer}
-            />
-          </View>
-
-          <View style={styles.phoneField}>
-            <FloatingLabelInput
-              label="Telefone"
-              value={phone}
-              maxLength={15}
-              onChangeText={(t) => setPhone(formatPhone(t))}
-              keyboardType="numeric"
-              labelBackgroundColor="#F0F2F5"
-              labelStyle={styles.inputLabel}
-              inputStyle={styles.inputValue}
-              inputContainerStyle={styles.inputContainer}
-            />
-          </View>
-
-          <PrimaryButton
-            label="Confirmar"
-            onPress={() => router.back()}
-            style={styles.confirmButton}
-            textStyle={styles.confirmText}
-          />
-        </ScrollView>
-      </KeyboardAvoidingView>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -189,6 +199,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#F0F2F5",
+  },
+  dismissArea: {
+    flex: 1,
   },
   keyboard: {
     flex: 1,

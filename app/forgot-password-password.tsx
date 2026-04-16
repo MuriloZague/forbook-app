@@ -6,13 +6,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -131,113 +132,119 @@ export default function ForgotPasswordPasswordScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScreenHeader
-        title="Criar nova Senha"
-        onBackPress={handleBack}
-        borderBottomWidth={0}
-        titleFontFamily="montserratRegular"
-        titleFontSize={20}
-        containerStyle={styles.header}
-      />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.dismissArea}>
+          <ScreenHeader
+            title="Criar nova Senha"
+            onBackPress={handleBack}
+            borderBottomWidth={0}
+            titleFontFamily="montserratRegular"
+            titleFontSize={20}
+            containerStyle={styles.header}
+          />
 
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoiding}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <ScrollView
-          ref={scrollViewRef}
-          contentContainerStyle={[
-            styles.scrollContent,
-            isKeyboardVisible && styles.scrollContentKeyboardVisible,
-          ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.titleBlock}>
-            <Text style={styles.bigTitle}>Crie uma{"\n"}nova senha</Text>
-            <Text style={styles.subtitle}>
-              * Sua nova senha deve ser diferente da atual.
-            </Text>
-          </View>
+          <KeyboardAvoidingView
+            style={styles.keyboardAvoiding}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+          >
+            <ScrollView
+              ref={scrollViewRef}
+              contentContainerStyle={[
+                styles.scrollContent,
+                isKeyboardVisible && styles.scrollContentKeyboardVisible,
+              ]}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.titleBlock}>
+                <Text style={styles.bigTitle}>Crie uma{"\n"}nova senha</Text>
+                <Text style={styles.subtitle}>
+                  * Sua nova senha deve ser diferente da atual.
+                </Text>
+              </View>
 
-          <View style={styles.formBlock}>
-            <FloatingLabelInput
-              label="Nova senha"
-              placeholder="Preencha com sua senha"
-              placeholderTextColor="#6C63FF"
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                clearFieldError("password");
-              }}
-              onFocus={handlePasswordFocus}
-              secureTextEntry
-              autoCapitalize="none"
-              error={errors.password}
-              labelStyle={styles.inputLabel}
-              inputStyle={styles.inputText}
-            />
+              <View style={styles.formBlock}>
+                <FloatingLabelInput
+                  label="Nova senha"
+                  placeholder="Preencha com sua senha"
+                  placeholderTextColor="#6C63FF"
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    clearFieldError("password");
+                  }}
+                  onFocus={handlePasswordFocus}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  error={errors.password}
+                  labelStyle={styles.inputLabel}
+                  inputStyle={styles.inputText}
+                />
 
-            <FloatingLabelInput
-              label="Confirmar senha"
-              placeholder="Confirme sua senha"
-              placeholderTextColor="#6C63FF"
-              value={confirmPassword}
-              onChangeText={(text) => {
-                setConfirmPassword(text);
-                clearFieldError("confirmPassword");
-              }}
-              onFocus={handlePasswordFocus}
-              secureTextEntry
-              autoCapitalize="none"
-              error={errors.confirmPassword}
-              labelStyle={styles.inputLabel}
-              inputStyle={styles.inputText}
-            />
-          </View>
+                <FloatingLabelInput
+                  label="Confirmar senha"
+                  placeholder="Confirme sua senha"
+                  placeholderTextColor="#6C63FF"
+                  value={confirmPassword}
+                  onChangeText={(text) => {
+                    setConfirmPassword(text);
+                    clearFieldError("confirmPassword");
+                  }}
+                  onFocus={handlePasswordFocus}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  error={errors.confirmPassword}
+                  labelStyle={styles.inputLabel}
+                  inputStyle={styles.inputText}
+                />
+              </View>
 
-          <View style={styles.rulesBlock}>
-            <View style={styles.requisiteRow}>
-              <Ionicons
-                name={hasMinLength ? "checkmark-circle" : "close-circle"}
-                size={16}
-                color={hasMinLength ? "#4CAF50" : "#ff6584"}
-              />
-              <Text style={styles.requisitesText}>8 ou mais caracteres</Text>
-            </View>
+              <View style={styles.rulesBlock}>
+                <View style={styles.requisiteRow}>
+                  <Ionicons
+                    name={hasMinLength ? "checkmark-circle" : "close-circle"}
+                    size={16}
+                    color={hasMinLength ? "#4CAF50" : "#ff6584"}
+                  />
+                  <Text style={styles.requisitesText}>
+                    8 ou mais caracteres
+                  </Text>
+                </View>
 
-            <View style={styles.requisiteRow}>
-              <Ionicons
-                name={hasUppercase ? "checkmark-circle" : "close-circle"}
-                size={16}
-                color={hasUppercase ? "#4CAF50" : "#ff6584"}
-              />
-              <Text style={styles.requisitesText}>Uma letra maiuscula</Text>
-            </View>
+                <View style={styles.requisiteRow}>
+                  <Ionicons
+                    name={hasUppercase ? "checkmark-circle" : "close-circle"}
+                    size={16}
+                    color={hasUppercase ? "#4CAF50" : "#ff6584"}
+                  />
+                  <Text style={styles.requisitesText}>Uma letra maiuscula</Text>
+                </View>
 
-            <View style={styles.requisiteRow}>
-              <Ionicons
-                name={hasLowercase ? "checkmark-circle" : "close-circle"}
-                size={16}
-                color={hasLowercase ? "#4CAF50" : "#ff6584"}
-              />
-              <Text style={styles.requisitesText}>Uma letra minuscula</Text>
-            </View>
-          </View>
+                <View style={styles.requisiteRow}>
+                  <Ionicons
+                    name={hasLowercase ? "checkmark-circle" : "close-circle"}
+                    size={16}
+                    color={hasLowercase ? "#4CAF50" : "#ff6584"}
+                  />
+                  <Text style={styles.requisitesText}>Uma letra minuscula</Text>
+                </View>
+              </View>
 
-          <View style={styles.buttonContainer}>
-            <SubmitErrorBanner message={submitError} />
+              <View style={styles.buttonContainer}>
+                <SubmitErrorBanner message={submitError} />
 
-            <PrimaryButton
-              onPress={handleSubmit}
-              label="Alterar"
-              loading={loading}
-              style={styles.primaryButton}
-              textStyle={styles.buttonText}
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+                <PrimaryButton
+                  onPress={handleSubmit}
+                  label="Alterar"
+                  loading={loading}
+                  style={styles.primaryButton}
+                  textStyle={styles.buttonText}
+                />
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -252,6 +259,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingBottom: 2,
   },
+  dismissArea: {
+    flex: 1,
+  },
   keyboardAvoiding: {
     flex: 1,
   },
@@ -262,7 +272,7 @@ const styles = StyleSheet.create({
   },
   scrollContentKeyboardVisible: {
     justifyContent: "flex-start",
-    paddingBottom: 12,
+    paddingBottom: 62,
   },
   titleBlock: {
     gap: 10,

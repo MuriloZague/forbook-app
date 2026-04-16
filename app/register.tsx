@@ -9,6 +9,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
+  Keyboard,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -16,6 +17,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -577,141 +579,151 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaProvider style={styles.main}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoid}
-        enabled
-      >
-        <SafeAreaView style={styles.content}>
-          <ScrollView
-            ref={scrollViewRef}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.scrollContent}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.dismissArea}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.keyboardAvoid}
+            enabled
           >
-            <View style={styles.titleContent}>
-              <Text style={styles.bigTitle}>Crie sua conta</Text>
-              {step === 1 ? (
-                <Text style={styles.minorTitle}>
-                  Já possui uma conta?{" "}
-                  <Text
-                    style={styles.linkText}
-                    onPress={() => router.push("/login")}
-                  >
-                    Entre agora!
-                  </Text>
-                </Text>
-              ) : (
-                <TouchableOpacity onPress={() => handleBack()}>
-                  <View style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={18} color="#6C63FF" />
-                    <Text style={styles.backButtonText}>Voltar</Text>
-                  </View>
-                </TouchableOpacity>
-              )}
-            </View>
+            <SafeAreaView style={styles.content}>
+              <ScrollView
+                ref={scrollViewRef}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.scrollContent}
+              >
+                <View style={styles.titleContent}>
+                  <Text style={styles.bigTitle}>Crie sua conta</Text>
+                  {step === 1 ? (
+                    <Text style={styles.minorTitle}>
+                      Já possui uma conta?{" "}
+                      <Text
+                        style={styles.linkText}
+                        onPress={() => router.push("/login")}
+                      >
+                        Entre agora!
+                      </Text>
+                    </Text>
+                  ) : (
+                    <TouchableOpacity onPress={() => handleBack()}>
+                      <View style={styles.backButton}>
+                        <Ionicons name="arrow-back" size={18} color="#6C63FF" />
+                        <Text style={styles.backButtonText}>Voltar</Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                </View>
 
-            <StepIndicator step={step} total={2} />
+                <StepIndicator step={step} total={2} />
 
-            <View style={styles.sliderContainer}>
-              <Animated.View style={[styles.slider, animatedStyle]}>
-                <Animated.View style={[styles.shakeWrapper, shakeStyle1]}>
-                  <RegisterStepOne
-                    nome={nome}
-                    email={email}
-                    cpf={cpf}
-                    telefone={telefone}
-                    nascimento={nascimento}
-                    senha={senha}
-                    confirmarSenha={confirmarSenha}
-                    errorNome={displayErrors.nome}
-                    errorEmail={displayErrors.email}
-                    errorCpf={displayErrors.cpf}
-                    errorTelefone={displayErrors.telefone}
-                    errorNascimento={displayErrors.nascimento}
-                    errorSenha={displayErrors.senha}
-                    errorConfirmPassword={displayErrors.confirmPassword}
-                    temMinimo8Caracteres={temMinimo8Caracteres}
-                    temLetraMaiuscula={temLetraMaiuscula}
-                    temLetraMinuscula={temLetraMinuscula}
-                    onNomeChange={handleNomeChange}
-                    onEmailChange={handleEmailChange}
-                    onCpfChange={handleCpfChange}
-                    onTelefoneChange={handleTelefoneChange}
-                    onNascimentoChange={handleNascimentoChange}
-                    onSenhaChange={handleSenhaChange}
-                    onConfirmarSenhaChange={handleConfirmarSenhaChange}
-                    onPasswordFocus={handlePasswordFocus}
-                  />
-                </Animated.View>
+                <View style={styles.sliderContainer}>
+                  <Animated.View style={[styles.slider, animatedStyle]}>
+                    <Animated.View style={[styles.shakeWrapper, shakeStyle1]}>
+                      <RegisterStepOne
+                        nome={nome}
+                        email={email}
+                        cpf={cpf}
+                        telefone={telefone}
+                        nascimento={nascimento}
+                        senha={senha}
+                        confirmarSenha={confirmarSenha}
+                        errorNome={displayErrors.nome}
+                        errorEmail={displayErrors.email}
+                        errorCpf={displayErrors.cpf}
+                        errorTelefone={displayErrors.telefone}
+                        errorNascimento={displayErrors.nascimento}
+                        errorSenha={displayErrors.senha}
+                        errorConfirmPassword={displayErrors.confirmPassword}
+                        temMinimo8Caracteres={temMinimo8Caracteres}
+                        temLetraMaiuscula={temLetraMaiuscula}
+                        temLetraMinuscula={temLetraMinuscula}
+                        onNomeChange={handleNomeChange}
+                        onEmailChange={handleEmailChange}
+                        onCpfChange={handleCpfChange}
+                        onTelefoneChange={handleTelefoneChange}
+                        onNascimentoChange={handleNascimentoChange}
+                        onSenhaChange={handleSenhaChange}
+                        onConfirmarSenhaChange={handleConfirmarSenhaChange}
+                        onPasswordFocus={handlePasswordFocus}
+                      />
+                    </Animated.View>
 
-                {isStepTwoMounted ? (
-                  <Animated.View
-                    style={[
-                      styles.shakeWrapper,
-                      step === 1 ? {} : shakeStyle2,
-                      {
-                        opacity: step === 2 ? 1 : 0,
-                        pointerEvents: step === 2 ? "auto" : "none",
-                      },
-                    ]}
-                  >
-                    <RegisterStepTwo
-                      cep={cep}
-                      endereco={endereco}
-                      numero={numero}
-                      complemento={complemento}
-                      bairro={bairro}
-                      cidade={cidade}
-                      estado={estado}
-                      cepLoading={cepLoading}
-                      errorCep={displayErrors.cep}
-                      errorEndereco={displayErrors.endereco}
-                      errorNumero={displayErrors.numero}
-                      errorBairro={displayErrors.bairro}
-                      errorCidade={displayErrors.cidade}
-                      errorEstado={displayErrors.estado}
-                      onCepChange={handleCepChange}
-                      onNumeroChange={handleNumeroChange}
-                      onComplementoChange={handleComplementoChange}
-                      onEstadoChange={handleEstadoChange}
-                      onCepHelpPress={handleCepHelpPress}
-                    />
+                    {isStepTwoMounted ? (
+                      <Animated.View
+                        style={[
+                          styles.shakeWrapper,
+                          step === 1 ? {} : shakeStyle2,
+                          {
+                            opacity: step === 2 ? 1 : 0,
+                            pointerEvents: step === 2 ? "auto" : "none",
+                          },
+                        ]}
+                      >
+                        <RegisterStepTwo
+                          cep={cep}
+                          endereco={endereco}
+                          numero={numero}
+                          complemento={complemento}
+                          bairro={bairro}
+                          cidade={cidade}
+                          estado={estado}
+                          cepLoading={cepLoading}
+                          errorCep={displayErrors.cep}
+                          errorEndereco={displayErrors.endereco}
+                          errorNumero={displayErrors.numero}
+                          errorBairro={displayErrors.bairro}
+                          errorCidade={displayErrors.cidade}
+                          errorEstado={displayErrors.estado}
+                          onCepChange={handleCepChange}
+                          onNumeroChange={handleNumeroChange}
+                          onComplementoChange={handleComplementoChange}
+                          onEstadoChange={handleEstadoChange}
+                          onCepHelpPress={handleCepHelpPress}
+                        />
+                      </Animated.View>
+                    ) : (
+                      <View style={styles.shakeWrapper} />
+                    )}
                   </Animated.View>
-                ) : (
-                  <View style={styles.shakeWrapper} />
-                )}
-              </Animated.View>
-            </View>
+                </View>
 
-            <Animated.View
-              style={[
-                styles.btnContainer,
-                step === 1 ? shakeStyle1 : shakeStyle2,
-              ]}
-            >
-              {step === 2 ? <SubmitErrorBanner message={submitError} /> : null}
+                <Animated.View
+                  style={[
+                    styles.btnContainer,
+                    step === 1 ? shakeStyle1 : shakeStyle2,
+                  ]}
+                >
+                  {step === 2 ? (
+                    <SubmitErrorBanner message={submitError} />
+                  ) : null}
 
-              {step === 1 ? (
-                <PrimaryButton style={styles.btn} onPress={handleNext}>
-                  <View style={styles.btnContent}>
-                    <Text style={styles.btnText}>Continuar</Text>
-                    <Ionicons name="arrow-forward" size={22} color="white" />
-                  </View>
-                </PrimaryButton>
-              ) : (
-                <PrimaryButton
-                  style={styles.btn}
-                  activeOpacity={0.7}
-                  onPress={handleConfirmar}
-                  loading={loading}
-                  label="CRIAR CONTA"
-                />
-              )}
-            </Animated.View>
-          </ScrollView>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+                  {step === 1 ? (
+                    <PrimaryButton style={styles.btn} onPress={handleNext}>
+                      <View style={styles.btnContent}>
+                        <Text style={styles.btnText}>Continuar</Text>
+                        <Ionicons
+                          name="arrow-forward"
+                          size={22}
+                          color="white"
+                        />
+                      </View>
+                    </PrimaryButton>
+                  ) : (
+                    <PrimaryButton
+                      style={styles.btn}
+                      activeOpacity={0.7}
+                      onPress={handleConfirmar}
+                      loading={loading}
+                      label="CRIAR CONTA"
+                    />
+                  )}
+                </Animated.View>
+              </ScrollView>
+            </SafeAreaView>
+          </KeyboardAvoidingView>
+        </View>
+      </TouchableWithoutFeedback>
     </SafeAreaProvider>
   );
 }
@@ -723,6 +735,9 @@ const styles = StyleSheet.create({
     marginHorizontal: HORIZONTAL_MARGIN,
   },
   keyboardAvoid: {
+    flex: 1,
+  },
+  dismissArea: {
     flex: 1,
   },
   scrollContent: {
