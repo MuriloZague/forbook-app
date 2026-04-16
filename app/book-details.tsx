@@ -1,5 +1,5 @@
-import ScreenHeader from "@/src/components/screenHeader";
 import BookImageViewerModal from "@/src/components/bookImageViewerModal";
+import ScreenHeader from "@/src/components/screenHeader";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
@@ -205,6 +205,8 @@ export default function BookDetailsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScreenHeader
         title="Anúncio"
+        iconName="close"
+        iconSize={26}
         titleFontFamily="lexendBold"
         borderBottomColor="#f0f0f0"
       />
@@ -612,7 +614,7 @@ const styles = StyleSheet.create({
     fontFamily: "montserratRegular",
     color: "#2b2e34",
     fontSize: 16,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginRight: 3,
   },
   priceWhole: {
