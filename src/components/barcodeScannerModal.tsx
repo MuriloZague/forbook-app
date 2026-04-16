@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import { useEffect, useState } from "react";
 import {
-  View,
+  ActivityIndicator,
+  Modal,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  Modal,
-  ActivityIndicator,
+  View,
 } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { Ionicons } from "@expo/vector-icons";
 
 interface Props {
   visible: boolean;

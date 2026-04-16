@@ -1,10 +1,10 @@
-import AppTopHeader from "@/src/components/appTopHeader";
-import { Text, View, StyleSheet } from "react-native";
 import Notification from "@/assets/images/Notification.svg";
 import User2 from "@/assets/images/User.svg";
+import AppTopHeader from "@/src/components/appTopHeader";
+import { StyleSheet, Text, View } from "react-native";
 
-import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ChatScreen() {
   return (

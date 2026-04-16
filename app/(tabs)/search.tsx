@@ -9,13 +9,13 @@ import HorizontalOptionBar from "@/src/components/horizontalOptionBar";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import {
-    Keyboard,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 

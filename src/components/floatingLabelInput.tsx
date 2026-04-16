@@ -1,13 +1,13 @@
 import React from "react";
 import {
-    StyleProp,
-    StyleSheet,
-    Text,
-    TextInput,
-    TextInputProps,
-    TextStyle,
-    View,
-    ViewStyle,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  TextStyle,
+  View,
+  ViewStyle,
 } from "react-native";
 
 interface FloatingLabelInputProps extends Omit<TextInputProps, "style"> {

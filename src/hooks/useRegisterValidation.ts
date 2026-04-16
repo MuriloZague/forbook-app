@@ -1,7 +1,7 @@
 import { extractErrors } from "@/src/lib/zod-errors";
 import {
-    userCreateBodySchema,
-    type UserCreateBody,
+  userCreateBodySchema,
+  type UserCreateBody,
 } from "@/src/schemas/user.schema";
 import { useMemo } from "react";
 

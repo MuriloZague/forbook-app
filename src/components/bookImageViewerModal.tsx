@@ -1,16 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-    Dimensions,
-    Modal,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
-    Platform,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-    VirtualizedList,
+  Dimensions,
+  Modal,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  VirtualizedList,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 

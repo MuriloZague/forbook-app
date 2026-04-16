@@ -1,12 +1,12 @@
 import React, { useMemo, useRef, useState } from "react";
 import {
-    KeyboardTypeOptions,
-    StyleProp,
-    StyleSheet,
-    TextInput,
-    TextStyle,
-    View,
-    ViewStyle,
+  KeyboardTypeOptions,
+  StyleProp,
+  StyleSheet,
+  TextInput,
+  TextStyle,
+  View,
+  ViewStyle,
 } from "react-native";
 
 type OtpInputProps = {

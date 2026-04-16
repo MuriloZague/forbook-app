@@ -1,13 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface BookImageViewerModalProps {
@@ -80,7 +74,9 @@ export default function BookImageViewerModal({
       <View style={styles.viewerContainer}>
         <View style={[styles.topRow, { paddingTop: insets.top + 8 }]}>
           <View style={styles.indexBadge}>
-            <Text style={styles.indexText}>{`${currentIndex + 1}/${images.length}`}</Text>
+            <Text
+              style={styles.indexText}
+            >{`${currentIndex + 1}/${images.length}`}</Text>
           </View>
 
           <TouchableOpacity
@@ -121,7 +117,10 @@ export default function BookImageViewerModal({
         </View>
 
         <View
-          style={[styles.bottomControls, { paddingBottom: Math.max(insets.bottom, 12) }]}
+          style={[
+            styles.bottomControls,
+            { paddingBottom: Math.max(insets.bottom, 12) },
+          ]}
         >
           <TouchableOpacity
             style={styles.zoomButton}
