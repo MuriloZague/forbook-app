@@ -167,6 +167,10 @@ export default function Profile() {
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.changePasswordButton}
+            onPress={() => router.push({
+                    pathname: "/forgot-password-code",
+                    params: { email: PROFILE_CONTENT.email },
+                  })}
           >
             <Text style={styles.changePasswordText}>Alterar senha</Text>
           </TouchableOpacity>
