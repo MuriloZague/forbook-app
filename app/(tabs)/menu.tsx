@@ -3,6 +3,7 @@ import SectionDivider from "@/src/components/sectionDivider";
 import SectionTitle from "@/src/components/sectionTitle";
 import { useRouter } from "expo-router"; // Importação adicionada
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -21,7 +22,11 @@ export default function MenuScreen() {
           <View style={styles.profileCard}>
             <View style={styles.profileHeader}>
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>AR</Text>
+                <Image
+                  source={require("../../assets/images/profile.png")}
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
               </View>
               <View style={styles.profileInfo}>
                 <Text style={styles.userName}>Arthur Risos</Text>
@@ -86,7 +91,6 @@ export default function MenuScreen() {
             style={styles.menuItem}
             labelStyle={styles.menuItemText}
             onPress={() => router.push("/viewhistory")}
-
           />
 
           <ListItemRow
@@ -210,6 +214,11 @@ const styles = StyleSheet.create({
     fontFamily: "lexendBold",
     fontSize: 20,
     color: "#f0f2f5",
+  },
+  avatarImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
   },
   profileInfo: {
     flex: 1,
