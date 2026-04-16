@@ -9,13 +9,13 @@ import { useNavigation } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -187,7 +187,15 @@ export default function Modal() {
 
           {/* Imagens Adicionais */}
           <View style={styles.inputContainer}>
-            <Text style={{fontSize: 14, fontFamily: 'lexendBold',color: "#a6a8aa"}}>5 anexos restantes</Text>
+            <Text
+              style={{
+                fontSize: 14,
+                fontFamily: "lexendBold",
+                color: "#a6a8aa",
+              }}
+            >
+              5 anexos restantes
+            </Text>
             <View style={styles.attachmentContainer}>
               <View style={styles.attachmentsRow}>
                 {/* Imagem 1 */}

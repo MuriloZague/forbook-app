@@ -7,6 +7,7 @@ import User2 from "@/assets/images/User.svg";
 import AppTopHeader from "@/src/components/appTopHeader";
 import HorizontalOptionBar from "@/src/components/horizontalOptionBar";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import {
     StyleSheet,
     Text,
@@ -33,6 +34,7 @@ export default function SearchScreen() {
           </View>
         }
         notificationContent={<Notification width={28} height={28} />}
+        onUserPress={() => router.push("/profile")}
       />
 
       <View style={styles.searchMain}>

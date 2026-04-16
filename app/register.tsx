@@ -1,13 +1,12 @@
-import FloatingLabelInput from "@/src/components/floatingLabelInput";
 import PrimaryButton from "@/src/components/primaryButton";
+import RegisterStepOne from "@/src/components/registerStepOne";
+import RegisterStepTwo from "@/src/components/registerStepTwo";
 import StepIndicator from "@/src/components/stepIndicator";
 import SubmitErrorBanner from "@/src/components/submitErrorBanner";
 import { Ionicons } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
 import { router } from "expo-router";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Dimensions,
   KeyboardAvoidingView,
@@ -29,82 +28,24 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { extractErrors } from "@/src/lib/zod-errors";
-import { userCreateBodySchema } from "@/src/schemas/user.schema";
+import {
+  buildRegisterPayload,
+  mapRegisterErrorsToDisplay,
+  usePasswordRequirements,
+  validateRegisterPayload,
+  validateRegisterStepOne,
+} from "@/src/hooks/useRegisterValidation";
+import {
+  formatCep,
+  formatCpf,
+  formatDate,
+  formatPhone,
+} from "@/src/lib/input-masks";
 import { ApiError } from "@/src/services/api";
-import { userService } from "@/src/services/user.service";
 
 const { width } = Dimensions.get("window");
 const HORIZONTAL_MARGIN = 12;
 const FORM_WIDTH = width - HORIZONTAL_MARGIN * 2;
-
-const ESTADOS = [
-  "AC",
-  "AL",
-  "AP",
-  "AM",
-  "BA",
-  "CE",
-  "DF",
-  "ES",
-  "GO",
-  "MA",
-  "MT",
-  "MS",
-  "MG",
-  "PA",
-  "PB",
-  "PR",
-  "PE",
-  "PI",
-  "RJ",
-  "RN",
-  "RS",
-  "RO",
-  "RR",
-  "SC",
-  "SP",
-  "SE",
-  "TO",
-];
-
-const formatCpf = (value: string): string => {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
-  if (digits.length > 9)
-    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
-  if (digits.length > 6)
-    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
-  if (digits.length > 3) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
-  return digits;
-};
-
-const formatPhone = (value: string): string => {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
-  if (!digits) return "";
-  if (digits.length <= 2) {
-    return `( ${digits}`;
-  }
-  const ddd = digits.slice(0, 2);
-  const rest = digits.slice(2);
-  if (rest.length > 5) {
-    return `(${ddd}) ${rest.slice(0, 5)}-${rest.slice(5)}`;
-  }
-  return `(${ddd}) ${rest}`;
-};
-
-const formatDate = (value: string): string => {
-  const digits = value.replace(/\D/g, "").slice(0, 8);
-  if (digits.length > 4)
-    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
-  if (digits.length > 2) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-  return digits;
-};
-
-const formatCep = (value: string): string => {
-  const digits = value.replace(/\D/g, "").slice(0, 8);
-  if (digits.length > 5) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
-  return digits;
-};
 
 type CorreiosCepResponse = {
   erro: boolean | string;
@@ -137,6 +78,7 @@ type CepAddressData = {
 
 export default function LoginScreen() {
   const [step, setStep] = useState(1);
+  const [isStepTwoMounted, setIsStepTwoMounted] = useState(false);
 
   const translateX = useSharedValue(0);
   const shakeStep1 = useSharedValue(0);
@@ -168,15 +110,19 @@ export default function LoginScreen() {
   const scrollViewRef = React.useRef<ScrollView>(null);
   const lastCepFetchedRef = useRef("");
   const cepRequestRef = useRef(0);
+  const cepLookupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
-  const clearFieldError = (field: string) => {
-    if (errors[field])
-      setErrors((p) => {
-        const n = { ...p };
-        delete n[field];
-        return n;
-      });
-  };
+  const clearFieldError = useCallback((field: string) => {
+    setErrors((previous) => {
+      if (!previous[field]) return previous;
+
+      const next = { ...previous };
+      delete next[field];
+      return next;
+    });
+  }, []);
 
   const handlePasswordFocus = () => {
     setTimeout(() => {
@@ -315,62 +261,47 @@ export default function LoginScreen() {
     }
   }, []);
 
-  // Password requirements (kept as visual indicators)
-  const temMinimo8Caracteres = senha.length >= 8;
-  const temLetraMaiuscula = /[A-Z]/.test(senha);
-  const temLetraMinuscula = /[a-z]/.test(senha);
+  const scheduleCepLookup = useCallback(
+    (formattedCep: string) => {
+      if (cepLookupTimeoutRef.current) {
+        clearTimeout(cepLookupTimeoutRef.current);
+      }
+
+      cepLookupTimeoutRef.current = setTimeout(() => {
+        void handleCepLookup(formattedCep);
+      }, 350);
+    },
+    [handleCepLookup],
+  );
+
+  React.useEffect(() => {
+    return () => {
+      if (cepLookupTimeoutRef.current) {
+        clearTimeout(cepLookupTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const { temMinimo8Caracteres, temLetraMaiuscula, temLetraMinuscula } =
+    usePasswordRequirements(senha);
 
   const handleNext = useCallback(() => {
-    // Zod validates step 1 fields
-    const data = {
-      email,
-      password: senha,
-      name: nome,
-      cpf: cpf.replace(/\D/g, ""),
-      phoneNumber: telefone.replace(/\D/g, ""),
-      birthDate: nascimento.replace(/\D/g, ""),
-      address: {
-        street: "",
-        number: "",
-        complement: null,
-        neighborhood: "",
-        city: "",
-        state: "",
-        zipCode: "",
+    const filtered = validateRegisterStepOne(
+      {
+        email,
+        password: senha,
+        confirmPassword: confirmarSenha,
+        name: nome,
+        cpf,
+        phoneNumber: telefone,
+        birthDate: nascimento,
       },
-    };
-    const result = userCreateBodySchema.safeParse(data);
-
-    const filtered: Record<string, string> = {};
-
-    if (!result.success) {
-      const zodErr = extractErrors(result.error);
-      const step1Mapping: Record<string, string> = {
-        email: "email",
-        password: "senha",
-        name: "nome",
-        cpf: "cpf",
-        phoneNumber: "telefone",
-        birthDate: "nascimento",
-      };
-      for (const [zodField, localField] of Object.entries(step1Mapping)) {
-        if (zodErr[zodField]) filtered[localField] = zodErr[zodField];
-      }
-    }
-
-    if (!nome.trim()) filtered.nome = "Preencha o campo";
-    if (!email.trim()) filtered.email = "Preencha o campo";
-    if (!senha.trim()) filtered.senha = "Preencha o campo";
-    if (!confirmarSenha.trim()) filtered.confirmPassword = "Preencha o campo";
-    if (senha !== confirmarSenha && senha.trim() && confirmarSenha.trim())
-      filtered.confirmPassword = "As senhas não coincidem";
-
-    if (!temMinimo8Caracteres && senha.trim())
-      filtered.senha = "Mínimo de 8 caracteres";
-    if (!temLetraMaiuscula && senha.trim())
-      filtered.senha = "Precisa de uma letra maiúscula";
-    if (!temLetraMinuscula && senha.trim() && !filtered.senha)
-      filtered.senha = "Precisa de uma letra minúscula";
+      {
+        temMinimo8Caracteres,
+        temLetraMaiuscula,
+        temLetraMinuscula,
+      },
+    );
 
     if (Object.keys(filtered).length > 0) {
       setErrors(filtered);
@@ -388,8 +319,19 @@ export default function LoginScreen() {
       return;
     }
     setErrors({});
-    translateX.value = withTiming(-FORM_WIDTH, { duration: 300 });
-    setStep(2);
+
+    const goToStepTwo = () => {
+      translateX.value = withTiming(-FORM_WIDTH, { duration: 300 });
+      setStep(2);
+    };
+
+    if (!isStepTwoMounted) {
+      setIsStepTwoMounted(true);
+      requestAnimationFrame(goToStepTwo);
+      return;
+    }
+
+    goToStepTwo();
   }, [
     email,
     senha,
@@ -401,6 +343,7 @@ export default function LoginScreen() {
     temMinimo8Caracteres,
     temLetraMaiuscula,
     temLetraMinuscula,
+    isStepTwoMounted,
     shakeStep1,
     translateX,
   ]);
@@ -408,70 +351,33 @@ export default function LoginScreen() {
   const handleConfirmar = useCallback(async () => {
     setSubmitError("");
 
-    const payload = {
-      email: email.trim(),
-      password: senha,
-      name: nome.trim(),
-      cpf: cpf.replace(/\D/g, ""),
-      phoneNumber: telefone.replace(/\D/g, ""),
-      birthDate: (() => {
-        const digits = nascimento.replace(/\D/g, "");
-        const d = digits.slice(0, 2);
-        const m = digits.slice(2, 4);
-        const y = digits.slice(4, 8);
-        return `${y}-${m}-${d}`;
-      })(),
-
-      address: {
-        street: endereco.trim(),
-        number: numero.trim(),
-        complement: complemento.trim() || null,
-        neighborhood: bairro.trim(),
-        city: cidade.trim(),
-        state: estado,
-        zipCode: cep.trim(),
+    const payload = buildRegisterPayload(
+      {
+        email,
+        password: senha,
+        confirmPassword: confirmarSenha,
+        name: nome,
+        cpf,
+        phoneNumber: telefone,
+        birthDate: nascimento,
       },
-    };
+      {
+        street: endereco,
+        number: numero,
+        complement: complemento,
+        neighborhood: bairro,
+        city: cidade,
+        state: estado,
+        zipCode: cep,
+      },
+    );
 
     console.log("Payload:", JSON.stringify(payload, null, 2));
 
-    const result = userCreateBodySchema.safeParse(payload);
+    const validationResult = validateRegisterPayload(payload, confirmarSenha);
 
-    if (!result.success) {
-      console.log(
-        "Erros Zod:",
-        JSON.stringify(result.error.flatten(), null, 2),
-      );
-      const errs = extractErrors(result.error);
-      console.log("Zod errors:", JSON.stringify(errs));
-
-      const filtered: Record<string, string> = {};
-
-      // Map zod field names to local UI field names
-      const mapping: Record<string, string> = {
-        street: "endereco",
-        number: "numero",
-        neighborhood: "bairro",
-        city: "cidade",
-        state: "estado",
-        zipCode: "cep",
-        email: "email",
-        password: "senha",
-        name: "nome",
-        cpf: "cpf",
-        phoneNumber: "telefone",
-        birthDate: "nascimento",
-      };
-
-      for (const [zodField, msg] of Object.entries(errs)) {
-        const localField = mapping[zodField] ?? zodField;
-        filtered[localField] = msg as string;
-      }
-
-      if (senha !== confirmarSenha)
-        filtered.confirmPassword = "As senhas não coincidem";
-
-      setErrors(filtered);
+    if (!validationResult.success) {
+      setErrors(validationResult.errors);
       setSubmitError("Verifique os dados e tente novamente.");
 
       cancelAnimation(shakeStep2);
@@ -492,14 +398,13 @@ export default function LoginScreen() {
 
     try {
       //DESCOMENTAR PARA CRIAR USUARIO NO APP - COMENTADO APENAS PARA TESTES
-      //await userService.create(result.data);
+      //await userService.create(validationResult.data);
       setSubmitError("");
 
       router.replace({
         pathname: "/email-confirmation",
-        params: { email: result.data.email },
+        params: { email: validationResult.data.email },
       });
-      
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422 && error.errors) {
@@ -558,26 +463,117 @@ export default function LoginScreen() {
     transform: [{ translateX: shakeStep2.value }],
   }));
 
-  // Map zod field names to local field names for display
-  const mapping: Record<string, string> = {
-    email: "email",
-    password: "senha",
-    name: "nome",
-    cpf: "cpf",
-    phoneNumber: "telefone",
-    birthDate: "nascimento",
-    confirmPassword: "confirmPassword",
-    street: "endereco",
-    number: "numero",
-    neighborhood: "bairro",
-    city: "cidade",
-    state: "estado",
-    zipCode: "cep",
-  };
+  const handleNomeChange = useCallback(
+    (value: string) => {
+      setNome(value);
+      clearFieldError("nome");
+    },
+    [clearFieldError],
+  );
 
-  const displayErrors = Object.fromEntries(
-    Object.entries(errors).map(([key, msg]) => [mapping[key] ?? key, msg]),
-  ) as Record<string, string>;
+  const handleEmailChange = useCallback(
+    (value: string) => {
+      setEmail(value);
+      clearFieldError("email");
+    },
+    [clearFieldError],
+  );
+
+  const handleCpfChange = useCallback(
+    (value: string) => {
+      setCpf(formatCpf(value));
+      clearFieldError("cpf");
+    },
+    [clearFieldError],
+  );
+
+  const handleTelefoneChange = useCallback(
+    (value: string) => {
+      setTelefone(formatPhone(value));
+      clearFieldError("telefone");
+    },
+    [clearFieldError],
+  );
+
+  const handleNascimentoChange = useCallback(
+    (value: string) => {
+      setNascimento(formatDate(value));
+      clearFieldError("nascimento");
+    },
+    [clearFieldError],
+  );
+
+  const handleSenhaChange = useCallback(
+    (value: string) => {
+      setSenha(value);
+      clearFieldError("senha");
+    },
+    [clearFieldError],
+  );
+
+  const handleConfirmarSenhaChange = useCallback(
+    (value: string) => {
+      setConfirmarSenha(value);
+      clearFieldError("confirmPassword");
+    },
+    [clearFieldError],
+  );
+
+  const handleCepChange = useCallback(
+    (value: string) => {
+      const formattedCep = formatCep(value);
+      const digits = formattedCep.replace(/\D/g, "");
+
+      setCep(formattedCep);
+      clearFieldError("cep");
+
+      if (digits.length < 8) {
+        if (cepLookupTimeoutRef.current) {
+          clearTimeout(cepLookupTimeoutRef.current);
+        }
+        lastCepFetchedRef.current = "";
+        setEndereco("");
+        setBairro("");
+        setCidade("");
+        setEstado("");
+        return;
+      }
+
+      if (digits !== lastCepFetchedRef.current) {
+        scheduleCepLookup(formattedCep);
+      }
+    },
+    [clearFieldError, scheduleCepLookup],
+  );
+
+  const handleNumeroChange = useCallback(
+    (value: string) => {
+      setNumero(value);
+      clearFieldError("numero");
+    },
+    [clearFieldError],
+  );
+
+  const handleComplementoChange = useCallback(
+    (value: string) => {
+      setComplemento(value);
+      clearFieldError("complemento");
+    },
+    [clearFieldError],
+  );
+
+  const handleEstadoChange = useCallback(
+    (value: string) => {
+      setEstado(value);
+      clearFieldError("estado");
+    },
+    [clearFieldError],
+  );
+
+  const displayErrors = useMemo(
+    () => mapRegisterErrorsToDisplay(errors),
+    [errors],
+  );
 
   return (
     <SafeAreaProvider style={styles.main}>
@@ -620,343 +616,71 @@ export default function LoginScreen() {
             <View style={styles.sliderContainer}>
               <Animated.View style={[styles.slider, animatedStyle]}>
                 <Animated.View style={[styles.shakeWrapper, shakeStyle1]}>
-                  <View style={styles.formPage}>
-                    <FloatingLabelInput
-                      label="Nome Completo"
-                      value={nome}
-                      maxLength={100}
-                      onChangeText={(t) => {
-                        setNome(t);
-                        clearFieldError("nome");
-                      }}
-                      placeholderTextColor="#6C63FF"
-                      placeholder="Preencha com seu Nome"
-                      labelStyle={styles.label}
-                      inputStyle={styles.inputText}
-                      error={displayErrors.nome}
-                      errorStyle={styles.errorText}
-                    />
-                    <FloatingLabelInput
-                      label="Email"
-                      value={email}
-                      onChangeText={(t) => {
-                        setEmail(t);
-                        clearFieldError("email");
-                      }}
-                      placeholderTextColor="#6C63FF"
-                      placeholder="Preencha com seu Email"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      labelStyle={styles.label}
-                      inputStyle={styles.inputText}
-                      error={displayErrors.email}
-                      errorStyle={styles.errorText}
-                    />
-                    <FloatingLabelInput
-                      label="CPF"
-                      value={cpf}
-                      onChangeText={(t) => {
-                        setCpf(formatCpf(t));
-                        clearFieldError("cpf");
-                      }}
-                      keyboardType="numeric"
-                      maxLength={14}
-                      placeholderTextColor="#6C63FF"
-                      placeholder="000.000.000-00"
-                      labelStyle={styles.label}
-                      inputStyle={styles.inputText}
-                      error={displayErrors.cpf}
-                      errorStyle={styles.errorText}
-                    />
-                    <View style={styles.row}>
-                      <View style={styles.inputTelefone}>
-                        <FloatingLabelInput
-                          label="Telefone"
-                          value={telefone}
-                          maxLength={15}
-                          onChangeText={(t) => {
-                            setTelefone(formatPhone(t));
-                            clearFieldError("telefone");
-                          }}
-                          keyboardType="numeric"
-                          placeholderTextColor="#6C63FF"
-                          placeholder="(00) 00000-0000"
-                          labelStyle={styles.label}
-                          inputStyle={styles.inputText}
-                          error={displayErrors.telefone}
-                          errorStyle={styles.errorText}
-                        />
-                      </View>
-                      <View style={styles.inputNascimento}>
-                        <FloatingLabelInput
-                          label="Nascimento"
-                          value={nascimento}
-                          maxLength={10}
-                          onChangeText={(t) => {
-                            setNascimento(formatDate(t));
-                            clearFieldError("nascimento");
-                          }}
-                          keyboardType="numeric"
-                          placeholderTextColor="#6C63FF"
-                          placeholder="dd/mm/aaaa"
-                          labelStyle={styles.label}
-                          inputStyle={styles.inputText}
-                          error={displayErrors.nascimento}
-                          errorStyle={styles.errorText}
-                        />
-                      </View>
-                    </View>
-                    <View style={{ gap: 6 }}>
-                      <FloatingLabelInput
-                        label="Senha"
-                        maxLength={100}
-                        secureTextEntry
-                        value={senha}
-                        onChangeText={(t) => {
-                          setSenha(t);
-                          clearFieldError("senha");
-                        }}
-                        placeholderTextColor="#6C63FF"
-                        placeholder="Preencha com sua Senha"
-                        onFocus={handlePasswordFocus}
-                        labelStyle={styles.label}
-                        inputStyle={styles.inputText}
-                        error={displayErrors.senha}
-                        errorStyle={styles.errorText}
-                      />
-                      <FloatingLabelInput
-                        secureTextEntry
-                        value={confirmarSenha}
-                        maxLength={100}
-                        onChangeText={(t) => {
-                          setConfirmarSenha(t);
-                          clearFieldError("confirmPassword");
-                        }}
-                        placeholderTextColor="#6C63FF"
-                        placeholder="Confirme sua Senha"
-                        inputStyle={styles.inputText}
-                        error={displayErrors.confirmPassword}
-                        errorStyle={styles.errorText}
-                      />
-                      <View>
-                        <View style={styles.requisiteRow}>
-                          <Ionicons
-                            name={
-                              temMinimo8Caracteres
-                                ? "checkmark-circle"
-                                : "close-circle"
-                            }
-                            size={16}
-                            color={temMinimo8Caracteres ? "#4CAF50" : "#ff6584"}
-                          />
-                          <Text style={styles.requisitesText}>
-                            8 ou mais caracteres
-                          </Text>
-                        </View>
-                        <View style={styles.requisiteRow}>
-                          <Ionicons
-                            name={
-                              temLetraMaiuscula
-                                ? "checkmark-circle"
-                                : "close-circle"
-                            }
-                            size={16}
-                            color={temLetraMaiuscula ? "#4CAF50" : "#ff6584"}
-                          />
-                          <Text style={styles.requisitesText}>
-                            Uma letra maiúscula
-                          </Text>
-                        </View>
-                        <View style={styles.requisiteRow}>
-                          <Ionicons
-                            name={
-                              temLetraMinuscula
-                                ? "checkmark-circle"
-                                : "close-circle"
-                            }
-                            size={16}
-                            color={temLetraMinuscula ? "#4CAF50" : "#ff6584"}
-                          />
-                          <Text style={styles.requisitesText}>
-                            Uma letra minúscula
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
+                  <RegisterStepOne
+                    nome={nome}
+                    email={email}
+                    cpf={cpf}
+                    telefone={telefone}
+                    nascimento={nascimento}
+                    senha={senha}
+                    confirmarSenha={confirmarSenha}
+                    errorNome={displayErrors.nome}
+                    errorEmail={displayErrors.email}
+                    errorCpf={displayErrors.cpf}
+                    errorTelefone={displayErrors.telefone}
+                    errorNascimento={displayErrors.nascimento}
+                    errorSenha={displayErrors.senha}
+                    errorConfirmPassword={displayErrors.confirmPassword}
+                    temMinimo8Caracteres={temMinimo8Caracteres}
+                    temLetraMaiuscula={temLetraMaiuscula}
+                    temLetraMinuscula={temLetraMinuscula}
+                    onNomeChange={handleNomeChange}
+                    onEmailChange={handleEmailChange}
+                    onCpfChange={handleCpfChange}
+                    onTelefoneChange={handleTelefoneChange}
+                    onNascimentoChange={handleNascimentoChange}
+                    onSenhaChange={handleSenhaChange}
+                    onConfirmarSenhaChange={handleConfirmarSenhaChange}
+                    onPasswordFocus={handlePasswordFocus}
+                  />
                 </Animated.View>
 
-                <Animated.View
-                  style={[
-                    styles.shakeWrapper,
-                    step === 1 ? {} : shakeStyle2,
-                    { opacity: step === 2 ? 1 : 0 },
-                  ]}
-                  pointerEvents={step === 2 ? "auto" : "none"}
-                >
-                  <View style={styles.formPage}>
-                    <View style={styles.row}>
-                      <View style={{ flex: 1 }}>
-                        <FloatingLabelInput
-                          label="CEP"
-                          value={cep}
-                          onChangeText={(t) => {
-                            const formattedCep = formatCep(t);
-                            const digits = formattedCep.replace(/\D/g, "");
-
-                            setCep(formattedCep);
-                            clearFieldError("cep");
-
-                            if (digits.length < 8) {
-                              lastCepFetchedRef.current = "";
-                              setEndereco("");
-                              setBairro("");
-                              setCidade("");
-                              setEstado("");
-                              return;
-                            }
-
-                            if (digits !== lastCepFetchedRef.current) {
-                              void handleCepLookup(formattedCep);
-                            }
-                          }}
-                          keyboardType="numeric"
-                          maxLength={9}
-                          placeholderTextColor="#6C63FF"
-                          placeholder="00000-000"
-                          labelStyle={styles.label}
-                          inputStyle={styles.inputText}
-                          error={displayErrors.cep}
-                          errorStyle={styles.errorText}
-                        />
-                        {cepLoading && (
-                          <ActivityIndicator
-                            style={styles.cepLoadingIndicator}
-                            color="#6C63FF"
-                            size="small"
-                          />
-                        )}
-                      </View>
-
-                      <View style={{ flex: 1 }}>
-                        <PrimaryButton
-                          style={styles.cepHelpButton}
-                          activeOpacity={0.7}
-                          onPress={handleCepHelpPress}
-                        >
-                          <Text style={styles.cepHelpButtonText}>
-                            NÃO SABE O CEP?
-                          </Text>
-                        </PrimaryButton>
-                      </View>
-                    </View>
-
-                    <FloatingLabelInput
-                      label="Endereço"
-                      value={endereco}
-                      editable={false}
-                      placeholderTextColor="#6C63FF"
-                      placeholder="Preencha com seu Endereço"
-                      labelStyle={styles.label}
-                      inputStyle={[styles.inputText, styles.readOnlyInput]}
-                      error={displayErrors.endereco}
-                      errorStyle={styles.errorText}
+                {isStepTwoMounted ? (
+                  <Animated.View
+                    style={[
+                      styles.shakeWrapper,
+                      step === 1 ? {} : shakeStyle2,
+                      {
+                        opacity: step === 2 ? 1 : 0,
+                        pointerEvents: step === 2 ? "auto" : "none",
+                      },
+                    ]}
+                  >
+                    <RegisterStepTwo
+                      cep={cep}
+                      endereco={endereco}
+                      numero={numero}
+                      complemento={complemento}
+                      bairro={bairro}
+                      cidade={cidade}
+                      estado={estado}
+                      cepLoading={cepLoading}
+                      errorCep={displayErrors.cep}
+                      errorEndereco={displayErrors.endereco}
+                      errorNumero={displayErrors.numero}
+                      errorBairro={displayErrors.bairro}
+                      errorCidade={displayErrors.cidade}
+                      errorEstado={displayErrors.estado}
+                      onCepChange={handleCepChange}
+                      onNumeroChange={handleNumeroChange}
+                      onComplementoChange={handleComplementoChange}
+                      onEstadoChange={handleEstadoChange}
+                      onCepHelpPress={handleCepHelpPress}
                     />
-
-                    <View style={styles.row}>
-                      <View style={{ flex: 1 }}>
-                        <FloatingLabelInput
-                          label="Nº"
-                          value={numero}
-                          onChangeText={(t) => {
-                            setNumero(t);
-                            clearFieldError("numero");
-                          }}
-                          keyboardType="numeric"
-                          placeholderTextColor="#6C63FF"
-                          placeholder="Nº"
-                          labelStyle={styles.label}
-                          inputStyle={styles.inputText}
-                          error={displayErrors.numero}
-                          errorStyle={styles.errorText}
-                        />
-                      </View>
-
-                      <View style={{ flex: 4 }}>
-                        <FloatingLabelInput
-                          label="Complemento"
-                          value={complemento}
-                          onChangeText={(t) => {
-                            setComplemento(t);
-                            clearFieldError("complemento");
-                          }}
-                          placeholderTextColor="#6C63FF"
-                          placeholder="Preencha com seu Complemento"
-                          labelStyle={styles.label}
-                          inputStyle={styles.inputText}
-                        />
-                      </View>
-                    </View>
-
-                    <FloatingLabelInput
-                      label="Bairro"
-                      value={bairro}
-                      editable={false}
-                      placeholderTextColor="#6C63FF"
-                      placeholder="Preencha com seu Bairro"
-                      labelStyle={styles.label}
-                      inputStyle={[styles.inputText, styles.readOnlyInput]}
-                      error={displayErrors.bairro}
-                      errorStyle={styles.errorText}
-                    />
-
-                    <View style={styles.row}>
-                      <View style={{ flex: 2 }}>
-                        <FloatingLabelInput
-                          label="Cidade"
-                          value={cidade}
-                          editable={false}
-                          placeholderTextColor="#6C63FF"
-                          placeholder="Preencha com sua Cidade"
-                          labelStyle={styles.label}
-                          inputStyle={[styles.inputText, styles.readOnlyInput]}
-                          error={displayErrors.cidade}
-                          errorStyle={styles.errorText}
-                        />
-                      </View>
-
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.label}>Estado</Text>
-                        <View
-                          style={[
-                            styles.pickerWrapper,
-                            displayErrors.estado && styles.inputError,
-                          ]}
-                        >
-                          <Picker
-                            selectedValue={estado}
-                            onValueChange={(val) => {
-                              setEstado(val);
-                              clearFieldError("estado");
-                            }}
-                            style={styles.picker}
-                            dropdownIconColor="#6C63FF"
-                          >
-                            <Picker.Item label="Selecione" value="" />
-                            {ESTADOS.map((uf) => (
-                              <Picker.Item key={uf} label={uf} value={uf} />
-                            ))}
-                          </Picker>
-                        </View>
-                        {displayErrors.estado && (
-                          <Text style={styles.errorText}>
-                            {displayErrors.estado}
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-                  </View>
-                </Animated.View>
+                  </Animated.View>
+                ) : (
+                  <View style={styles.shakeWrapper} />
+                )}
               </Animated.View>
             </View>
 

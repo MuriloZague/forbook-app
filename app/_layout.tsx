@@ -6,8 +6,8 @@ import "react-native-reanimated";
 import { fonts } from "@/assets/fonts/fonts";
 import BookmarkTransitionOverlay from "@/src/components/bookmarktransitionoverlay";
 import {
-    TransitionProvider,
-    useTransition,
+  TransitionProvider,
+  useTransition,
 } from "@/src/context/transition-context";
 
 export const unstable_settings = {
@@ -67,7 +67,7 @@ function AppContent() {
           name="book-details"
           options={{
             headerShown: false,
-            animation: "ios_from_right",
+            animation: "fade_from_bottom",
           }}
         />
         <Stack.Screen
@@ -86,6 +86,13 @@ function AppContent() {
         />
         <Stack.Screen
           name="profile"
+          options={{
+            headerShown: false,
+            animation: "ios_from_right",
+          }}
+        />
+        <Stack.Screen
+          name="edit-profile"
           options={{
             headerShown: false,
             animation: "ios_from_right",

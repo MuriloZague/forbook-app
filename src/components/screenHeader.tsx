@@ -14,7 +14,7 @@ import {
 type IconName = keyof typeof Ionicons.glyphMap;
 
 interface ScreenHeaderProps {
-  title: string;
+  title?: string;
   onBackPress?: () => void;
   iconName?: IconName;
   iconSize?: number;

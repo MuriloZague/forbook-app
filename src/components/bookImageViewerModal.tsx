@@ -1,24 +1,27 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Dimensions,
-  Modal,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  VirtualizedList,
-  View,
+    Dimensions,
+    Modal,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    VirtualizedList,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ImageItem =
   Platform.OS === "ios"
-    ? require("react-native-image-viewing/dist/components/ImageItem/ImageItem.ios").default
-    : require("react-native-image-viewing/dist/components/ImageItem/ImageItem.android").default;
-const StatusBarManager = require("react-native-image-viewing/dist/components/StatusBarManager").default;
+    ? require("react-native-image-viewing/dist/components/ImageItem/ImageItem.ios")
+        .default
+    : require("react-native-image-viewing/dist/components/ImageItem/ImageItem.android")
+        .default;
+const StatusBarManager =
+  require("react-native-image-viewing/dist/components/StatusBarManager").default;
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -42,10 +45,7 @@ export default function BookImageViewerModal({
 }: BookImageViewerModalProps) {
   const insets = useSafeAreaInsets();
 
-  const images = useMemo(
-    () => imageUris.map((uri) => ({ uri })),
-    [imageUris],
-  );
+  const images = useMemo(() => imageUris.map((uri) => ({ uri })), [imageUris]);
 
   const listRef = useRef<VirtualizedList<ViewerImage>>(null);
   const [currentIndex, setCurrentIndex] = useState(imageIndex);
@@ -107,10 +107,17 @@ export default function BookImageViewerModal({
     const hasNext = currentIndex < images.length - 1;
 
     return (
-      <View pointerEvents="box-none" style={styles.overlayRoot}>
-        <View pointerEvents="box-none" style={[styles.topRow, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.overlayRoot, { pointerEvents: "box-none" }]}>
+        <View
+          style={[
+            styles.topRow,
+            { paddingTop: insets.top + 8, pointerEvents: "box-none" },
+          ]}
+        >
           <View style={styles.indexBadge}>
-            <Text style={styles.indexText}>{`${currentIndex + 1}/${images.length}`}</Text>
+            <Text
+              style={styles.indexText}
+            >{`${currentIndex + 1}/${images.length}`}</Text>
           </View>
 
           <TouchableOpacity
@@ -122,7 +129,7 @@ export default function BookImageViewerModal({
           </TouchableOpacity>
         </View>
 
-        <View pointerEvents="box-none" style={styles.sideButtonsRow}>
+        <View style={[styles.sideButtonsRow, { pointerEvents: "box-none" }]}>
           <TouchableOpacity
             style={[styles.sideButton, !hasPrev && styles.sideButtonDisabled]}
             onPress={handleGoToPrev}
