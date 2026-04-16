@@ -6,11 +6,11 @@ import HorizontalOptionBar from "@/src/components/horizontalOptionBar";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -221,6 +221,7 @@ export default function HomeScreen() {
           </View>
         }
         notificationContent={<Notification width={28} height={28} />}
+        onUserPress={() => router.push("/profile")}
       />
       <View style={styles.wellcomeContent}>
         <Text style={styles.wellcomeText}>

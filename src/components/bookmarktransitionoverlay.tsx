@@ -43,7 +43,9 @@ function ForBookLabel({ progress }: { progress: SharedValue<number> }) {
     return { opacity };
   });
   return (
-    <Animated.View style={[styles.labelWrapper, style]} pointerEvents="none">
+    <Animated.View
+      style={[styles.labelWrapper, { pointerEvents: "none" }, style]}
+    >
       <Text style={styles.labelText}>FORBOOK</Text>
     </Animated.View>
   );

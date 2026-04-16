@@ -5,21 +5,21 @@ import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Animated,
-  Dimensions,
-  Easing,
-  FlatList,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Animated,
+    Dimensions,
+    Easing,
+    FlatList,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import {
-  SafeAreaView,
-  useSafeAreaInsets,
+    SafeAreaView,
+    useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -213,12 +213,12 @@ export default function BookDetailsScreen() {
 
       <View style={styles.container}>
         <Animated.View
-          pointerEvents="none"
           style={[
             styles.toast,
             {
               opacity: toastOpacity,
               transform: [{ translateY: toastTranslateY }],
+              pointerEvents: "none",
             },
           ]}
         >
@@ -298,7 +298,7 @@ export default function BookDetailsScreen() {
               renderItem={({ item, index }) => (
                 <TouchableOpacity
                   style={styles.slide}
-                  activeOpacity={0.95}
+                  activeOpacity={1}
                   onPress={() => handleOpenImageViewer(index)}
                 >
                   <Image
@@ -382,7 +382,7 @@ export default function BookDetailsScreen() {
               </Text>
             </TouchableOpacity>
 
-            <View pointerEvents="none" style={styles.synopsisMeasureLayer}>
+            <View style={styles.synopsisMeasureLayer}>
               <Text
                 style={styles.sectionText}
                 onLayout={(event) => {
@@ -410,8 +410,10 @@ export default function BookDetailsScreen() {
           </View>
 
           <Animated.View
-            pointerEvents="none"
-            style={{ height: synopsisBottomSpacerHeight }}
+            style={{
+              height: synopsisBottomSpacerHeight,
+              pointerEvents: "none",
+            }}
           />
         </ScrollView>
 

@@ -24,7 +24,7 @@ export default function SubmitErrorBanner({
   }
 
   return (
-    <View style={[styles.container, containerStyle]} pointerEvents="none">
+    <View style={[styles.container, { pointerEvents: "none" }, containerStyle]}>
       <Text style={[styles.text, textStyle]}>{message}</Text>
     </View>
   );

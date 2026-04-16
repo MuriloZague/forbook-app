@@ -650,9 +650,11 @@ export default function LoginScreen() {
                     style={[
                       styles.shakeWrapper,
                       step === 1 ? {} : shakeStyle2,
-                      { opacity: step === 2 ? 1 : 0 },
+                      {
+                        opacity: step === 2 ? 1 : 0,
+                        pointerEvents: step === 2 ? "auto" : "none",
+                      },
                     ]}
-                    pointerEvents={step === 2 ? "auto" : "none"}
                   >
                     <RegisterStepTwo
                       cep={cep}
