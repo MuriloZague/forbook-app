@@ -43,6 +43,7 @@ import {
   formatPhone,
 } from "@/src/lib/input-masks";
 import { ApiError } from "@/src/services/api";
+import { userService } from "@/src/services/user.service";
 
 const { width } = Dimensions.get("window");
 const HORIZONTAL_MARGIN = 12;
@@ -399,7 +400,7 @@ export default function LoginScreen() {
 
     try {
       //DESCOMENTAR PARA CRIAR USUARIO NO APP - COMENTADO APENAS PARA TESTES
-      //await userService.create(validationResult.data);
+      await userService.create(validationResult.data);
       setSubmitError("");
 
       router.replace({
