@@ -1,4 +1,5 @@
 import BarcodeScannerModal from "@/src/components/barcodeScannerModal";
+import DismissKeyboardView from "@/src/components/dismissKeyboardView";
 import FloatingLabelInput from "@/src/components/floatingLabelInput";
 import OptionChips from "@/src/components/optionChips";
 import PrimaryButton from "@/src/components/primaryButton";
@@ -9,15 +10,13 @@ import { useNavigation } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -60,7 +59,7 @@ export default function Modal() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <DismissKeyboardView>
         <View style={styles.dismissArea}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -266,7 +265,7 @@ export default function Modal() {
             </ScrollView>
           </KeyboardAvoidingView>
         </View>
-      </TouchableWithoutFeedback>
+      </DismissKeyboardView>
     </SafeAreaView>
   );
 }

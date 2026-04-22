@@ -7,15 +7,9 @@ import { ApiError } from "@/src/services/api";
 import { authService } from "@/src/services/auth.service";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-  Keyboard,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import DismissKeyboardView from "../src/components/dismissKeyboardView";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -106,7 +100,7 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaProvider style={styles.main}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <DismissKeyboardView>
         <View style={styles.content}>
           <View style={styles.titleContent}>
             <Text style={styles.bigTitle}>Entre em sua conta</Text>
@@ -163,13 +157,13 @@ export default function LoginScreen() {
 
             <PrimaryButton
               style={styles.btn}
-              onPress={loginSemSenha}
+              onPress={validateAndSubmit}
               loading={loading}
               label="ENTRAR"
             />
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </DismissKeyboardView>
     </SafeAreaProvider>
   );
 }
