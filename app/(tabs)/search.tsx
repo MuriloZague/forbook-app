@@ -5,17 +5,16 @@ import Order from "@/assets/images/order.svg";
 import Sign from "@/assets/images/sign.svg";
 import User2 from "@/assets/images/User.svg";
 import AppTopHeader from "@/src/components/appTopHeader";
+import DismissKeyboardView from "@/src/components/dismissKeyboardView";
 import HorizontalOptionBar from "@/src/components/horizontalOptionBar";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import {
-  Keyboard,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -28,7 +27,7 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <DismissKeyboardView>
         <View style={styles.dismissArea}>
           <AppTopHeader
             title="Forbook"
@@ -82,7 +81,7 @@ export default function SearchScreen() {
             </Text>
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </DismissKeyboardView>
     </SafeAreaView>
   );
 }

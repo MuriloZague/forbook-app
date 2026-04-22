@@ -1,3 +1,4 @@
+import DismissKeyboardView from "@/src/components/dismissKeyboardView";
 import FloatingLabelInput from "@/src/components/floatingLabelInput";
 import PrimaryButton from "@/src/components/primaryButton";
 import ScreenHeader from "@/src/components/screenHeader";
@@ -6,14 +7,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  View,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -132,7 +132,7 @@ export default function ForgotPasswordPasswordScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <DismissKeyboardView>
         <View style={styles.dismissArea}>
           <ScreenHeader
             title="Criar nova Senha"
@@ -244,7 +244,7 @@ export default function ForgotPasswordPasswordScreen() {
             </ScrollView>
           </KeyboardAvoidingView>
         </View>
-      </TouchableWithoutFeedback>
+      </DismissKeyboardView>
     </SafeAreaView>
   );
 }

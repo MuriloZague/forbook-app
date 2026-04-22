@@ -1,16 +1,11 @@
+import DismissKeyboardView from "@/src/components/dismissKeyboardView";
 import FloatingLabelInput from "@/src/components/floatingLabelInput";
 import PrimaryButton from "@/src/components/primaryButton";
 import ScreenHeader from "@/src/components/screenHeader";
 import SubmitErrorBanner from "@/src/components/submitErrorBanner";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  Keyboard,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
@@ -70,7 +65,7 @@ export default function ForgotPasswordEmailScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <DismissKeyboardView>
         <View style={styles.dismissArea}>
           <ScreenHeader
             title="Informe o E-mail"
@@ -124,7 +119,7 @@ export default function ForgotPasswordEmailScreen() {
             </View>
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </DismissKeyboardView>
     </SafeAreaView>
   );
 }

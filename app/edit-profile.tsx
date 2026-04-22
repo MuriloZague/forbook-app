@@ -1,3 +1,4 @@
+import DismissKeyboardView from "@/src/components/dismissKeyboardView";
 import FloatingLabelInput from "@/src/components/floatingLabelInput";
 import PrimaryButton from "@/src/components/primaryButton";
 import ScreenHeader from "@/src/components/screenHeader";
@@ -6,14 +7,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -30,7 +29,7 @@ export default function EditProfile() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <DismissKeyboardView>
         <View style={styles.dismissArea}>
           <KeyboardAvoidingView
             style={styles.keyboard}
@@ -190,7 +189,7 @@ export default function EditProfile() {
             </ScrollView>
           </KeyboardAvoidingView>
         </View>
-      </TouchableWithoutFeedback>
+      </DismissKeyboardView>
     </SafeAreaView>
   );
 }

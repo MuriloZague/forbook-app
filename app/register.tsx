@@ -9,7 +9,6 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
-  Keyboard,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -17,10 +16,10 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import DismissKeyboardView from "../src/components/dismissKeyboardView";
 
 import Animated, {
   cancelAnimation,
@@ -579,7 +578,7 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaProvider style={styles.main}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <DismissKeyboardView>
         <View style={styles.dismissArea}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -723,7 +722,7 @@ export default function LoginScreen() {
             </SafeAreaView>
           </KeyboardAvoidingView>
         </View>
-      </TouchableWithoutFeedback>
+      </DismissKeyboardView>
     </SafeAreaProvider>
   );
 }
@@ -830,6 +829,7 @@ const styles = StyleSheet.create({
   btnContainer: {
     alignItems: "center",
     position: "relative",
+    marginVertical: 12,
   },
   btn: {
     width: "56%",
