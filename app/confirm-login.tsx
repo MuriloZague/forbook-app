@@ -132,21 +132,21 @@ export default function ConfirmLoginScreen() {
               />
             </View>
 
-            <View style={styles.resendContainer}>
-              {secondsLeft > 0 ? (
-                <Text style={styles.resendText}>
-                  Reenviar codigo em{" "}
-                  <Text style={styles.resendCountdown}>{secondsLeft}s</Text>
-                </Text>
-              ) : (
-                <TouchableOpacity activeOpacity={0.7} onPress={handleResend}>
-                  <Text style={styles.resendActionText}>Reenviar codigo</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
             <View style={styles.buttonContainer}>
               <SubmitErrorBanner message={submitError} />
+
+              <View style={styles.resendContainer}>
+                {secondsLeft > 0 ? (
+                  <Text style={styles.resendText}>
+                    Reenviar codigo em{" "}
+                    <Text style={styles.resendCountdown}>{secondsLeft}s</Text>
+                  </Text>
+                ) : (
+                  <TouchableOpacity activeOpacity={0.7} onPress={handleResend}>
+                    <Text style={styles.resendActionText}>Reenviar codigo</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
 
               <PrimaryButton
                 onPress={handleConfirm}
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   resendContainer: {
-    marginTop: 26,
+    marginVertical: 16,
     alignItems: "center",
   },
   resendText: {
@@ -226,6 +226,7 @@ const styles = StyleSheet.create({
   otpBlock: {
     marginTop: 30,
     alignItems: "center",
+    marginBottom: 16,
   },
   buttonContainer: {
     marginTop: 32,
