@@ -1,24 +1,72 @@
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import "react-native-reanimated";
 
 import { fonts } from "@/assets/fonts/fonts";
 import BookmarkTransitionOverlay from "@/src/components/bookmarktransitionoverlay";
+import { AuthProvider } from "@/src/context/auth-context";
 import {
-  TransitionProvider,
-  useTransition,
+    TransitionProvider,
+    useTransition,
 } from "@/src/context/transition-context";
+import { useAuth } from "@/src/hooks/useAuth";
 
 export const unstable_settings = {
   anchor: "(tabs)",
 };
 
+const PUBLIC_ROUTES = new Set([
+  "index",
+  "login",
+  "register",
+  "email-confirmation",
+  "confirm-login",
+  "forgot-password-email",
+  "forgot-password-code",
+  "forgot-password-password",
+  "forgot-password-confirm",
+]);
+
+function AuthRouteGuard() {
+  const { isAuthenticated, isHydrated } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
+    const firstSegment = segments[0] ?? "index";
+    const isPublicRoute = PUBLIC_ROUTES.has(firstSegment);
+
+    if (isAuthenticated && isPublicRoute) {
+      router.replace("/(tabs)/home");
+      return;
+    }
+
+    if (!isAuthenticated && !isPublicRoute) {
+      router.replace("/login");
+    }
+  }, [isAuthenticated, isHydrated, router, segments]);
+
+  return null;
+}
+
 function AppContent() {
   const { progress, overlayRef } = useTransition();
+  const { isHydrated } = useAuth();
+
+  if (!isHydrated) {
+    return null;
+  }
 
   return (
     <>
+      <AuthRouteGuard />
+
       <Stack>
         <Stack.Screen
           name="index"
@@ -34,6 +82,10 @@ function AppContent() {
         />
         <Stack.Screen
           name="email-confirmation"
+          options={{ headerShown: false, animation: "ios_from_right" }}
+        />
+        <Stack.Screen
+          name="confirm-login"
           options={{ headerShown: false, animation: "ios_from_right" }}
         />
         <Stack.Screen
@@ -176,8 +228,10 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <TransitionProvider>
-      <AppContent />
-    </TransitionProvider>
+    <AuthProvider>
+      <TransitionProvider>
+        <AppContent />
+      </TransitionProvider>
+    </AuthProvider>
   );
 }

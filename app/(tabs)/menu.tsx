@@ -1,19 +1,40 @@
 import ListItemRow from "@/src/components/listItemRow";
 import SectionDivider from "@/src/components/sectionDivider";
 import SectionTitle from "@/src/components/sectionTitle";
+import { useAuth } from "@/src/hooks/useAuth";
 import { useRouter } from "expo-router"; // Importação adicionada
+import { useState } from "react";
 import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function MenuScreen() {
-  const router = useRouter(); // Inicialização do router
+  const router = useRouter();
+  const { logout } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) {
+      return;
+    }
+
+    setIsLoggingOut(true);
+
+    try {
+      await logout();
+    } catch {
+      // Keep navigation behavior deterministic even if storage cleanup fails.
+    } finally {
+      router.replace("/login");
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -134,6 +155,7 @@ export default function MenuScreen() {
             label="Sair"
             style={styles.menuItem}
             labelStyle={styles.menuItemTextLogout}
+            onPress={handleLogout}
           />
 
           <ListItemRow

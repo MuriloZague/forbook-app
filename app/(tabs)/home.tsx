@@ -3,14 +3,17 @@ import User2 from "@/assets/images/User.svg";
 import AppTopHeader from "@/src/components/appTopHeader";
 import BookCard from "@/src/components/bookCard";
 import HorizontalOptionBar from "@/src/components/horizontalOptionBar";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    BackHandler,
+    FlatList,
+    Platform,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -196,6 +199,26 @@ export default function HomeScreen() {
   const [activeCategory, setActiveCategory] = useState<Category>("ofertas");
   const { books, loading, error } = useBooks(activeCategory);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS !== "android") {
+        return undefined;
+      }
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        () => {
+          BackHandler.exitApp();
+          return true;
+        },
+      );
+
+      return () => {
+        subscription.remove();
+      };
+    }, []),
+  );
 
   function toggleFavorite(id: string) {
     setFavorites((prev) => {
