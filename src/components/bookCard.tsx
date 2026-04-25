@@ -1,8 +1,6 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import {
   Dimensions,
-  GestureResponderEvent,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -17,8 +15,6 @@ interface BookCardProps {
   priceCents: string;
   imageUri: string;
   condition?: Condition;
-  isFavorited?: boolean;
-  onFavoritePress?: () => void;
   onPress?: () => void;
 }
 
@@ -28,14 +24,8 @@ export default function BookCard({
   priceCents,
   imageUri,
   condition = "Usado",
-  isFavorited = false,
-  onFavoritePress,
   onPress,
 }: BookCardProps) {
-  function handleFavoritePress(event: GestureResponderEvent) {
-    event.stopPropagation();
-    onFavoritePress?.();
-  }
 
   return (
     <TouchableOpacity

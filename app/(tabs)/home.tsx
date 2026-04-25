@@ -293,8 +293,6 @@ export default function HomeScreen() {
               priceCents={item.priceCents}
               imageUri={item.imageUri}
               condition={item.condition}
-              isFavorited={favorites.has(item.id)}
-              onFavoritePress={() => toggleFavorite(item.id)}
               onPress={() =>
                 router.push({
                   pathname: "/book-details",
