@@ -1,6 +1,6 @@
 # ForBook
 
-Aplicativo mobile para compra, venda e descoberta de livros, desenvolvido com Expo e React Native.
+Aplicativo mobile para compra, venda e descoberta de livros voltado para estudantes e universitários, desenvolvido com Expo e React Native.
 
 ## Tecnologias do projeto
 
