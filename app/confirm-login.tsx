@@ -8,8 +8,8 @@ import { confirmLoginBodySchema } from "@/src/schemas/auth.schema";
 import { ApiError } from "@/src/services/api";
 import { authService } from "@/src/services/auth.service";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 function maskEmail(email: string): string {
@@ -38,6 +38,24 @@ export default function ConfirmLoginScreen() {
   const [code, setCode] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(60);
+
+  useEffect(() => {
+    if (secondsLeft <= 0) return;
+
+    const intervalId = setInterval(() => {
+      setSecondsLeft((previous) => previous - 1);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [secondsLeft]);
+
+  const handleResend = () => {
+    if (secondsLeft > 0) return;
+
+    setSecondsLeft(60);
+    setSubmitError("");
+  };
 
   const maskedEmail = useMemo(() => {
     if (!email) {
@@ -96,7 +114,7 @@ export default function ConfirmLoginScreen() {
 
           <View style={styles.content}>
             <View style={styles.titleBlock}>
-              <Text style={styles.bigTitle}>Codigo de acesso</Text>
+              <Text style={styles.bigTitle}>Código Enviado</Text>
               <Text style={styles.description}>
                 Digite o codigo enviado para{" "}
                 <Text style={styles.highlightText}>{maskedEmail}</Text>.
@@ -116,6 +134,19 @@ export default function ConfirmLoginScreen() {
 
             <View style={styles.buttonContainer}>
               <SubmitErrorBanner message={submitError} />
+
+              <View style={styles.resendContainer}>
+                {secondsLeft > 0 ? (
+                  <Text style={styles.resendText}>
+                    Reenviar codigo em{" "}
+                    <Text style={styles.resendCountdown}>{secondsLeft}s</Text>
+                  </Text>
+                ) : (
+                  <TouchableOpacity activeOpacity={0.7} onPress={handleResend}>
+                    <Text style={styles.resendActionText}>Reenviar codigo</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
 
               <PrimaryButton
                 onPress={handleConfirm}
@@ -162,6 +193,25 @@ const styles = StyleSheet.create({
     textAlign: "center",
     includeFontPadding: false,
   },
+  resendContainer: {
+    marginVertical: 16,
+    alignItems: "center",
+  },
+  resendText: {
+    fontFamily: "montserratRegular",
+    fontSize: 16,
+    color: "#202226",
+  },
+  resendCountdown: {
+    color: "#6C63FF",
+    fontFamily: "montserratRegular",
+  },
+  resendActionText: {
+    color: "#6C63FF",
+    fontFamily: "montserratBold",
+    fontSize: 16,
+    textDecorationLine: "underline",
+  },
   description: {
     fontFamily: "montserratRegular",
     color: "#202226",
@@ -176,6 +226,7 @@ const styles = StyleSheet.create({
   otpBlock: {
     marginTop: 30,
     alignItems: "center",
+    marginBottom: 16,
   },
   buttonContainer: {
     marginTop: 32,
