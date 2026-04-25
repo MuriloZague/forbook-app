@@ -47,7 +47,8 @@
           "cameraPermission": "Precisamos da câmera para escanear o ISBN do livro!"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

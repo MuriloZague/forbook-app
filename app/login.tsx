@@ -1,10 +1,11 @@
 import FloatingLabelInput from "@/src/components/floatingLabelInput";
 import PrimaryButton from "@/src/components/primaryButton";
 import SubmitErrorBanner from "@/src/components/submitErrorBanner";
+import { useAuth } from "@/src/hooks/useAuth";
 import { extractErrors } from "@/src/lib/zod-errors";
 import { loginBodySchema } from "@/src/schemas/auth.schema";
 import { ApiError } from "@/src/services/api";
-import { authService } from "@/src/services/auth.service";
+import { authService, isTokenPair } from "@/src/services/auth.service";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -12,6 +13,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import DismissKeyboardView from "../src/components/dismissKeyboardView";
 
 export default function LoginScreen() {
+  const { loginWithTokens } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -20,6 +22,7 @@ export default function LoginScreen() {
 
   useEffect(() => {
     router.prefetch("/register");
+    router.prefetch("/confirm-login");
   }, []);
 
   const clearFieldError = (field: string) => {
@@ -47,12 +50,27 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      await authService.login({ email, password: result.data.password });
-      setSubmitError("");
+      const response = await authService.login({
+        email: result.data.email,
+        password: result.data.password,
+      });
 
-      // Quando tiver tela de confirmação, descomente:
-      // router.push(`/confirm-login?email=${encodeURIComponent(email)}`);
-      router.push("/(tabs)/home");
+      if (isTokenPair(response.data)) {
+        await loginWithTokens(response.data);
+        setSubmitError("");
+        router.replace("/(tabs)/home");
+        return;
+      }
+
+      if (response.data.isReceiveTwoFactorAuthEmail) {
+        router.push({
+          pathname: "/confirm-login",
+          params: { email: result.data.email },
+        });
+        return;
+      }
+
+      setSubmitError("Nao foi possivel concluir o login.");
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422 && error.errors) {
@@ -74,26 +92,6 @@ export default function LoginScreen() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const loginSemSenha = () => {
-    const result = loginBodySchema.safeParse({ email, password });
-
-    if (!result.success) {
-      setErrors(extractErrors(result.error));
-      setSubmitError("Verifique os dados e tente novamente.");
-      return;
-    }
-    setLoading(true);
-    setTimeout(() => {
-      if (email === "teste@gmail.com" && password === "12345678") {
-        setLoading(false);
-        router.push("/(tabs)/home");
-        return;
-      }
-      setLoading(false);
-      setSubmitError("Email ou senha incorretos");
-    }, 1000);
   };
 
   const goToRegister = () => router.push("/register");
