@@ -1,53 +1,108 @@
-# Welcome to your Expo app 👋
+# ForBook
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicativo mobile para compra, venda e descoberta de livros, desenvolvido com Expo e React Native.
 
-## Get started
+## Tecnologias do projeto
 
-1. Install dependencies
+Esta secao resume a stack principal usada no app.
 
-   ```bash
-   npm install
-   ```
+| Camada                 | Tecnologia                  | Versao no projeto        |
+| ---------------------- | --------------------------- | ------------------------ |
+| Runtime mobile         | React Native                | 0.81.5                   |
+| Framework              | Expo                        | SDK 54 (`expo` ~54.0.33) |
+| UI base                | React                       | 19.1.0                   |
+| Navegacao por arquivos | Expo Router                 | ~6.0.23                  |
+| Linguagem              | TypeScript                  | ~5.9.2                   |
+| Validacao de dados     | Zod                         | ^4.3.6                   |
+| Build em nuvem         | EAS Build                   | via `eas-cli`            |
+| Qualidade de codigo    | ESLint + eslint-config-expo | ^9.25.0 / ~10.0.0        |
 
-2. Start the app
+## Bibliotecas Expo e React Native relevantes
 
-   ```bash
-   npm install -g eas-cli
-   ```
+- `expo-camera`: leitura de camera (scanner e captura de imagem)
+- `expo-image-picker`: selecao de imagens no dispositivo
+- `expo-secure-store`: armazenamento seguro de dados sensiveis
+- `react-native-reanimated` e `react-native-gesture-handler`: animacoes e interacoes
+- `@react-navigation/*`: suporte de navegacao complementar usado no app
 
-    ```bash
-    npx eas login
-   ```
-    ```bash
-    npx eas build:configure  --> selecionar android ou ios
-   ```
-   ```bash
-   para buildar o aplicativo voce tem duas opcoes:
+## Estrutura de pastas (resumo)
 
-   1 opcao - buildar nos servidores eas e depois baixar o app por lá
-   npx eas build --profile development --platform android
+- `app/`: rotas e telas com Expo Router
+- `app/(tabs)/`: navegacao principal por abas
+- `src/components/`: componentes reutilizaveis de interface
+- `src/context/`: estados globais (ex.: autenticacao)
+- `src/services/`: integracao com API
+- `src/schemas/`: validacoes com Zod
 
-   2 opcao - buildar usando seu PC (precisar ter o android SDK instalado e seu telefone conectado no usb)
-   npx expo run:android
+## Requisitos
 
-   se for usar a segunda opcao pode ignorar os 2 primeiros comandos dessa sessao
-   ```
-   ```bash
-   --> abre o app e excuta o comando:
-   
-   npx expo start   
-     ```
+- Node.js LTS
+- npm
+- Android Studio + Android SDK (para build local Android)
+- Conta Expo (para EAS Build)
 
-## Esses comandos geram o arquivo para development build:
+## Comecando
 
+1. Instale as dependencias:
 
-   ```bash
-   --> para buildar uma versao final do aplicativo usar:
-   
-   npx eas build --profile preview --platform android
+```bash
+npm install
+```
 
-   --> versão de produção real:
-   
-   npx eas build --platform android   
-   ```
+2. (Opcional, para EAS) Instale o CLI:
+
+```bash
+npm install -g eas-cli
+```
+
+3. (Opcional, para EAS) Faça login:
+
+```bash
+npx eas login
+```
+
+4. Configure o projeto no EAS (primeira vez):
+
+```bash
+npx eas build:configure
+```
+
+5. Inicie o app em desenvolvimento:
+
+```bash
+npx expo start
+```
+
+## Build de desenvolvimento (Android)
+
+Voce pode escolher uma das opcoes abaixo.
+
+### Opcao 1: Build nos servidores EAS
+
+```bash
+npx eas build --profile development --platform android
+```
+
+### Opcao 2: Build local no seu PC
+
+Requer Android SDK instalado e telefone/emulador Android configurado.
+
+```bash
+npx expo run:android
+```
+
+Se usar build local, os passos de `eas login` e `eas build:configure` podem ser ignorados.
+
+## Build de distribuicao
+
+Build de preview:
+
+```bash
+npx eas build --profile preview --platform android
+```
+
+Build de producao:
+
+```bash
+npx eas build --platform android
+```
