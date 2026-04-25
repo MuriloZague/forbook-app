@@ -1,7 +1,8 @@
 import Notification from "@/assets/images/Notification.svg";
 import User2 from "@/assets/images/User.svg";
 import AppTopHeader from "@/src/components/appTopHeader";
-import { StyleSheet, Text, View } from "react-native";
+import ChatNotificationItem from "@/src/components/chatNotificationItem";
+import { StyleSheet, View } from "react-native";
 
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,7 +20,22 @@ export default function ChatScreen() {
         notificationContent={<Notification width={28} height={28} />}
         onUserPress={() => router.push("/profile")}
       />
-      <Text>CHAT PAGE</Text>
+
+      <ChatNotificationItem
+        avatarSource={require("../../assets/images/chat.png")}
+        userName="Rafael Mori"
+        message="Oiee, tudo bem??"
+        timeLabel="12 min"
+        unreadCount={12}
+      />
+
+      <ChatNotificationItem
+        avatarSource={require("../../assets/images/chat.png")}
+        userName="Rafael Mori"
+        message="Oiee, tudo bem??"
+        timeLabel="12 min"
+        unreadCount={12}
+      />
     </SafeAreaView>
   );
 }
@@ -28,7 +44,7 @@ const styles = StyleSheet.create({
   userLogo: {
     borderWidth: 2,
     borderColor: "#6c63ff",
-    borderRadius: 20, // opcional - para arredondar as bordas
+    borderRadius: 20,
     width: 40,
     height: 40,
     justifyContent: "center",
