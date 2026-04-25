@@ -36,7 +36,7 @@ export default function SearchScreen() {
                 <User2 width={22} height={22} />
               </View>
             }
-            notificationContent={<Notification width={28} height={28} />}
+        notificationContent={<Notification width={24} height={24} />}
             onUserPress={() => router.push("/profile")}
           />
 
