@@ -27,50 +27,65 @@ export default function ChatNotificationItem({
   onPress,
 }: ChatNotificationItemProps) {
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      style={styles.container}
-      onPress={onPress}
-    >
-      <View style={styles.contentRow}>
-        <Image source={avatarSource} style={styles.avatar} />
+    <>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        style={styles.container}
+        onPress={onPress}
+      >
+        <View style={styles.contentRow}>
+          <Image source={avatarSource} style={styles.avatar} />
 
-        <View>
-          <Text style={styles.userName}>{userName}</Text>
-          <Text style={styles.message}>
-            {message} <Text style={styles.timeLabel}>- {timeLabel}</Text>
-          </Text>
-          <Text style={styles.unreadLabel}>
-            ({unreadCount}) mensagens nao lidas
-          </Text>
+          <View style={styles.textBlock}>
+            <Text style={styles.userName}>{userName}</Text>
+            <Text style={styles.message} numberOfLines={1} ellipsizeMode="tail">
+              {message} <Text style={styles.timeLabel}>- {timeLabel}</Text>
+            </Text>
+            <Text style={styles.unreadLabel}>
+              ({unreadCount}) mensagens nao lidas
+            </Text>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.chevronWrapper}>
-        <Ionicons name="chevron-forward" size={22} color="black" />
-      </View>
-    </TouchableOpacity>
+        <View style={styles.chevronWrapper}>
+          <Ionicons name="chevron-forward" size={22} color="black" />
+        </View>
+      </TouchableOpacity>
+      <View style={styles.line} />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    marginHorizontal: 18,
-    marginTop: 20,
+    marginHorizontal: 12,
     justifyContent: "space-between",
-    borderBottomColor: "#a6a8aaa2",
-    borderBottomWidth: 1,
-    paddingBottom: 20,
+    backgroundColor: "#e5e6e7",
+    borderRadius: 26,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  line: {
+    backgroundColor: "#a6a8aaa2",
+    height: 1.4,
+    marginVertical: 12,
+    marginHorizontal: 32,
   },
   contentRow: {
     flexDirection: "row",
     gap: 8,
     alignItems: "center",
+    flex: 1,
+    marginRight: 8,
+  },
+  textBlock: {
+    flex: 1,
+    minWidth: 0,
   },
   avatar: {
-    width: 72,
-    height: 72,
+    width: 70,
+    height: 70,
     borderColor: "#6c63ff",
     borderWidth: 3,
     borderRadius: 999,

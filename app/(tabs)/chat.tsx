@@ -20,22 +20,23 @@ export default function ChatScreen() {
         notificationContent={<Notification width={24} height={24} />}
         onUserPress={() => router.push("/profile")}
       />
+      <View style={{marginTop: 20}}>
+        <ChatNotificationItem
+          avatarSource={require("../../assets/images/chat.png")}
+          userName="Rafael Mori"
+          message="Oiee, tudo bem??"
+          timeLabel="12 min"
+          unreadCount={12}
+        />
 
-      <ChatNotificationItem
-        avatarSource={require("../../assets/images/chat.png")}
-        userName="Rafael Mori"
-        message="Oiee, tudo bem??"
-        timeLabel="12 min"
-        unreadCount={12}
-      />
-
-      <ChatNotificationItem
-        avatarSource={require("../../assets/images/chat.png")}
-        userName="Rafael Mori"
-        message="Oiee, tudo bem??"
-        timeLabel="12 min"
-        unreadCount={12}
-      />
+        <ChatNotificationItem
+          avatarSource={require("../../assets/images/chat.png")}
+          userName="Rafael Mori2"
+          message="Ainda está disponível?? eu gostaria de saber porque"
+          timeLabel="18 min"
+          unreadCount={2}
+        />
+      </View>
     </SafeAreaView>
   );
 }
