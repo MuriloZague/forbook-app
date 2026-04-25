@@ -8,7 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Image,
@@ -26,6 +26,8 @@ export default function Modal() {
   const { overlayRef } = useTransition();
   const navigation = useNavigation();
   const MAX_ATTACHMENTS = 5;
+  const isLeavingRef = useRef(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   const [isbn, setIsbn] = useState("");
   const [title, setTitle] = useState("");
@@ -41,9 +43,23 @@ export default function Modal() {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+      if (isLeavingRef.current) {
+        return;
+      }
+
       e.preventDefault();
-      overlayRef.current?.playEnter(() => {
+
+      if (!overlayRef.current) {
         navigation.dispatch(e.data.action);
+        return;
+      }
+
+      isLeavingRef.current = true;
+      overlayRef.current?.playEnter(() => {
+        setIsExiting(true);
+        requestAnimationFrame(() => {
+          navigation.dispatch(e.data.action);
+        });
       });
     });
     return unsubscribe;
@@ -135,7 +151,9 @@ export default function Modal() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, isExiting && styles.containerHidden]}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -366,6 +384,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F0F2F5",
+  },
+  containerHidden: {
+    opacity: 0,
   },
   title: {
     fontSize: 16,
