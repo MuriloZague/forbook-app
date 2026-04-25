@@ -65,13 +65,17 @@ export default function AppTopHeader({
         </TouchableOpacity>
       </View>
 
-      {showShadow ? <View style={styles.shadow} /> : null}
+      {showShadow ? (
+        <View pointerEvents="none" style={styles.bottomShadow} />
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
+    position: "relative",
+    overflow: "visible",
     backgroundColor: "#F0F2F5",
   },
   container: {
@@ -81,11 +85,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     paddingBottom: 16,
     paddingTop: 12,
+    backgroundColor: "#F0F2F5",
+    zIndex: 2,
   },
-  shadow: {
-    height: 2,
-    backgroundColor: "#0000007a",
-    opacity: 0.25,
+  bottomShadow: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: -1,
+    height: 1,
+    backgroundColor: "#F0F2F5",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 1,
   },
   title: {
     fontFamily: "lexendBlack",
