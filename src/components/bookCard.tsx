@@ -52,7 +52,7 @@ export default function BookCard({
             style={styles.image}
             contentFit="cover"
           />
-
+          {/**
           <TouchableOpacity
             style={styles.favoriteBtn}
             onPress={handleFavoritePress}
@@ -64,7 +64,7 @@ export default function BookCard({
               color={isFavorited ? "#ff3d6b" : "#ff6b8a"}
             />
           </TouchableOpacity>
-
+          */}
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{condition}</Text>
           </View>
