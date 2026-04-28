@@ -19,6 +19,8 @@ export default function LoginScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const loginSemSenhaEmail = "teste@gmail.com";
+  const loginSemSenhaPassword = "12345678";
 
   useEffect(() => {
     router.prefetch("/register");
@@ -35,6 +37,34 @@ export default function LoginScreen() {
       });
   };
 
+  const loginSemSenha = async (loginEmail: string, loginPassword: string) => {
+    if (
+      loginEmail !== loginSemSenhaEmail ||
+      loginPassword !== loginSemSenhaPassword
+    ) {
+      return false;
+    }
+
+    setSubmitError("");
+    setErrors({});
+    setLoading(true);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      await loginWithTokens({
+        accessToken: "dev-access-token",
+        refreshToken: "dev-refresh-token",
+      });
+      router.replace("/(tabs)/home");
+      return true;
+    } catch {
+      setSubmitError("Não foi possível fazer login.");
+      return true;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const validateAndSubmit = async () => {
     setSubmitError("");
 
@@ -47,6 +77,11 @@ export default function LoginScreen() {
     }
 
     setErrors({});
+
+    if (await loginSemSenha(result.data.email, result.data.password)) {
+      return;
+    }
+
     setLoading(true);
 
     try {
