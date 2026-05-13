@@ -7,8 +7,14 @@ import User2 from "@/assets/images/User.svg";
 import AppTopHeader from "@/src/components/appTopHeader";
 import DismissKeyboardView from "@/src/components/dismissKeyboardView";
 import HorizontalOptionBar from "@/src/components/horizontalOptionBar";
+import { useAuth } from "@/src/hooks/useAuth";
+import { ApiError } from "@/src/services/api";
+import { userService, type UserProfile } from "@/src/services/user.service";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+import { Image } from "expo-image";
 import { router } from "expo-router";
+import { useCallback, useState } from "react";
 import {
     StyleSheet,
     Text,
@@ -19,11 +25,49 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SearchScreen() {
+  const { isAuthenticated } = useAuth();
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [userError, setUserError] = useState<string | null>(null);
   const filterOptions = [
     { key: "offers", label: "Ofertas", icon: <Sign /> },
     { key: "filters", label: "Filtros", icon: <Config /> },
     { key: "sort", label: "Ordenar", icon: <Order /> },
   ];
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+
+      async function loadUser() {
+        if (!isAuthenticated) {
+          return;
+        }
+
+        try {
+          setUserError(null);
+          const me = await userService.getMe();
+
+          if (!cancelled) {
+            setUser(me);
+          }
+        } catch (error) {
+          if (!cancelled) {
+            setUserError(
+              error instanceof ApiError
+                ? error.message
+                : "Não foi possível carregar o perfil.",
+            );
+          }
+        }
+      }
+
+      loadUser();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [isAuthenticated]),
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -33,7 +77,15 @@ export default function SearchScreen() {
             title="Forbook"
             userContent={
               <View style={styles.userLogo}>
-                <User2 width={22} height={22} />
+                {user?.ProfileImage?.url ? (
+                  <Image
+                    source={{ uri: user.ProfileImage.url }}
+                    style={styles.userImage}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <User2 width={22} height={22} />
+                )}
               </View>
             }
         notificationContent={<Notification width={24} height={24} />}
@@ -79,6 +131,9 @@ export default function SearchScreen() {
             <Text style={styles.textResults}>
               $cardCount resultados encontrados
             </Text>
+            {userError ? (
+              <Text style={styles.userErrorText}>{userError}</Text>
+            ) : null}
           </View>
         </View>
       </DismissKeyboardView>
@@ -171,6 +226,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#a6a8aa",
   },
+  userErrorText: {
+    fontFamily: "montserratRegular",
+    fontSize: 12,
+    color: "#e74c3c",
+    marginTop: 6,
+  },
   userLogo: {
     borderWidth: 2,
     borderColor: "#6c63ff",
@@ -179,5 +240,10 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: "center",
     alignItems: "center",
+    overflow: "hidden",
+  },
+  userImage: {
+    width: "100%",
+    height: "100%",
   },
 });

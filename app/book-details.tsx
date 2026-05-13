@@ -1,5 +1,11 @@
 import BookImageViewerModal from "@/src/components/bookImageViewerModal";
 import ScreenHeader from "@/src/components/screenHeader";
+import { ApiError } from "@/src/services/api";
+import {
+  userBookService,
+  type UserBook,
+  type UserBookCondition,
+} from "@/src/services/userBook.service";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
@@ -26,8 +32,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IMAGE_HEIGHT = 480;
 const SYNOPSIS_BASE_TEXT =
   "Sinopse legalzinha bonitinha fofinha topzera e bla bla bla.";
-const SYNOPSIS_EXTRA_TEXT =
-  "Lorem ipsum dollor sit ahemat Lorem ipsum dollor sit ahemat Lorem ipsum dollor sit ahemat Lorem ipsum dollor sit ahemat";
+const FALLBACK_IMAGE_URI = "https://via.placeholder.com/600x900.png?text=Livro";
 
 function getParam(value?: string | string[]) {
   if (Array.isArray(value)) {
@@ -35,6 +40,64 @@ function getParam(value?: string | string[]) {
   }
 
   return value ?? "";
+}
+
+function mapConditionLabel(condition?: UserBookCondition | string) {
+  if (!condition) {
+    return "Usado";
+  }
+
+  if (
+    condition === "Novo" ||
+    condition === "Usado (Bom)" ||
+    condition === "Com Grifos" ||
+    condition === "Danificado"
+  ) {
+    return condition;
+  }
+
+  if (condition === "NEW") {
+    return "Novo";
+  }
+
+  if (condition === "LIKE_NEW" || condition === "GOOD") {
+    return "Usado (Bom)";
+  }
+
+  if (condition === "ACCEPTABLE") {
+    return "Com Grifos";
+  }
+
+  if (condition === "POOR") {
+    return "Danificado";
+  }
+
+  return "Usado";
+}
+
+function formatPriceParts(value?: number): {
+  priceWhole: string;
+  priceCents: string;
+} {
+  const safeValue = Number.isFinite(value) ? (value as number) : 0;
+  const [priceWhole, priceCents] = safeValue.toFixed(2).split(".") as [
+    string,
+    string,
+  ];
+  return { priceWhole, priceCents };
+}
+
+function splitSynopsis(text: string) {
+  const trimmed = text.trim();
+
+  if (trimmed.length <= 180) {
+    return { base: trimmed, extra: "" };
+  }
+
+  return {
+    base: trimmed.slice(0, 180).trimEnd(),
+    extra: trimmed.slice(180).trimStart(),
+  };
 }
 
 export default function BookDetailsScreen() {
@@ -54,16 +117,77 @@ export default function BookDetailsScreen() {
   const author = getParam(params.author) || "Autor desconhecido";
   const priceWhole = getParam(params.priceWhole) || "0";
   const priceCents = getParam(params.priceCents) || "00";
-  const imageUri =
-    getParam(params.imageUri) ||
-    "https://via.placeholder.com/600x900.png?text=Livro";
+  const imageUri = getParam(params.imageUri) || FALLBACK_IMAGE_URI;
   const conditionParam = getParam(params.condition);
-  const condition = conditionParam === "Novo" ? "Novo" : "Usado";
+  const [bookData, setBookData] = useState<UserBook | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const galleryImages = useMemo(
-    () => Array.from({ length: 5 }, () => imageUri),
-    [imageUri],
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadBook() {
+      if (!bookId || bookId === "book") {
+        return;
+      }
+
+      try {
+        setLoadError(null);
+        const userBook = await userBookService.getUserBookById(bookId);
+
+        if (!cancelled) {
+          setBookData(userBook);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(
+            error instanceof ApiError
+              ? error.message
+              : "Não foi possível carregar o anúncio.",
+          );
+        }
+      }
+    }
+
+    loadBook();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [bookId]);
+
+  const resolvedTitle = bookData?.CatalogBook.title ?? title;
+  const resolvedAuthor = bookData?.CatalogBook.author ?? author;
+  const resolvedCondition = mapConditionLabel(
+    bookData?.condition ?? conditionParam,
   );
+  const resolvedPrice = bookData
+    ? formatPriceParts(bookData.price)
+    : { priceWhole, priceCents };
+  const synopsisText =
+    bookData?.CatalogBook.description?.trim() || SYNOPSIS_BASE_TEXT;
+  const { base: synopsisBaseText, extra: synopsisExtraText } = useMemo(
+    () => splitSynopsis(synopsisText),
+    [synopsisText],
+  );
+  const descriptionText =
+    bookData?.description?.trim() || "Sem descricao do produto.";
+  const sellerName = bookData?.User.name ?? "Carregando..";
+  const sellerImageUrl = bookData?.User.ProfileImage?.url ?? "";
+  const galleryImages = useMemo(() => {
+    if (bookData) {
+      const images = [
+        bookData.MainImage?.url,
+        ...bookData.GalleryImages.map((image) => image.url),
+      ].filter(Boolean) as string[];
+      const unique = Array.from(new Set(images));
+
+      if (unique.length > 0) {
+        return unique;
+      }
+    }
+
+    return imageUri ? [imageUri] : [FALLBACK_IMAGE_URI];
+  }, [bookData, imageUri]);
 
   const [isFavorited, setIsFavorited] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -232,15 +356,19 @@ export default function BookDetailsScreen() {
             { paddingBottom: 120 + insets.bottom },
           ]}
         >
+          {loadError ? (
+            <Text style={styles.loadErrorText}>{loadError}</Text>
+          ) : null}
+
           <View style={styles.sellerRow}>
             <View style={styles.sellerInfo}>
               <Image
-                source={require("../assets/images/seller.png")}
+                source={sellerImageUrl}
                 style={styles.avatar}
                 contentFit="cover"
               />
               <View>
-                <Text style={styles.sellerName}>Murilo Zague</Text>
+                <Text style={styles.sellerName}>{sellerName}</Text>
                 <Text style={styles.sellerMeta}>Anunciado 3 horas atrás</Text>
               </View>
             </View>
@@ -311,7 +439,7 @@ export default function BookDetailsScreen() {
             />
 
             <View style={styles.conditionBadge}>
-              <Text style={styles.conditionText}>{condition}</Text>
+              <Text style={styles.conditionText}>{resolvedCondition}</Text>
             </View>
 
             <TouchableOpacity
@@ -345,68 +473,70 @@ export default function BookDetailsScreen() {
 
           <View style={styles.titlePriceRow}>
             <View style={styles.titleBlock}>
-              <Text style={styles.bookTitle}>{title}</Text>
-              <Text style={styles.bookAuthor}>{author}</Text>
+              <Text style={styles.bookTitle}>{resolvedTitle}</Text>
+              <Text style={styles.bookAuthor}>{resolvedAuthor}</Text>
             </View>
 
             <View style={styles.priceRow}>
               <Text style={styles.currency}>R$</Text>
-              <Text style={styles.priceWhole}>{priceWhole}</Text>
-              <Text style={styles.priceCents}>{priceCents}</Text>
+              <Text style={styles.priceWhole}>{resolvedPrice.priceWhole}</Text>
+              <Text style={styles.priceCents}>{resolvedPrice.priceCents}</Text>
             </View>
           </View>
 
           <View style={styles.textSection}>
             <Text style={styles.sectionLabel}>Sinopse</Text>
 
-            <Text style={styles.sectionText}>{SYNOPSIS_BASE_TEXT}</Text>
+            <Text style={styles.sectionText}>Sinopse do livro aqui</Text>
 
-            <Animated.View
-              style={[
-                styles.synopsisExtraWrapper,
-                {
-                  height: synopsisAnimatedHeight,
-                  opacity: synopsisAnimatedOpacity,
-                },
-              ]}
-            >
-              <Text style={styles.sectionText}>{SYNOPSIS_EXTRA_TEXT}</Text>
-            </Animated.View>
+            {synopsisExtraText ? (
+              <>
+                <Animated.View
+                  style={[
+                    styles.synopsisExtraWrapper,
+                    {
+                      height: synopsisAnimatedHeight,
+                      opacity: synopsisAnimatedOpacity,
+                    },
+                  ]}
+                >
+                  <Text style={styles.sectionText}>{synopsisExtraText}</Text>
+                </Animated.View>
 
-            <TouchableOpacity
-              onPress={handleSynopsisToggle}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.readMoreStandalone}>
-                {isSynopsisExpanded ? "Mostrar menos" : "Ler mais..."}
-              </Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleSynopsisToggle}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.readMoreStandalone}>
+                    {isSynopsisExpanded ? "Mostrar menos" : "Ler mais..."}
+                  </Text>
+                </TouchableOpacity>
 
-            <View style={styles.synopsisMeasureLayer}>
-              <Text
-                style={styles.sectionText}
-                onLayout={(event) => {
-                  const nextHeight = Math.ceil(event.nativeEvent.layout.height);
+                <View style={styles.synopsisMeasureLayer}>
+                  <Text
+                    style={styles.sectionText}
+                    onLayout={(event) => {
+                      const nextHeight = Math.ceil(
+                        event.nativeEvent.layout.height,
+                      );
 
-                  setSynopsisExtraHeight((prev) =>
-                    prev === nextHeight ? prev : nextHeight,
-                  );
-                }}
-              >
-                {SYNOPSIS_EXTRA_TEXT}
-              </Text>
-            </View>
+                      setSynopsisExtraHeight((prev) =>
+                        prev === nextHeight ? prev : nextHeight,
+                      );
+                    }}
+                  >
+                    {synopsisExtraText}
+                  </Text>
+                </View>
+              </>
+            ) : null}
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.textSection}>
             <Text style={styles.sectionLabel}>Descrição do produto</Text>
-            <Text style={styles.descriptionText}>
-              Odiei esse livro, pior livro que li. To vendendo pra algum trouxa
-              que quiser comprar ai. Estou aberto a trocar por algum outro. (De
-              preferência Percy Jackson). Obrigado!
-            </Text>
+            <Text style={styles.descriptionText}>{descriptionText}</Text>
           </View>
 
           <Animated.View
@@ -478,6 +608,14 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 120,
     paddingTop: 12,
+  },
+  loadErrorText: {
+    fontFamily: "montserratRegular",
+    color: "#e74c3c",
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: 12,
+    paddingHorizontal: 18,
   },
   sellerRow: {
     flexDirection: "row",

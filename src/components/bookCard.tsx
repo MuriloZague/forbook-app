@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 
-type Condition = "Usado" | "Novo";
+type Condition = "Novo" | "Usado" | "Usado (Bom)" | "Com Grifos" | "Danificado";
 
 interface BookCardProps {
   title: string;

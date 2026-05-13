@@ -4,6 +4,13 @@ import OptionChips from "@/src/components/optionChips";
 import PrimaryButton from "@/src/components/primaryButton";
 import ScreenHeader from "@/src/components/screenHeader";
 import { useTransition } from "@/src/context/transition-context";
+import { useAuth } from "@/src/hooks/useAuth";
+import { ApiError } from "@/src/services/api";
+import { imageService } from "../src/services/image.service";
+import {
+  userBookService,
+  type UserBookCondition,
+} from "../src/services/userBook.service";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
@@ -22,16 +29,56 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const CONDITION_MAP: Record<string, UserBookCondition> = {
+  "Novo": "NEW",
+  "Usado (Bom)": "GOOD",
+  "Com Grifos": "ACCEPTABLE",
+  "Danificado": "POOR",
+};
+
+function parsePriceValue(value: string): number | null {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  const hasComma = trimmed.includes(",");
+  const hasDot = trimmed.includes(".");
+  let normalized = trimmed;
+
+  if (hasComma) {
+    normalized = normalized.replace(/\./g, "").replace(",", ".");
+  } else if (hasDot) {
+    normalized = normalized.replace(/[^0-9.]/g, "");
+  } else {
+    normalized = normalized.replace(/[^0-9]/g, "");
+  }
+
+  const sanitized = normalized.replace(/[^0-9.]/g, "");
+
+  if (!sanitized) {
+    return null;
+  }
+
+  const parsed = Number(sanitized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 export default function Modal() {
   const { overlayRef } = useTransition();
+  const { isAuthenticated } = useAuth();
   const navigation = useNavigation();
   const MAX_ATTACHMENTS = 5;
   const isLeavingRef = useRef(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [isbn, setIsbn] = useState("");
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
+  const [publisher, setPublisher] = useState("");
+  const [year, setYear] = useState("");
   const [synopsis, setSynopsis] = useState("");
   const [price, setPrice] = useState("");
   const [condition, setCondition] = useState("");
@@ -76,18 +123,118 @@ export default function Modal() {
     router.back();
   }
 
-  function handleAnnounce() {
-    const imageAttachments = attachments.filter(Boolean);
-    console.log({
-      isbn,
-      title,
-      author,
-      synopsis,
-      condition,
-      price,
-      coverImage,
-      imageAttachments,
-    });
+  async function handleAnnounce() {
+    if (isSubmitting) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      Alert.alert(
+        "Sessao expirada",
+        "Faca login para publicar um anuncio.",
+      );
+      return;
+    }
+
+    const normalizedIsbn = isbn.replace(/[^0-9]/g, "").trim();
+    const normalizedTitle = title.trim();
+    const normalizedAuthor = author.trim();
+    const normalizedPublisher = publisher.trim();
+    const normalizedSynopsis = synopsis.trim();
+    const parsedYear = Number.parseInt(year.trim(), 10);
+    const parsedPrice = parsePriceValue(price);
+    const mappedCondition = CONDITION_MAP[condition];
+    const catalogDescription = normalizedSynopsis.slice(0, 255);
+
+    if (!coverImage) {
+      Alert.alert("Capa obrigatoria", "Adicione uma capa principal.");
+      return;
+    }
+
+    if (
+      !normalizedIsbn ||
+      !normalizedTitle ||
+      !normalizedAuthor ||
+      !normalizedPublisher ||
+      !normalizedSynopsis
+    ) {
+      Alert.alert("Campos obrigatorios", "Preencha todos os campos.");
+      return;
+    }
+
+    if (normalizedIsbn.length !== 13) {
+      Alert.alert("ISBN invalido", "Informe um ISBN com 13 digitos.");
+      return;
+    }
+
+    if (!mappedCondition) {
+      Alert.alert("Estado do livro", "Selecione o estado do livro.");
+      return;
+    }
+
+    const currentYear = new Date().getFullYear();
+    if (
+      !Number.isFinite(parsedYear) ||
+      parsedYear < 1900 ||
+      parsedYear > currentYear
+    ) {
+      Alert.alert("Ano invalido", "Informe um ano valido.");
+      return;
+    }
+
+    if (parsedPrice === null || parsedPrice < 0) {
+      Alert.alert("Valor invalido", "Informe um valor valido.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const mainImage = await imageService.uploadImage(coverImage);
+      const imageAttachments = attachments.filter(Boolean) as string[];
+      const galleryImages = (await Promise.all(
+        imageAttachments.map((uri) => imageService.uploadImage(uri)),
+      )) as Array<{ id: string }>;
+
+      await userBookService.createUserBook({
+        condition: mappedCondition,
+        price: parsedPrice,
+          description: normalizedSynopsis,
+        status: "ACTIVE",
+        catalogBook: {
+          isbn: normalizedIsbn,
+          title: normalizedTitle,
+          author: normalizedAuthor,
+            description: catalogDescription,
+          publisher: normalizedPublisher,
+          year: parsedYear,
+        },
+        mainImageId: mainImage.id,
+        ...(galleryImages.length > 0 && {
+          galleryImages: galleryImages.map((image) => image.id),
+        }),
+      });
+
+      Alert.alert("Sucesso", "Anuncio publicado com sucesso.");
+      setIsbn("");
+      setTitle("");
+      setAuthor("");
+      setPublisher("");
+      setYear("");
+      setSynopsis("");
+      setPrice("");
+      setCondition("");
+      setCoverImage(null);
+      setAttachments(Array.from({ length: MAX_ATTACHMENTS }, () => null));
+      router.back();
+    } catch (error) {
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : "Nao foi possivel publicar o anuncio.";
+      Alert.alert("Erro", message);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   async function captureImageFromCamera() {
@@ -266,6 +413,31 @@ export default function Modal() {
             />
           </View>
 
+          <View style={styles.inputContainer}>
+            <FloatingLabelInput
+              label="Editora"
+              placeholder="Ex: HarperCollins"
+              placeholderTextColor="#a6a8aa"
+              value={publisher}
+              onChangeText={setPublisher}
+              labelStyle={styles.floatingLabel}
+              inputStyle={styles.input}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <FloatingLabelInput
+              label="Ano"
+              placeholder="Ex: 2019"
+              placeholderTextColor="#a6a8aa"
+              value={year}
+              onChangeText={setYear}
+              labelStyle={styles.floatingLabel}
+              inputStyle={styles.input}
+              keyboardType="numeric"
+            />
+          </View>
+
           {/* Sinopse */}
           <View style={styles.inputContainer}>
             <FloatingLabelInput
@@ -368,6 +540,7 @@ export default function Modal() {
           <PrimaryButton
             style={styles.submitButton}
             onPress={handleAnnounce}
+            loading={isSubmitting}
             activeOpacity={0.8}
           >
             <Text style={styles.submitButtonText}>Publicar Anúncio</Text>

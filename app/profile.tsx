@@ -1,8 +1,12 @@
 import EditIcon from "@/assets/images/edit.svg";
 import ScreenHeader from "@/src/components/screenHeader";
+import { useAuth } from "@/src/hooks/useAuth";
+import { ApiError } from "@/src/services/api";
+import { userService, type UserProfile } from "@/src/services/user.service";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -14,16 +18,33 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
-const PROFILE_CONTENT = {
-  name: "Arthur Risso Pereira Rodovalho",
-  memberSince: "Membro desde 08/04/2026",
-  rating: "5.0 - 9 avaliações",
-  birthDate: "04/01/2006",
-  address: "Rua Idelfonso Belatti, 106 - Santa Filomena\nFernandópolis",
-  email: "arthur.rprodovalho@gmail.com",
-  phone: "(17) 98842-7342",
-  password: "forbook2026",
-};
+function formatDate(value?: string) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString("pt-BR");
+}
+
+function formatMemberSince(value?: string) {
+  const formatted = formatDate(value);
+  return formatted ? `Membro desde ${formatted}` : "Membro desde ...";
+}
+
+function formatAddress(user?: UserProfile | null) {
+  const address = user?.Address?.[0];
+  if (!address) {
+    return "Endereço não informado";
+  }
+
+  const complement = address.complement ? `, ${address.complement}` : "";
+  return `${address.street}, ${address.number}${complement} - ${address.neighborhood}\n${address.city} - ${address.state} (${address.zipCode})`;
+}
 
 interface ProfileInfoItemProps {
   label: string;
@@ -40,10 +61,47 @@ function ProfileInfoItem({ label, value }: ProfileInfoItemProps) {
 }
 
 export default function Profile() {
+  const { isAuthenticated } = useAuth();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const passwordValue = isPasswordVisible
-    ? PROFILE_CONTENT.password
-    : "•".repeat(12);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const passwordValue = isPasswordVisible ? "••••••••" : "•".repeat(12);
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+
+      async function loadUser() {
+        if (!isAuthenticated) {
+          return;
+        }
+
+        try {
+          setLoadError(null);
+          const me = await userService.getMe();
+
+          if (!cancelled) {
+            setUser(me);
+          }
+        } catch (error) {
+          if (!cancelled) {
+            setLoadError(
+              error instanceof ApiError
+                ? error.message
+                : "Não foi possível carregar o perfil.",
+            );
+          }
+        }
+      }
+
+      loadUser();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [isAuthenticated]),
+  );
 
   const togglePasswordVisibility = () => {
     setIsPasswordVisible((prevState) => !prevState);
@@ -57,6 +115,10 @@ export default function Profile() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
+        {loadError ? (
+          <Text style={styles.loadErrorText}>{loadError}</Text>
+        ) : null}
+
         <View style={styles.coverCard}>
           <Svg width="100%" height="100%" preserveAspectRatio="none">
             <Defs>
@@ -80,7 +142,11 @@ export default function Profile() {
           <View style={styles.avatarWrap}>
             <View style={styles.avatarImageContainer}>
               <Image
-                source={require("../assets/images/profile.png")}
+                source={
+                  user?.ProfileImage?.url
+                    ? { uri: user.ProfileImage.url }
+                    : require("../assets/images/profile.png")
+                }
                 style={styles.avatarImage}
                 resizeMode="cover"
               />
@@ -96,16 +162,16 @@ export default function Profile() {
           </View>
 
           <View style={styles.profileSummaryText}>
-            <Text style={styles.userName}>{PROFILE_CONTENT.name}</Text>
+            <Text style={styles.userName}>{user?.name ?? "Usuário"}</Text>
 
             <View style={styles.metaRow}>
               <Text style={styles.memberSince}>
-                {PROFILE_CONTENT.memberSince}
+                {formatMemberSince(user?.createdAt)}
               </Text>
 
               <View style={styles.ratingWrap}>
                 <Ionicons name="star" size={11} color="#ff6584" />
-                <Text style={styles.ratingText}>{PROFILE_CONTENT.rating}</Text>
+                <Text style={styles.ratingText}>5.0 - 9 avaliações</Text>
               </View>
             </View>
           </View>
@@ -132,19 +198,19 @@ export default function Profile() {
         <View style={styles.dataSection}>
           <Text style={styles.dataSectionTitle}>Dados pessoais</Text>
 
-          <ProfileInfoItem label="Nome" value={PROFILE_CONTENT.name} />
+          <ProfileInfoItem label="Nome" value={user?.name ?? ""} />
           <ProfileInfoItem
             label="Data de Nascimento"
-            value={PROFILE_CONTENT.birthDate}
+            value={formatDate(user?.birthDate)}
           />
-          <ProfileInfoItem label="Endereço" value={PROFILE_CONTENT.address} />
+          <ProfileInfoItem label="Endereço" value={formatAddress(user)} />
 
           <View style={styles.divider} />
 
           <Text style={styles.dataSectionTitle}>Dados da conta</Text>
 
-          <ProfileInfoItem label="Email" value={PROFILE_CONTENT.email} />
-          <ProfileInfoItem label="Telefone" value={PROFILE_CONTENT.phone} />
+          <ProfileInfoItem label="Email" value={user?.email ?? ""} />
+          <ProfileInfoItem label="Telefone" value={user?.phoneNumber ?? ""} />
 
           <View style={styles.itemContainer}>
             <Text style={styles.itemLabel}>Senha</Text>
@@ -170,7 +236,7 @@ export default function Profile() {
             onPress={() =>
               router.push({
                 pathname: "/forgot-password-code",
-                params: { email: PROFILE_CONTENT.email },
+                params: { email: user?.email ?? "" },
               })
             }
           >
@@ -190,6 +256,12 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingBottom: 28,
+  },
+  loadErrorText: {
+    fontFamily: "montserratRegular",
+    color: "#e74c3c",
+    textAlign: "center",
+    marginBottom: 12,
   },
   coverCard: {
     marginTop: 4,

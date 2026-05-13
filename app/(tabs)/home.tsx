@@ -3,7 +3,16 @@ import User2 from "@/assets/images/User.svg";
 import AppTopHeader from "@/src/components/appTopHeader";
 import BookCard from "@/src/components/bookCard";
 import HorizontalOptionBar from "@/src/components/horizontalOptionBar";
+import { useAuth } from "@/src/hooks/useAuth";
+import { ApiError } from "@/src/services/api";
+import {
+  userBookService,
+  type UserBook,
+  type UserBookCondition,
+} from "@/src/services/userBook.service";
+import { userService, type UserProfile } from "@/src/services/user.service";
 import { useFocusEffect } from "@react-navigation/native";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -17,7 +26,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type Condition = "Usado" | "Novo";
+type Condition = "Novo" | "Usado";
 type Category = "ofertas" | "populares" | "interesse" | "other";
 
 interface Book {
@@ -153,6 +162,55 @@ const MOCK_DATA: Record<Category, Book[]> = {
   ],
 };
 
+const FALLBACK_IMAGE_URI =
+  "https://via.placeholder.com/600x900.png?text=Livro";
+
+function mapConditionLabel(condition: UserBookCondition): Condition {
+  if (condition === "NEW") {
+    return "Novo";
+  }
+  return "Usado";
+}
+
+function formatPriceParts(value: number): {
+  priceWhole: string;
+  priceCents: string;
+} {
+  const safeValue = Number.isFinite(value) ? value : 0;
+  const [priceWhole, priceCents] = safeValue
+    .toFixed(2)
+    .split(".") as [string, string];
+  return { priceWhole, priceCents };
+}
+
+function mergeUserBooks(publicBooks: UserBook[], myBooks: UserBook[]) {
+  const merged = new Map<string, UserBook>();
+
+  for (const userBook of publicBooks) {
+    merged.set(userBook.id, userBook);
+  }
+
+  for (const userBook of myBooks) {
+    merged.set(userBook.id, userBook);
+  }
+
+  return Array.from(merged.values());
+}
+
+function mapUserBookToCard(userBook: UserBook): Book {
+  const { priceWhole, priceCents } = formatPriceParts(userBook.price);
+
+  return {
+    id: userBook.id,
+    title: userBook.CatalogBook.title,
+    author: userBook.CatalogBook.author,
+    priceWhole,
+    priceCents,
+    imageUri: userBook.MainImage?.url ?? FALLBACK_IMAGE_URI,
+    condition: mapConditionLabel(userBook.condition),
+  };
+}
+
 const SECTION_TITLE: Record<Category, string> = {
   ofertas: "Melhores ofertas",
   populares: "Mais populares",
@@ -160,32 +218,63 @@ const SECTION_TITLE: Record<Category, string> = {
   other: "Nada ainda",
 };
 
-function useBooks(category: Category) {
+function useBooks(category: Category, isAuthenticated: boolean) {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshIndex, setRefreshIndex] = useState(0);
+
+  const reload = useCallback(() => {
+    setRefreshIndex((prev) => prev + 1);
+  }, []);
+
 
   useEffect(() => {
     let cancelled = false;
+
     async function loadBooks() {
       try {
         setLoading(true);
-        setBooks([]);
-        await new Promise((res) => setTimeout(res, 600));
-        if (!cancelled) setBooks(MOCK_DATA[category]);
-      } catch {
-        if (!cancelled) setError("Não foi possível carregar os livros.");
+        setError(null);
+
+        if (!isAuthenticated) {
+          if (!cancelled) {
+            setBooks(MOCK_DATA[category]);
+          }
+          return;
+        }
+
+        const [publicBooks, myBooks] = await Promise.all([
+          userBookService.listUserBooks(),
+          userBookService.listMyUserBooks(),
+        ]);
+
+        const mergedBooks = mergeUserBooks(publicBooks, myBooks);
+        const mappedBooks = mergedBooks.map(mapUserBookToCard);
+
+        if (!cancelled) {
+          setBooks(mappedBooks);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof ApiError
+              ? err.message
+              : "Não foi possível carregar os livros.",
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
+
     loadBooks();
     return () => {
       cancelled = true;
     };
-  }, [category]);
+  }, [category, isAuthenticated, refreshIndex]);
 
-  return { books, loading, error };
+  return { books, loading, error, reload };
 }
 
 const TABS: { key: Category; label: string }[] = [
@@ -197,11 +286,19 @@ const TABS: { key: Category; label: string }[] = [
 
 export default function HomeScreen() {
   const [activeCategory, setActiveCategory] = useState<Category>("ofertas");
-  const { books, loading, error } = useBooks(activeCategory);
+  const { isAuthenticated } = useAuth();
+  const { books, loading, error, reload } = useBooks(
+    activeCategory,
+    isAuthenticated,
+  );
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [userError, setUserError] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   useFocusEffect(
     useCallback(() => {
+      reload();
+
       if (Platform.OS !== "android") {
         return undefined;
       }
@@ -217,7 +314,42 @@ export default function HomeScreen() {
       return () => {
         subscription.remove();
       };
-    }, []),
+    }, [reload]),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+
+      async function loadUser() {
+        if (!isAuthenticated) {
+          return;
+        }
+
+        try {
+          setUserError(null);
+          const me = await userService.getMe();
+
+          if (!cancelled) {
+            setUser(me);
+          }
+        } catch (err) {
+          if (!cancelled) {
+            setUserError(
+              err instanceof ApiError
+                ? err.message
+                : "Não foi possível carregar o perfil.",
+            );
+          }
+        }
+      }
+
+      loadUser();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [isAuthenticated]),
   );
 
   function toggleFavorite(id: string) {
@@ -240,7 +372,15 @@ export default function HomeScreen() {
         title="Forbook"
         userContent={
           <View style={styles.userLogo}>
-            <User2 width={22} height={22} />
+            {user?.ProfileImage?.url ? (
+              <Image
+                source={{ uri: user.ProfileImage.url }}
+                style={styles.userImage}
+                contentFit="cover"
+              />
+            ) : (
+              <User2 width={22} height={22} />
+            )}
           </View>
         }
         notificationContent={<Notification width={24} height={24} />}
@@ -250,9 +390,12 @@ export default function HomeScreen() {
         <Text style={styles.wellcomeText}>
           Bem vindo,{" "}
           <Text style={{ fontFamily: "montserratBold", color: "#6c63ff" }}>
-            Arthur!
+            {user?.name ? `${user.name.split(" ")[0]}!` : ""}
           </Text>
         </Text>
+        {userError ? (
+          <Text style={styles.userErrorText}>{userError}</Text>
+        ) : null}
       </View>
       <View style={styles.categoryContainer}>
         <HorizontalOptionBar
@@ -279,6 +422,8 @@ export default function HomeScreen() {
         />
       ) : error ? (
         <Text style={styles.errorText}>{error}</Text>
+      ) : books.length === 0 ? (
+        <Text style={styles.emptyText}>Nenhum anuncio encontrado.</Text>
       ) : (
         <FlatList
           data={books}
@@ -328,6 +473,11 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: "center",
     alignItems: "center",
+    overflow: "hidden",
+  },
+  userImage: {
+    width: "100%",
+    height: "100%",
   },
   categoryWrapper: {
     height: 1,
@@ -341,6 +491,12 @@ const styles = StyleSheet.create({
   wellcomeText: {
     fontFamily: "montserratRegular",
     fontSize: 22,
+  },
+  userErrorText: {
+    fontFamily: "montserratRegular",
+    color: "#e74c3c",
+    fontSize: 12,
+    marginTop: 6,
   },
   categoryBar: {
     flexDirection: "row",
@@ -389,6 +545,13 @@ const styles = StyleSheet.create({
   errorText: {
     fontFamily: "montserratRegular",
     color: "#e74c3c",
+    textAlign: "center",
+    marginTop: 32,
+    fontSize: 14,
+  },
+  emptyText: {
+    fontFamily: "montserratRegular",
+    color: "#7a7f86",
     textAlign: "center",
     marginTop: 32,
     fontSize: 14,
