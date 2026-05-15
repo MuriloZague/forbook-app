@@ -1,5 +1,5 @@
-import React from "react";
-import { Keyboard, Platform, TouchableWithoutFeedback } from "react-native";
+import React, { useRef } from "react";
+import { Keyboard, Platform, View, PanResponder } from "react-native";
 
 type DismissKeyboardViewProps = {
   children: React.ReactElement;
@@ -12,9 +12,23 @@ export default function DismissKeyboardView({
     return children;
   }
 
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: () => false,
+      onShouldBlockNativeResponder: () => false,
+    })
+  ).current;
+
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+    <View
+      {...panResponder.panHandlers}
+      onTouchEnd={() => {
+        Keyboard.dismiss();
+      }}
+      style={{ flex: 1 }}
+    >
       {children}
-    </TouchableWithoutFeedback>
+    </View>
   );
 }
