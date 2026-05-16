@@ -2,8 +2,10 @@ import ListItemRow from "@/src/components/listItemRow";
 import SectionDivider from "@/src/components/sectionDivider";
 import SectionTitle from "@/src/components/sectionTitle";
 import { useAuth } from "@/src/hooks/useAuth";
+import { ApiError } from "@/src/services/api";
+import { userService, type UserProfile } from "@/src/services/user.service";
 import { useRouter } from "expo-router"; // Importação adicionada
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
     Image,
     ScrollView,
@@ -13,11 +15,63 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
+
+function getInitials(name: string) {
+  const parts = name.trim().split(" ");
+
+  if (parts.length === 0 || !parts[0]) {
+    return "U";
+  }
+
+  if (parts.length === 1) {
+    return parts[0]![0]!.toUpperCase();
+  }
+
+  return `${parts[0]![0]!.toUpperCase()}${parts[parts.length - 1]![0]!.toUpperCase()}`;
+}
 
 export default function MenuScreen() {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+
+      async function loadUser() {
+        if (!isAuthenticated) {
+          return;
+        }
+
+        try {
+          setLoadError(null);
+          const me = await userService.getMe();
+
+          if (!cancelled) {
+            setUser(me);
+          }
+        } catch (error) {
+          if (!cancelled) {
+            setLoadError(
+              error instanceof ApiError
+                ? error.message
+                : "Não foi possível carregar o perfil.",
+            );
+          }
+        }
+      }
+
+      loadUser();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [isAuthenticated]),
+  );
 
   const handleLogout = async () => {
     if (isLoggingOut) {
@@ -40,17 +94,28 @@ export default function MenuScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.profileSection}>
+          {loadError ? (
+            <Text style={styles.loadErrorText}>{loadError}</Text>
+          ) : null}
           <View style={styles.profileCard}>
             <View style={styles.profileHeader}>
               <View style={styles.avatar}>
-                <Image
-                  source={require("../../assets/images/profile.png")}
-                  style={styles.avatarImage}
-                  resizeMode="cover"
-                />
+                {user?.ProfileImage?.url ? (
+                  <Image
+                    source={{ uri: user.ProfileImage.url }}
+                    style={styles.avatarImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Text style={styles.avatarText}>
+                    {getInitials(user?.name ?? "Usuario")}
+                  </Text>
+                )}
               </View>
               <View style={styles.profileInfo}>
-                <Text style={styles.userName}>Arthur Risos</Text>
+                <Text style={styles.userName}>
+                  {user?.name ?? "Usuario"}
+                </Text>
                 <TouchableOpacity onPress={() => router.push("/profile")}>
                   <Text style={styles.userLocation}>Meu perfil {" >"}</Text>
                 </TouchableOpacity>
@@ -202,6 +267,12 @@ const styles = StyleSheet.create({
   profileSection: {
     marginTop: 18,
     marginBottom: 6,
+  },
+  loadErrorText: {
+    fontFamily: "montserratRegular",
+    color: "#e74c3c",
+    textAlign: "center",
+    marginBottom: 10,
   },
   sectionTitle: {
     fontFamily: "lexendBold",

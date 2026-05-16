@@ -9,6 +9,8 @@ import {
   View,
   ViewStyle,
 } from "react-native";
+import { router } from "expo-router";
+
 
 interface AppTopHeaderProps {
   title: string;
@@ -54,13 +56,13 @@ export default function AppTopHeader({
 
         <TouchableOpacity
           activeOpacity={0.7}
-          onPress={onNotificationPress}
+          onPress={() => router.push("/notifications")}
           style={notificationContainerStyle}
         >
           {notificationContent ? (
             notificationContent
           ) : (
-            <Ionicons name="notifications-outline" size={28} color="#6c63ff" />
+            <Ionicons name="notifications-outline" size={28} color="#6c63ff"/>
           )}
         </TouchableOpacity>
       </View>

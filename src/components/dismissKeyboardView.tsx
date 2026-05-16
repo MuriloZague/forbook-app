@@ -1,5 +1,5 @@
 import React from "react";
-import { Keyboard, Platform, TouchableWithoutFeedback } from "react-native";
+import { Platform, View } from "react-native";
 
 type DismissKeyboardViewProps = {
   children: React.ReactElement;
@@ -12,9 +12,9 @@ export default function DismissKeyboardView({
     return children;
   }
 
-  return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      {children}
-    </TouchableWithoutFeedback>
-  );
+  // Previously this component dismissed the keyboard on every touch end
+  // which caused inputs to immediately lose focus when tapped. Keep a
+  // transparent container only — explicit dismissal should be handled by
+  // screens where desired.
+  return <View style={{ flex: 1 }}>{children}</View>;
 }
