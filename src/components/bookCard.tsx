@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import {
   Dimensions,
@@ -16,6 +17,8 @@ interface BookCardProps {
   imageUri: string;
   condition?: Condition;
   onPress?: () => void;
+  onUnfavorite?: () => void;
+  columns?: number;
 }
 
 export default function BookCard({
@@ -25,11 +28,14 @@ export default function BookCard({
   imageUri,
   condition = "Usado",
   onPress,
+  onUnfavorite,
+  columns,
 }: BookCardProps) {
+  const CARD_WIDTH = (Dimensions.get("window").width - 32) / (columns ?? 2);
 
   return (
     <TouchableOpacity
-      style={styles.card2}
+      style={[styles.card2, { width: CARD_WIDTH }]}
       activeOpacity={0.8}
       onPress={onPress}
     >
@@ -55,6 +61,16 @@ export default function BookCard({
             />
           </TouchableOpacity>
           */}
+          {onUnfavorite ? (
+            <TouchableOpacity
+              style={styles.unfavBtn}
+              onPressIn={(e: any) => e?.stopPropagation?.()}
+              onPress={() => onUnfavorite()}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="heart-dislike" size={16} color="#f66183" />
+            </TouchableOpacity>
+          ) : null}
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{condition}</Text>
           </View>
@@ -75,11 +91,9 @@ export default function BookCard({
   );
 }
 
-const CARD_WIDTH = Dimensions.get("window").width / 2.85 - 28; // 2 colunas + margem (parece gambiarra mais gambiarra sao os amigos que fazemos pelo caminho) (2 - 28 para 2 colunas)
-
 const styles = StyleSheet.create({
   card: {
-    width: CARD_WIDTH,
+    width: "93%",
     borderRadius: 10,
     backgroundColor: "#F0F2F5",
     overflow: "hidden",
@@ -93,10 +107,9 @@ const styles = StyleSheet.create({
   },
 
   card2: {
-    width: CARD_WIDTH,
     backgroundColor: "#F0F2F5",
     overflow: "hidden",
-    margin: 8,
+    margin: 5,
   },
 
   accentBar: {
@@ -129,6 +142,18 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 25,
     backgroundColor: "rgba(255,255,255,0.88)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  unfavBtn: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.95)",
     alignItems: "center",
     justifyContent: "center",
   },

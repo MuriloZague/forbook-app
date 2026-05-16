@@ -1,31 +1,34 @@
 import BookImageViewerModal from "@/src/components/bookImageViewerModal";
 import ScreenHeader from "@/src/components/screenHeader";
+import { useAuth } from "@/src/hooks/useAuth";
+import { getFavorites, saveFavorites } from "@/src/lib/favorites-storage";
 import { ApiError } from "@/src/services/api";
+import { userService } from "@/src/services/user.service";
 import {
-  userBookService,
-  type UserBook,
-  type UserBookCondition,
+    userBookService,
+    type UserBook,
+    type UserBookCondition,
 } from "@/src/services/userBook.service";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Animated,
-  Dimensions,
-  Easing,
-  FlatList,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Animated,
+    Dimensions,
+    Easing,
+    FlatList,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import {
-  SafeAreaView,
-  useSafeAreaInsets,
+    SafeAreaView,
+    useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -155,6 +158,47 @@ export default function BookDetailsScreen() {
     };
   }, [bookId]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadFav() {
+      if (!bookId || bookId === "book") return;
+
+      try {
+        // If authenticated, fetch wishlist from backend (catalog book ids)
+        if (isAuthenticated) {
+          try {
+            const me = await userService.getMe();
+            const wishlist = await userService.getUserWishlist(me.id);
+            const catalogIds =
+              wishlist?.CatalogBooks?.map((b: any) => b.id) ?? [];
+            const currentCatalogId = bookData?.CatalogBook?.id;
+            if (!cancelled)
+              setIsFavorited(
+                Boolean(
+                  currentCatalogId && catalogIds.includes(currentCatalogId),
+                ),
+              );
+            return;
+          } catch {
+            // fallback to local
+          }
+        }
+
+        const ids = await getFavorites();
+        if (!cancelled) setIsFavorited(ids.includes(bookId));
+      } catch {
+        // ignore
+      }
+    }
+
+    loadFav();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [bookId]);
+
   const resolvedTitle = bookData?.CatalogBook.title ?? title;
   const resolvedAuthor = bookData?.CatalogBook.author ?? author;
   const resolvedCondition = mapConditionLabel(
@@ -190,6 +234,7 @@ export default function BookDetailsScreen() {
   }, [bookData, imageUri]);
 
   const [isFavorited, setIsFavorited] = useState(false);
+  const { isAuthenticated } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false);
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
@@ -279,9 +324,42 @@ export default function BookDetailsScreen() {
     setIsFavorited((prev) => {
       const next = !prev;
 
-      if (next) {
-        showSavedToast();
-      }
+      (async () => {
+        try {
+          // If authenticated, sync with backend wishlist (uses CatalogBook ids)
+          if (isAuthenticated) {
+            try {
+              const me = await userService.getMe();
+              const catalogId = bookData?.CatalogBook?.id;
+              if (catalogId) {
+                if (next) {
+                  await userService.addBookToWishlist(me.id, catalogId);
+                } else {
+                  await userService.removeBookFromWishlist(me.id, catalogId);
+                }
+              }
+            } catch {
+              // fallback to local storage below
+            }
+          }
+
+          const ids = await getFavorites();
+          const nextSet = new Set(ids);
+
+          // local storage keeps userBook ids for backward compatibility
+          if (next) {
+            nextSet.add(bookId);
+          } else {
+            nextSet.delete(bookId);
+          }
+
+          await saveFavorites(Array.from(nextSet));
+        } catch {
+          // ignore
+        }
+      })();
+
+      if (next) showSavedToast();
 
       return next;
     });

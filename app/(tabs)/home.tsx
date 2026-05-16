@@ -4,25 +4,26 @@ import AppTopHeader from "@/src/components/appTopHeader";
 import BookCard from "@/src/components/bookCard";
 import HorizontalOptionBar from "@/src/components/horizontalOptionBar";
 import { useAuth } from "@/src/hooks/useAuth";
+import { getFavorites, saveFavorites } from "@/src/lib/favorites-storage";
 import { ApiError } from "@/src/services/api";
+import { userService, type UserProfile } from "@/src/services/user.service";
 import {
   userBookService,
   type UserBook,
   type UserBookCondition,
 } from "@/src/services/userBook.service";
-import { userService, type UserProfile } from "@/src/services/user.service";
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    BackHandler,
-    FlatList,
-    Platform,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  BackHandler,
+  FlatList,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -162,8 +163,7 @@ const MOCK_DATA: Record<Category, Book[]> = {
   ],
 };
 
-const FALLBACK_IMAGE_URI =
-  "https://via.placeholder.com/600x900.png?text=Livro";
+const FALLBACK_IMAGE_URI = "https://via.placeholder.com/600x900.png?text=Livro";
 
 function mapConditionLabel(condition: UserBookCondition): Condition {
   if (condition === "NEW") {
@@ -177,9 +177,10 @@ function formatPriceParts(value: number): {
   priceCents: string;
 } {
   const safeValue = Number.isFinite(value) ? value : 0;
-  const [priceWhole, priceCents] = safeValue
-    .toFixed(2)
-    .split(".") as [string, string];
+  const [priceWhole, priceCents] = safeValue.toFixed(2).split(".") as [
+    string,
+    string,
+  ];
   return { priceWhole, priceCents };
 }
 
@@ -227,7 +228,6 @@ function useBooks(category: Category, isAuthenticated: boolean) {
   const reload = useCallback(() => {
     setRefreshIndex((prev) => prev + 1);
   }, []);
-
 
   useEffect(() => {
     let cancelled = false;
@@ -299,8 +299,23 @@ export default function HomeScreen() {
     useCallback(() => {
       reload();
 
+      let cancelled = false;
+
+      async function loadFavs() {
+        try {
+          const ids = await getFavorites();
+          if (!cancelled) setFavorites(new Set(ids));
+        } catch {
+          // ignore
+        }
+      }
+
+      loadFavs();
+
       if (Platform.OS !== "android") {
-        return undefined;
+        return () => {
+          cancelled = true;
+        };
       }
 
       const subscription = BackHandler.addEventListener(
@@ -312,6 +327,7 @@ export default function HomeScreen() {
       );
 
       return () => {
+        cancelled = true;
         subscription.remove();
       };
     }, [reload]),
@@ -361,6 +377,15 @@ export default function HomeScreen() {
       } else {
         next.add(id);
       }
+
+      // persist
+      (async () => {
+        try {
+          await saveFavorites(Array.from(next));
+        } catch {
+          // ignore
+        }
+      })();
 
       return next;
     });
@@ -438,6 +463,7 @@ export default function HomeScreen() {
               priceCents={item.priceCents}
               imageUri={item.imageUri}
               condition={item.condition}
+              columns={3}
               onPress={() =>
                 router.push({
                   pathname: "/book-details",

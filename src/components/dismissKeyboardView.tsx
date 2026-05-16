@@ -1,5 +1,5 @@
-import React, { useRef } from "react";
-import { Keyboard, Platform, View, PanResponder } from "react-native";
+import React from "react";
+import { Platform, View } from "react-native";
 
 type DismissKeyboardViewProps = {
   children: React.ReactElement;
@@ -12,23 +12,9 @@ export default function DismissKeyboardView({
     return children;
   }
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: () => false,
-      onShouldBlockNativeResponder: () => false,
-    })
-  ).current;
-
-  return (
-    <View
-      {...panResponder.panHandlers}
-      onTouchEnd={() => {
-        Keyboard.dismiss();
-      }}
-      style={{ flex: 1 }}
-    >
-      {children}
-    </View>
-  );
+  // Previously this component dismissed the keyboard on every touch end
+  // which caused inputs to immediately lose focus when tapped. Keep a
+  // transparent container only — explicit dismissal should be handled by
+  // screens where desired.
+  return <View style={{ flex: 1 }}>{children}</View>;
 }

@@ -82,4 +82,37 @@ export const userService = {
   create,
   getMe,
   updateMe,
+  // wishlist endpoints
+  async getUserWishlist(userId: string) {
+    const response = await apiFetch<ApiResponse<any>>(
+      `/users/${userId}/wishlist`,
+      {
+        method: "GET",
+      },
+    );
+
+    return response.data;
+  },
+
+  async addBookToWishlist(userId: string, bookId: string) {
+    const response = await apiFetch<ApiResponse<any>>(
+      `/users/${userId}/wishlist/${bookId}`,
+      {
+        method: "POST",
+      },
+    );
+
+    return response.data;
+  },
+
+  async removeBookFromWishlist(userId: string, bookId: string) {
+    const response = await apiFetch<ApiResponse<any>>(
+      `/users/${userId}/wishlist/${bookId}`,
+      {
+        method: "DELETE",
+      },
+    );
+
+    return response.data;
+  },
 };
