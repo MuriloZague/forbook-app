@@ -212,36 +212,6 @@ export default function Profile() {
           <ProfileInfoItem label="Email" value={user?.email ?? ""} />
           <ProfileInfoItem label="Telefone" value={user?.phoneNumber ?? ""} />
 
-          <View style={styles.itemContainer}>
-            <Text style={styles.itemLabel}>Senha</Text>
-
-            <View style={styles.passwordRow}>
-              <Text style={styles.itemValue}>{passwordValue}</Text>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={togglePasswordVisibility}
-              >
-                <Ionicons
-                  name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
-                  size={20}
-                  color="#6C63FF"
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.changePasswordButton}
-            onPress={() =>
-              router.push({
-                pathname: "/forgot-password-code",
-                params: { email: user?.email ?? "" },
-              })
-            }
-          >
-            <Text style={styles.changePasswordText}>Alterar senha</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
