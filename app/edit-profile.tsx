@@ -2,21 +2,21 @@ import DismissKeyboardView from "@/src/components/dismissKeyboardView";
 import FloatingLabelInput from "@/src/components/floatingLabelInput";
 import PrimaryButton from "@/src/components/primaryButton";
 import ScreenHeader from "@/src/components/screenHeader";
-import { formatDate, formatPhone } from "@/src/lib/input-masks";
+import { formatCep, formatDate, formatPhone } from "@/src/lib/input-masks";
 import { ApiError } from "@/src/services/api";
 import { imageService } from "@/src/services/image.service";
 import {
   userService,
   type UserAddress,
-  type UserProfile,
 } from "@/src/services/user.service";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   Alert,
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -65,6 +65,35 @@ function getPrimaryAddress(addresses: UserAddress[]) {
   return addresses.find((item) => item.isDefault) ?? addresses[0] ?? null;
 }
 
+type CorreiosCepResponse = {
+  erro: boolean | string;
+  mensagem: string;
+  total?: number;
+  dados?: {
+    uf: string;
+    localidade: string;
+    logradouroDNEC: string;
+    bairro: string;
+    cep: string;
+  }[];
+};
+
+type ViaCepResponse = {
+  cep?: string;
+  logradouro?: string;
+  bairro?: string;
+  localidade?: string;
+  uf?: string;
+  erro?: boolean;
+};
+
+type CepAddressData = {
+  street: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+};
+
 export default function EditProfile() {
   const [userId, setUserId] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -81,12 +110,29 @@ export default function EditProfile() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [zipCode, setZipCode] = useState("");
+  const [addressErrors, setAddressErrors] = useState<
+    Partial<
+      Record<
+        "street" | "number" | "complement" | "neighborhood" | "city" | "state" | "zipCode",
+        string
+      >
+    >
+  >({});
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [profileImageUri, setProfileImageUri] = useState<string | null>(null);
   const [profileImageDirty, setProfileImageDirty] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [defaultAddressLoadingId, setDefaultAddressLoadingId] = useState<string | null>(null);
+  const [deleteAddressLoadingId, setDeleteAddressLoadingId] = useState<string | null>(null);
+
+  const lastCepFetchedRef = useRef("");
+  const cepRequestRef = useRef(0);
+  const cepLookupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   const primaryAddress = getPrimaryAddress(addresses);
 
@@ -167,7 +213,126 @@ export default function EditProfile() {
     setCity(address?.city ?? "");
     setState(address?.state ?? "");
     setZipCode(address?.zipCode ?? "");
+    setAddressErrors({});
   };
+
+  const handleCepLookup = useCallback(async (cepValue: string) => {
+    const digits = cepValue.replace(/\D/g, "");
+
+    if (digits.length !== 8) {
+      setStreet("");
+      setNeighborhood("");
+      setCity("");
+      setState("");
+      lastCepFetchedRef.current = "";
+      return;
+    }
+
+    if (lastCepFetchedRef.current === digits) {
+      return;
+    }
+
+    const requestId = ++cepRequestRef.current;
+    setCepLoading(true);
+
+    try {
+      const lookupViaCorreios = async (): Promise<CepAddressData | null> => {
+        const params = new URLSearchParams({
+          cep: digits,
+          capt: "1",
+          inicio: "1",
+          final: "50",
+        });
+
+        const response = await fetch(
+          "https://buscacepinter.correios.com.br/app/cep/carrega-cep.php",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/x-www-form-urlencoded; charset=UTF-8",
+            },
+            body: params.toString(),
+          },
+        );
+
+        const result = (await response.json()) as CorreiosCepResponse;
+        const hasError = result.erro === true || result.erro === "true";
+        const firstAddress = result.dados?.[0];
+
+        if (!response.ok || hasError || !firstAddress) {
+          return null;
+        }
+
+        return {
+          street: firstAddress.logradouroDNEC ?? "",
+          neighborhood: firstAddress.bairro ?? "",
+          city: firstAddress.localidade ?? "",
+          state: firstAddress.uf ?? "",
+        };
+      };
+
+      const lookupViaViaCep = async (): Promise<CepAddressData | null> => {
+        const response = await fetch(
+          `https://viacep.com.br/ws/${digits}/json/`,
+        );
+        const result = (await response.json()) as ViaCepResponse;
+
+        if (!response.ok || result.erro) {
+          return null;
+        }
+
+        return {
+          street: result.logradouro ?? "",
+          neighborhood: result.bairro ?? "",
+          city: result.localidade ?? "",
+          state: result.uf ?? "",
+        };
+      };
+
+      let addressData: CepAddressData | null = null;
+
+      if (Platform.OS === "web") {
+        addressData = await lookupViaViaCep();
+      } else {
+        try {
+          addressData = await lookupViaCorreios();
+        } catch {
+          addressData = await lookupViaViaCep();
+        }
+      }
+
+      if (requestId !== cepRequestRef.current) {
+        return;
+      }
+
+      if (!addressData) {
+        setStreet("");
+        setNeighborhood("");
+        setCity("");
+        setState("");
+        setAddressErrors((prevState) => ({
+          ...prevState,
+          zipCode: "CEP não encontrado.",
+        }));
+        return;
+      }
+
+      setStreet(addressData.street);
+      setNeighborhood(addressData.neighborhood);
+      setCity(addressData.city);
+      setState(addressData.state);
+      lastCepFetchedRef.current = digits;
+      setAddressErrors((prevState) => ({
+        ...prevState,
+        zipCode: undefined,
+      }));
+    } finally {
+      if (requestId === cepRequestRef.current) {
+        setCepLoading(false);
+      }
+    }
+  }, []);
 
   const handleSelectAddress = (address: UserAddress) => {
     setActiveAddressId(address.id);
@@ -175,6 +340,22 @@ export default function EditProfile() {
     setMakeDefault(false);
     setShowAddressForm(true);
     applyAddressToForm(address);
+  };
+
+  const handleSelectAddressCard = async (address: UserAddress) => {
+    if (defaultAddressLoadingId) {
+      return;
+    }
+
+    setActiveAddressId(address.id);
+
+    if (address.isDefault) {
+      return;
+    }
+
+    setDefaultAddressLoadingId(address.id);
+    await handleSetDefaultAddress(address.id);
+    setDefaultAddressLoadingId(null);
   };
 
   const handleAddAddress = () => {
@@ -185,15 +366,6 @@ export default function EditProfile() {
     applyAddressToForm(null);
   };
 
-  const handleEditPrimaryAddress = () => {
-    if (primaryAddress) {
-      handleSelectAddress(primaryAddress);
-      return;
-    }
-
-    handleAddAddress();
-  };
-
   const handleSetDefaultAddress = async (addressId: string) => {
     if (!userId) {
       return;
@@ -201,6 +373,7 @@ export default function EditProfile() {
 
     try {
       await userService.setDefaultAddress(userId, addressId);
+      setActiveAddressId(addressId);
       setAddresses((prevState) =>
         prevState.map((address) => ({
           ...address,
@@ -213,6 +386,8 @@ export default function EditProfile() {
           ? error.message
           : "Não foi possível definir o endereço principal.";
       Alert.alert("Erro", message);
+    } finally {
+      setDefaultAddressLoadingId(null);
     }
   };
 
@@ -235,6 +410,7 @@ export default function EditProfile() {
           text: "Excluir",
           style: "destructive",
           onPress: async () => {
+            setDeleteAddressLoadingId(address.id);
             try {
               await userService.deleteAddress(userId, address.id);
               const remaining = addresses.filter(
@@ -254,6 +430,8 @@ export default function EditProfile() {
                   ? error.message
                   : "Não foi possível excluir o endereço.";
               Alert.alert("Erro", message);
+            } finally {
+              setDeleteAddressLoadingId(null);
             }
           },
         },
@@ -272,21 +450,28 @@ export default function EditProfile() {
     }
 
     const normalizedState = state.trim().toUpperCase();
+    const normalizedZip = zipCode.replace(/\D/g, "");
+    const nextErrors: typeof addressErrors = {};
 
-    if (
-      !street.trim() ||
-      !number.trim() ||
-      !neighborhood.trim() ||
-      !city.trim() ||
-      !normalizedState ||
-      !zipCode.trim()
-    ) {
-      Alert.alert(
-        "Endereço incompleto",
-        "Preencha todos os campos do endereço.",
-      );
+    if (!normalizedZip) {
+      nextErrors.zipCode = "Informe o CEP.";
+    } else if (normalizedZip.length !== 8) {
+      nextErrors.zipCode = "CEP inválido.";
+    } else if (!street.trim() || !neighborhood.trim() || !city.trim() || !normalizedState) {
+      nextErrors.zipCode = "CEP não encontrado.";
+    }
+
+    if (!number.trim()) {
+      nextErrors.number = "Informe o numero.";
+    }
+
+
+    if (Object.keys(nextErrors).length > 0) {
+      setAddressErrors(nextErrors);
       return;
     }
+
+    setAddressErrors({});
 
     setIsSubmitting(true);
     try {
@@ -297,7 +482,7 @@ export default function EditProfile() {
         neighborhood: neighborhood.trim(),
         city: city.trim(),
         state: normalizedState,
-        zipCode: zipCode.trim(),
+        zipCode: normalizedZip,
       };
 
       if (addressMode === "create") {
@@ -322,11 +507,43 @@ export default function EditProfile() {
 
       setShowAddressForm(false);
     } catch (error) {
+      if (error instanceof ApiError && error.errors) {
+        const apiErrors = Object.entries(error.errors).reduce(
+          (acc, [key, value]) => {
+            const message = Array.isArray(value) ? value[0] : undefined;
+
+            if (!message) {
+              return acc;
+            }
+
+            if (
+              key === "street" ||
+              key === "number" ||
+              key === "complement" ||
+              key === "neighborhood" ||
+              key === "city" ||
+              key === "state" ||
+              key === "zipCode"
+            ) {
+              acc[key] = message;
+            }
+
+            return acc;
+          },
+          {} as typeof addressErrors,
+        );
+
+        if (Object.keys(apiErrors).length > 0) {
+          setAddressErrors(apiErrors);
+        }
+      }
       const message =
         error instanceof ApiError
           ? error.message
           : "Não foi possível salvar o endereço.";
-      Alert.alert("Erro", message);
+      if (!Object.keys(addressErrors).length) {
+        Alert.alert("Erro", message);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -467,7 +684,11 @@ export default function EditProfile() {
 
               <View style={styles.addressCard}>
                 <View style={styles.addressCardHeader}>
-                  <Text style={styles.addressCardTitle}>Endereços</Text>
+                  <View style={styles.addressCardTitleFloating}>
+                    <Text style={styles.addressCardTitleFloatingText}>
+                      Endereços
+                    </Text>
+                  </View>
 
                   <TouchableOpacity
                     activeOpacity={0.85}
@@ -481,89 +702,75 @@ export default function EditProfile() {
                   </TouchableOpacity>
                 </View>
 
-                <Text style={styles.addressPrimaryLabel}>
-                  Endereço principal
-                </Text>
                 <Text style={styles.addressPrimaryText}>
                   {formatAddressPreview(primaryAddress)}
                 </Text>
 
-                <View style={styles.addressActionRow}>
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    style={styles.addressActionButton}
-                    onPress={handleEditPrimaryAddress}
-                  >
-                    <Ionicons name="create-outline" size={16} color="#6C63FF" />
-                    <Text style={styles.addressActionText}>
-                      Editar endereço
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
                 <View style={styles.addressList}>
                   {addresses.length ? (
                     addresses.map((address) => (
-                      <TouchableOpacity
+                      <View
                         key={address.id}
-                        activeOpacity={0.8}
                         style={styles.addressItem}
-                        onPress={() => handleSelectAddress(address)}
                       >
-                        <View style={styles.addressRadioOuter}>
-                          {address.id === activeAddressId ? (
-                            <View style={styles.addressRadioInner} />
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          style={styles.addressSelectArea}
+                          onPress={() => handleSelectAddressCard(address)}
+                          disabled={!!defaultAddressLoadingId}
+                        >
+                          <View style={styles.addressRadioOuter}>
+                            {defaultAddressLoadingId === address.id ? (
+                              <ActivityIndicator size="small" color="#6C63FF" />
+                            ) : address.id === activeAddressId ? (
+                              <View style={styles.addressRadioInner} />
+                            ) : null}
+                          </View>
+
+                          <View style={styles.addressItemContent}>
+                            <Text style={styles.addressItemText}>
+                              {formatAddressPreview(address)}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+
+                        <View style={styles.addressItemActions}>
+                          <TouchableOpacity
+                            activeOpacity={0.85}
+                            style={styles.addressEditButton}
+                            onPress={() => handleSelectAddress(address)}
+                          >
+                            <Ionicons
+                              name="create-outline"
+                              size={14}
+                              color="#4b42c7"
+                            />
+                            <Text style={styles.addressEditText}>Editar</Text>
+                          </TouchableOpacity>
+
+                          {address.isDefault ? (
+                            <View style={styles.addressBadge}>
+                              <Text style={styles.addressBadgeText}>
+                                Principal
+                              </Text>
+                            </View>
                           ) : null}
-                        </View>
 
-                        <View style={styles.addressItemContent}>
-                          <Text style={styles.addressItemText}>
-                            {formatAddressPreview(address)}
-                          </Text>
-
-                          <View style={styles.addressItemActions}>
-                            <TouchableOpacity
-                              activeOpacity={0.85}
-                              style={styles.addressEditButton}
-                              onPress={() => handleSelectAddress(address)}
-                            >
-                              <Ionicons
-                                name="create-outline"
-                                size={14}
-                                color="#4b42c7"
-                              />
-                              <Text style={styles.addressEditText}>Editar</Text>
-                            </TouchableOpacity>
-
-                            {address.isDefault ? (
-                              <View style={styles.addressBadge}>
-                                <Text style={styles.addressBadgeText}>
-                                  Principal
-                                </Text>
-                              </View>
+                          <TouchableOpacity
+                            activeOpacity={0.8}
+                            style={
+                              addresses.length <= 1 || deleteAddressLoadingId === address.id
+                                ? styles.addressDeleteButtonDisabled
+                                : styles.addressDeleteButton
+                            }
+                            onPress={() => handleDeleteAddress(address)}
+                            disabled={
+                              addresses.length <= 1 || deleteAddressLoadingId === address.id
+                            }
+                          >
+                            {deleteAddressLoadingId === address.id ? (
+                              <ActivityIndicator size="small" color="#d9534f" />
                             ) : (
-                              <TouchableOpacity
-                                activeOpacity={0.85}
-                                style={styles.addressDefaultButton}
-                                onPress={() =>
-                                  handleSetDefaultAddress(address.id)
-                                }
-                              >
-                                <Text style={styles.addressDefaultButtonText}>
-                                  Tornar principal
-                                </Text>
-                              </TouchableOpacity>
-                            )}
-
-                            <TouchableOpacity
-                              activeOpacity={0.8}
-                              style={
-                                addresses.length <= 1
-                                  ? styles.addressDeleteButtonDisabled
-                                  : styles.addressDeleteButton
-                              }
-                              onPress={() => handleDeleteAddress(address)}
-                            >
                               <Ionicons
                                 name="trash-outline"
                                 size={14}
@@ -571,19 +778,19 @@ export default function EditProfile() {
                                   addresses.length <= 1 ? "#b8b8b8" : "#d9534f"
                                 }
                               />
-                              <Text
-                                style={
-                                  addresses.length <= 1
-                                    ? styles.addressDeleteTextDisabled
-                                    : styles.addressDeleteText
-                                }
-                              >
-                                Excluir
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
+                            )}
+                            <Text
+                              style={
+                                addresses.length <= 1 || deleteAddressLoadingId === address.id
+                                  ? styles.addressDeleteTextDisabled
+                                  : styles.addressDeleteText
+                              }
+                            >
+                              Excluir
+                            </Text>
+                          </TouchableOpacity>
                         </View>
-                      </TouchableOpacity>
+                      </View>
                     ))
                   ) : (
                     <Text style={styles.addressEmptyText}>
@@ -594,16 +801,65 @@ export default function EditProfile() {
 
                 {showAddressForm ? (
                   <View style={styles.addressForm}>
+                    <View style={styles.fieldBlock}>
+                      <FloatingLabelInput
+                        label="CEP"
+                        value={zipCode}
+                        onChangeText={(value) => {
+                          const formatted = formatCep(value);
+                          setZipCode(formatted);
+                          if (addressErrors.zipCode) {
+                            setAddressErrors((prevState) => ({
+                              ...prevState,
+                              zipCode: undefined,
+                            }));
+                          }
+
+                          if (cepLookupTimeoutRef.current) {
+                            clearTimeout(cepLookupTimeoutRef.current);
+                          }
+
+                          cepLookupTimeoutRef.current = setTimeout(() => {
+                            handleCepLookup(formatted);
+                          }, 350);
+                        }}
+                        error={addressErrors.zipCode}
+                        keyboardType="numeric"
+                        labelBackgroundColor="#F0F2F5"
+                        labelStyle={styles.inputLabel}
+                        inputStyle={styles.inputValue}
+                        inputContainerStyle={styles.inputContainer}
+                        rightElement={
+                          cepLoading ? (
+                            <ActivityIndicator size="small" color="#6C63FF" />
+                          ) : undefined
+                        }
+                      />
+                      <Text style={styles.cepHelperText}>
+                        Preencha o CEP para buscar o endereco automaticamente.
+                      </Text>
+                    </View>
+
                     <View style={styles.rowFields}>
                       <View style={styles.addressField}>
                         <FloatingLabelInput
                           label="Endereço"
                           value={street}
-                          onChangeText={setStreet}
+                          onChangeText={(value) => {
+                            setStreet(value);
+                            if (addressErrors.street) {
+                              setAddressErrors((prevState) => ({
+                                ...prevState,
+                                street: undefined,
+                              }));
+                            }
+                          }}
+                          error={addressErrors.street}
+                          editable={false}
                           labelBackgroundColor="#F0F2F5"
-                          labelStyle={styles.inputLabel}
-                          inputStyle={styles.inputValue}
-                          inputContainerStyle={styles.inputContainer}
+                          labelStyle={styles.inputLabelDisabled}
+                          inputStyle={styles.inputValueDisabled}
+                          inputContainerStyle={styles.inputContainerDisabled}
                         />
                       </View>
 
@@ -611,7 +867,16 @@ export default function EditProfile() {
                         <FloatingLabelInput
                           label="N°"
                           value={number}
-                          onChangeText={setNumber}
+                          onChangeText={(value) => {
+                            setNumber(value);
+                            if (addressErrors.number) {
+                              setAddressErrors((prevState) => ({
+                                ...prevState,
+                                number: undefined,
+                              }));
+                            }
+                          }}
+                          error={addressErrors.number}
                           keyboardType="number-pad"
                           labelBackgroundColor="#F0F2F5"
                           labelStyle={styles.inputLabel}
@@ -625,7 +890,16 @@ export default function EditProfile() {
                       <FloatingLabelInput
                         label="Complemento"
                         value={complement}
-                        onChangeText={setComplement}
+                        onChangeText={(value) => {
+                          setComplement(value);
+                          if (addressErrors.complement) {
+                            setAddressErrors((prevState) => ({
+                              ...prevState,
+                              complement: undefined,
+                            }));
+                          }
+                        }}
+                        error={addressErrors.complement}
                         labelBackgroundColor="#F0F2F5"
                         labelStyle={styles.inputLabel}
                         inputStyle={styles.inputValue}
@@ -637,11 +911,21 @@ export default function EditProfile() {
                       <FloatingLabelInput
                         label="Bairro"
                         value={neighborhood}
-                        onChangeText={setNeighborhood}
+                        onChangeText={(value) => {
+                          setNeighborhood(value);
+                          if (addressErrors.neighborhood) {
+                            setAddressErrors((prevState) => ({
+                              ...prevState,
+                              neighborhood: undefined,
+                            }));
+                          }
+                        }}
+                        error={addressErrors.neighborhood}
+                        editable={false}
                         labelBackgroundColor="#F0F2F5"
-                        labelStyle={styles.inputLabel}
-                        inputStyle={styles.inputValue}
-                        inputContainerStyle={styles.inputContainer}
+                        labelStyle={styles.inputLabelDisabled}
+                        inputStyle={styles.inputValueDisabled}
+                        inputContainerStyle={styles.inputContainerDisabled}
                       />
                     </View>
 
@@ -650,11 +934,21 @@ export default function EditProfile() {
                         <FloatingLabelInput
                           label="Cidade"
                           value={city}
-                          onChangeText={setCity}
+                          onChangeText={(value) => {
+                            setCity(value);
+                            if (addressErrors.city) {
+                              setAddressErrors((prevState) => ({
+                                ...prevState,
+                                city: undefined,
+                              }));
+                            }
+                          }}
+                          error={addressErrors.city}
+                          editable={false}
                           labelBackgroundColor="#F0F2F5"
-                          labelStyle={styles.inputLabel}
-                          inputStyle={styles.inputValue}
-                          inputContainerStyle={styles.inputContainer}
+                          labelStyle={styles.inputLabelDisabled}
+                          inputStyle={styles.inputValueDisabled}
+                          inputContainerStyle={styles.inputContainerDisabled}
                         />
                       </View>
 
@@ -662,27 +956,24 @@ export default function EditProfile() {
                         <FloatingLabelInput
                           label="Estado"
                           value={state}
-                          onChangeText={setState}
+                          onChangeText={(value) => {
+                            setState(value);
+                            if (addressErrors.state) {
+                              setAddressErrors((prevState) => ({
+                                ...prevState,
+                                state: undefined,
+                              }));
+                            }
+                          }}
+                          error={addressErrors.state}
+                          editable={false}
                           autoCapitalize="characters"
                           labelBackgroundColor="#F0F2F5"
-                          labelStyle={styles.inputLabel}
-                          inputStyle={styles.inputValue}
-                          inputContainerStyle={styles.inputContainer}
+                          labelStyle={styles.inputLabelDisabled}
+                          inputStyle={styles.inputValueDisabled}
+                          inputContainerStyle={styles.inputContainerDisabled}
                         />
                       </View>
-                    </View>
-
-                    <View style={styles.fieldBlock}>
-                      <FloatingLabelInput
-                        label="CEP"
-                        value={zipCode}
-                        onChangeText={setZipCode}
-                        keyboardType="numeric"
-                        labelBackgroundColor="#F0F2F5"
-                        labelStyle={styles.inputLabel}
-                        inputStyle={styles.inputValue}
-                        inputContainerStyle={styles.inputContainer}
-                      />
                     </View>
 
                     <TouchableOpacity
@@ -728,6 +1019,7 @@ export default function EditProfile() {
                         activeOpacity={0.8}
                         style={styles.addressSaveButton}
                         onPress={handleSaveAddress}
+                        disabled={cepLoading}
                       >
                         <Text style={styles.addressSaveText}>
                           Salvar endereço
@@ -851,11 +1143,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     borderWidth: 2,
-    shadowColor: "#1f1f1f",
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
     borderColor: "#6C63FF",
   },
   addressCardHeader: {
@@ -885,24 +1172,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#4b42c7",
   },
-  addressPrimaryLabel: {
-    marginTop: 10,
-    fontFamily: "montserratRegular",
-    fontSize: 12,
-    color: "#7a7a7a",
-  },
-  addressPrimaryText: {
-    marginTop: 4,
-    fontFamily: "montserratRegular",
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#1f1f1f",
-  },
   addressActionRow: {
     marginTop: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
+  },
+  addressCardTitleFloating: {
+    marginTop: -8,
+    alignSelf: "flex-start",
+    paddingHorizontal: 4,
+    borderRadius: 999,
+    backgroundColor: "#F0F2F5",
+  },
+  addressCardTitleFloatingText: {
+    fontFamily: "montserratBold",
+    fontSize: 18,
+    color: "#262626",
+    marginTop: 8,
   },
   addressActionButton: {
     flexDirection: "row",
@@ -918,18 +1205,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#4b42c7",
   },
+  addressPrimaryText: {
+    marginTop: 4,
+    fontFamily: "montserratRegular",
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#1f1f1f",
+  },
   addressList: {
     marginTop: 12,
     gap: 10,
   },
   addressItem: {
-    flexDirection: "row",
-    gap: 10,
     padding: 10,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#eceff4",
     backgroundColor: "#f8f9fb",
+  },
+  addressSelectArea: {
+    flexDirection: "row",
+    gap: 10,
   },
   addressRadioOuter: {
     width: 18,
@@ -956,6 +1252,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     alignItems: "center",
     gap: 8,
+    marginTop: 8,
   },
   addressItemText: {
     fontFamily: "montserratRegular",
@@ -966,9 +1263,11 @@ const styles = StyleSheet.create({
   addressBadge: {
     alignSelf: "flex-start",
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 999,
+    paddingVertical: 4,
+    borderRadius: 8,
     backgroundColor: "#e8f0ff",
+    borderColor: "#2a4fb652",
+    borderWidth: 1,
   },
   addressBadgeText: {
     fontFamily: "montserratBold",
@@ -1084,6 +1383,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#7a7a7a",
   },
+  cepHelperText: {
+    marginTop: 6,
+    fontFamily: "montserratRegular",
+    fontSize: 12,
+    color: "#7a7a7a",
+  },
   makeDefaultRow: {
     marginTop: 12,
     flexDirection: "row",
@@ -1133,15 +1438,32 @@ const styles = StyleSheet.create({
     borderColor: "#6C63FF",
     borderRadius: 12,
   },
+  inputContainerDisabled: {
+    borderWidth: 2,
+    borderColor: "#d7d9e5",
+    borderRadius: 12,
+    opacity: 0.6,
+  },
   inputLabel: {
     fontFamily: "montserratRegular",
     fontSize: 14,
     color: "#262626",
   },
+  inputLabelDisabled: {
+    fontFamily: "montserratRegular",
+    fontSize: 14,
+    color: "#9aa0a6",
+  },
   inputValue: {
     fontFamily: "montserratRegular",
     fontSize: 16,
     color: "#242424",
+    paddingVertical: 12,
+  },
+  inputValueDisabled: {
+    fontFamily: "montserratRegular",
+    fontSize: 16,
+    color: "#9aa0a6",
     paddingVertical: 12,
   },
   confirmButton: {
