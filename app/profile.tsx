@@ -36,8 +36,13 @@ function formatMemberSince(value?: string) {
   return formatted ? `Membro desde ${formatted}` : "Membro desde ...";
 }
 
+function getPrimaryAddress(user?: UserProfile | null) {
+  const addresses = user?.Addresses ?? [];
+  return addresses.find((item) => item.isDefault) ?? addresses[0];
+}
+
 function formatAddress(user?: UserProfile | null) {
-  const address = user?.Addresses?.[0];
+  const address = getPrimaryAddress(user);
   if (!address) {
     return "Endereço não informado";
   }

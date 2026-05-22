@@ -20,6 +20,7 @@ export type UserAddress = {
   city: string;
   state: string;
   zipCode: string;
+  isDefault?: boolean;
 };
 
 export type UserProfile = {
@@ -54,6 +55,27 @@ export type UserUpdateBody = {
   };
 };
 
+export type AddressCreateBody = {
+  street: string;
+  number: string;
+  complement: string | null;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  makeDefault?: boolean;
+};
+
+export type AddressUpdateBody = {
+  street?: string;
+  number?: string;
+  complement?: string | null;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+};
+
 async function create(data: UserCreateBody) {
   return apiFetch<{ message: string }>("/users/", {
     method: "POST",
@@ -78,10 +100,68 @@ async function updateMe(data: UserUpdateBody): Promise<UserProfile> {
   return response.data;
 }
 
+async function createAddress(
+  userId: string,
+  data: AddressCreateBody,
+): Promise<UserAddress> {
+  const response = await apiFetch<ApiResponse<UserAddress>>(
+    `/users/${userId}/address`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    },
+  );
+
+  return response.data;
+}
+
+async function updateAddress(
+  userId: string,
+  addressId: string,
+  data: AddressUpdateBody,
+): Promise<UserAddress> {
+  const response = await apiFetch<ApiResponse<UserAddress>>(
+    `/users/${userId}/address/${addressId}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(data),
+    },
+  );
+
+  return response.data;
+}
+
+async function setDefaultAddress(
+  userId: string,
+  addressId: string,
+): Promise<UserAddress> {
+  const response = await apiFetch<ApiResponse<UserAddress>>(
+    `/users/${userId}/address/${addressId}/default`,
+    {
+      method: "PATCH",
+    },
+  );
+
+  return response.data;
+}
+
+async function deleteAddress(
+  userId: string,
+  addressId: string,
+): Promise<void> {
+  await apiFetch<{ message: string }>(`/users/${userId}/address/${addressId}`, {
+    method: "DELETE",
+  });
+}
+
 export const userService = {
   create,
   getMe,
   updateMe,
+  createAddress,
+  updateAddress,
+  setDefaultAddress,
+  deleteAddress,
   // wishlist endpoints
   async getUserWishlist(userId: string) {
     const response = await apiFetch<ApiResponse<any>>(
