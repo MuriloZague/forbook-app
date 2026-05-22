@@ -34,7 +34,7 @@ export type UserProfile = {
   createdAt: string;
   updatedAt: string;
   ProfileImage?: ProfileImage | null;
-  Address?: UserAddress[];
+  Addresses?: UserAddress[];
 };
 
 export type UserUpdateBody = {

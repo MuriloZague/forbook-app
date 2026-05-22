@@ -37,7 +37,7 @@ function formatMemberSince(value?: string) {
 }
 
 function formatAddress(user?: UserProfile | null) {
-  const address = user?.Address?.[0];
+  const address = user?.Addresses?.[0];
   if (!address) {
     return "Endereço não informado";
   }

@@ -49,7 +49,7 @@ function parseBirthDate(value: string) {
 }
 
 function getPrimaryAddress(user?: UserProfile | null) {
-  return user?.Address?.[0] ?? null;
+  return user?.Addresses?.[0] ?? null;
 }
 
 export default function EditProfile() {
