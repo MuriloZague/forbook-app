@@ -146,15 +146,15 @@ export default function Profile() {
         <View style={styles.profileSummary}>
           <View style={styles.avatarWrap}>
             <View style={styles.avatarImageContainer}>
-              <Image
-                source={
-                  user?.ProfileImage?.url
-                    ? { uri: user.ProfileImage.url }
-                    : require("../assets/images/profile.png")
-                }
-                style={styles.avatarImage}
-                resizeMode="cover"
-              />
+              {user?.ProfileImage?.url ? (
+                <Image
+                  source={{ uri: user.ProfileImage.url }}
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.avatarPlaceholder} />
+              )}
             </View>
 
             <TouchableOpacity
@@ -216,8 +216,20 @@ export default function Profile() {
 
           <ProfileInfoItem label="Email" value={user?.email ?? ""} />
           <ProfileInfoItem label="Telefone" value={user?.phoneNumber ?? ""} />
-
         </View>
+        <TouchableOpacity onPress={() => router.push("/edit-profile")}>
+          <Text
+            style={{
+              textAlign: "center",
+              color: "#6C63FF",
+              fontFamily: "montserratBold",
+              marginTop: 18,
+              fontSize: 16,
+            }}
+          >
+            Editar Perfil
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -267,6 +279,11 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: "100%",
     height: "100%",
+  },
+  avatarPlaceholder: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#d5d5d5",
   },
   avatarEditBadge: {
     position: "absolute",

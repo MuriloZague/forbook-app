@@ -5,10 +5,7 @@ import ScreenHeader from "@/src/components/screenHeader";
 import { formatCep, formatDate, formatPhone } from "@/src/lib/input-masks";
 import { ApiError } from "@/src/services/api";
 import { imageService } from "@/src/services/image.service";
-import {
-  userService,
-  type UserAddress,
-} from "@/src/services/user.service";
+import { userService, type UserAddress } from "@/src/services/user.service";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
@@ -113,7 +110,13 @@ export default function EditProfile() {
   const [addressErrors, setAddressErrors] = useState<
     Partial<
       Record<
-        "street" | "number" | "complement" | "neighborhood" | "city" | "state" | "zipCode",
+        | "street"
+        | "number"
+        | "complement"
+        | "neighborhood"
+        | "city"
+        | "state"
+        | "zipCode",
         string
       >
     >
@@ -125,8 +128,12 @@ export default function EditProfile() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [defaultAddressLoadingId, setDefaultAddressLoadingId] = useState<string | null>(null);
-  const [deleteAddressLoadingId, setDeleteAddressLoadingId] = useState<string | null>(null);
+  const [defaultAddressLoadingId, setDefaultAddressLoadingId] = useState<
+    string | null
+  >(null);
+  const [deleteAddressLoadingId, setDeleteAddressLoadingId] = useState<
+    string | null
+  >(null);
 
   const lastCepFetchedRef = useRef("");
   const cepRequestRef = useRef(0);
@@ -457,14 +464,18 @@ export default function EditProfile() {
       nextErrors.zipCode = "Informe o CEP.";
     } else if (normalizedZip.length !== 8) {
       nextErrors.zipCode = "CEP inválido.";
-    } else if (!street.trim() || !neighborhood.trim() || !city.trim() || !normalizedState) {
+    } else if (
+      !street.trim() ||
+      !neighborhood.trim() ||
+      !city.trim() ||
+      !normalizedState
+    ) {
       nextErrors.zipCode = "CEP não encontrado.";
     }
 
     if (!number.trim()) {
       nextErrors.number = "Informe o numero.";
     }
-
 
     if (Object.keys(nextErrors).length > 0) {
       setAddressErrors(nextErrors);
@@ -632,9 +643,7 @@ export default function EditProfile() {
                 >
                   <Image
                     source={
-                      profileImageUri
-                        ? { uri: profileImageUri }
-                        : require("../assets/images/profile.png")
+                      profileImageUri ? { uri: profileImageUri } : undefined
                     }
                     style={styles.avatarImage}
                     resizeMode="cover"
@@ -709,10 +718,7 @@ export default function EditProfile() {
                 <View style={styles.addressList}>
                   {addresses.length ? (
                     addresses.map((address) => (
-                      <View
-                        key={address.id}
-                        style={styles.addressItem}
-                      >
+                      <View key={address.id} style={styles.addressItem}>
                         <TouchableOpacity
                           activeOpacity={0.8}
                           style={styles.addressSelectArea}
@@ -759,13 +765,15 @@ export default function EditProfile() {
                           <TouchableOpacity
                             activeOpacity={0.8}
                             style={
-                              addresses.length <= 1 || deleteAddressLoadingId === address.id
+                              addresses.length <= 1 ||
+                              deleteAddressLoadingId === address.id
                                 ? styles.addressDeleteButtonDisabled
                                 : styles.addressDeleteButton
                             }
                             onPress={() => handleDeleteAddress(address)}
                             disabled={
-                              addresses.length <= 1 || deleteAddressLoadingId === address.id
+                              addresses.length <= 1 ||
+                              deleteAddressLoadingId === address.id
                             }
                           >
                             {deleteAddressLoadingId === address.id ? (
@@ -781,7 +789,8 @@ export default function EditProfile() {
                             )}
                             <Text
                               style={
-                                addresses.length <= 1 || deleteAddressLoadingId === address.id
+                                addresses.length <= 1 ||
+                                deleteAddressLoadingId === address.id
                                   ? styles.addressDeleteTextDisabled
                                   : styles.addressDeleteText
                               }
