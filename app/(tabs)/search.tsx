@@ -1,4 +1,5 @@
 import QrCode from "@/assets/images/code.svg";
+import BarcodeScannerModal from "@/src/components/barcodeScannerModal";
 import Config from "@/assets/images/config.svg";
 import Notification from "@/assets/images/Notification.svg";
 import Order from "@/assets/images/order.svg";
@@ -10,7 +11,11 @@ import DismissKeyboardView from "@/src/components/dismissKeyboardView";
 import HorizontalOptionBar from "@/src/components/horizontalOptionBar";
 import { useAuth } from "@/src/hooks/useAuth";
 import { ApiError } from "@/src/services/api";
-import { openLibraryService, type OpenLibraryBook } from "@/src/services/openLibrary.service";
+import {
+  openLibraryService,
+  type OpenLibraryBook,
+} from "@/src/services/openLibrary.service";
+import { fetchBookByIsbnFromBrasilApi } from "@/src/services/brasilApi.service";
 import {
   listMyUserBooksWithMeta,
   listUserBooksWithMeta,
@@ -28,11 +33,11 @@ import {
   FlatList,
   Modal,
   Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -137,6 +142,7 @@ function getCountKey(book: OpenLibraryBook): string | null {
 
 export default function SearchScreen() {
   const { isAuthenticated } = useAuth();
+  const [scannerVisible, setScannerVisible] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [userError, setUserError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -159,9 +165,9 @@ export default function SearchScreen() {
     null,
   );
   const [myAnnouncements, setMyAnnouncements] = useState<UserBook[]>([]);
-  const [myAnnouncementsError, setMyAnnouncementsError] = useState<string | null>(
-    null,
-  );
+  const [myAnnouncementsError, setMyAnnouncementsError] = useState<
+    string | null
+  >(null);
   const filterOptions = [
     { key: "offers", label: "Ofertas", icon: <Sign /> },
     { key: "filters", label: "Filtros", icon: <Config /> },
@@ -179,16 +185,41 @@ export default function SearchScreen() {
     }
 
     let cancelled = false;
+
     const timeout = setTimeout(() => {
       async function runSearch() {
         setIsSearching(true);
         setSearchError(null);
 
         try {
-          const results = await openLibraryService.searchBooksByQuery(
-            trimmed,
-            6,
-          );
+          const normalized = trimmed.replace(/[^0-9Xx]/g, "");
+
+          const isIsbnSearch =
+            normalized.length === 10 || normalized.length === 13;
+
+          let results: OpenLibraryBook[] = [];
+
+          // BUSCA POR ISBN -> BRASILAPI
+          if (isIsbnSearch) {
+            const brasilBook = await fetchBookByIsbnFromBrasilApi(normalized);
+
+            if (brasilBook) {
+              results = [
+                {
+                  title: brasilBook.title,
+                  author:
+                    brasilBook.authors?.join(", ") || "Autor desconhecido",
+                  isbn: brasilBook.isbn,
+                  coverUrl: brasilBook.cover_url || FALLBACK_IMAGE_URI,
+                },
+              ];
+            }
+          }
+
+          // BUSCA POR NOME -> OPENLIBRARY
+          else {
+            results = await openLibraryService.searchBooksByQuery(trimmed, 6);
+          }
 
           if (!cancelled) {
             setSearchResults(results);
@@ -257,6 +288,56 @@ export default function SearchScreen() {
       cancelled = true;
     };
   }, [isAuthenticated]);
+
+  async function handleSearchByIsbn(rawIsbn: string) {
+    const normalized = openLibraryService.normalizeIsbn(rawIsbn);
+
+    if (!normalized) {
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError(null);
+
+    try {
+      let results: OpenLibraryBook[] = [];
+
+      // Primeiro tenta OpenLibrary
+      const openLibraryBook = await openLibraryService.lookupByIsbn(normalized);
+
+      if (openLibraryBook) {
+        results = [openLibraryBook];
+      }
+
+      // Se não encontrou, tenta BrasilAPI
+      if (results.length === 0) {
+        const brasilBook = await fetchBookByIsbnFromBrasilApi(normalized);
+
+        if (brasilBook) {
+          results = [
+            {
+              title: brasilBook.title,
+              author: brasilBook.authors?.join(", "),
+              isbn: brasilBook.isbn,
+              publisher: brasilBook.publisher,
+              coverUrl: brasilBook.cover_url,
+              description: brasilBook.synopsis,
+            } as OpenLibraryBook,
+          ];
+        }
+      }
+
+      setSearchResults(results);
+
+      if (results.length === 0) {
+        setSearchError("Nenhum livro encontrado.");
+      }
+    } catch {
+      setSearchError("Não foi possível buscar o livro.");
+    } finally {
+      setIsSearching(false);
+    }
+  }
 
   const myCounts = useMemo(() => {
     const isbnCounts = new Map<string, number>();
@@ -372,10 +453,10 @@ export default function SearchScreen() {
               publicTotals.length > 0 ? Math.max(...publicTotals) : 0;
 
             const myIsbnCount = isbnTerm
-              ? myCounts.isbnCounts.get(isbnTerm) ?? 0
+              ? (myCounts.isbnCounts.get(isbnTerm) ?? 0)
               : 0;
             const myTitleCount = titleTerm
-              ? myCounts.titleCounts.get(titleTerm.toLowerCase()) ?? 0
+              ? (myCounts.titleCounts.get(titleTerm.toLowerCase()) ?? 0)
               : 0;
             const myTotal = Math.max(myIsbnCount, myTitleCount);
 
@@ -405,7 +486,7 @@ export default function SearchScreen() {
 
   const resultsCountLabel = useMemo(() => {
     if (!searchTerm.trim()) {
-      return "Digite o nome do livro para buscar";
+      return "Digite o nome do livro ou ISBN para buscar";
     }
 
     if (isSearching) {
@@ -577,7 +658,7 @@ export default function SearchScreen() {
                 )}
               </View>
             }
-        notificationContent={<Notification width={24} height={24} />}
+            notificationContent={<Notification width={24} height={24} />}
             onUserPress={() => router.push("/profile")}
           />
 
@@ -600,7 +681,10 @@ export default function SearchScreen() {
                 />
               </View>
               <View>
-                <TouchableOpacity activeOpacity={0.7}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => setScannerVisible(true)}
+                >
                   <QrCode />
                 </TouchableOpacity>
               </View>
@@ -669,18 +753,14 @@ export default function SearchScreen() {
                         {item.author}
                       </Text>
                     ) : null}
-                    <Text style={styles.resultCount}>
-                      {getCountText(item)}
-                    </Text>
+                    <Text style={styles.resultCount}>{getCountText(item)}</Text>
                   </View>
                 </TouchableOpacity>
               )}
               contentContainerStyle={styles.resultsList}
               ListEmptyComponent={
                 searchTerm.trim() && !isSearching ? (
-                  <Text style={styles.emptyText}>
-                    Nenhum livro encontrado.
-                  </Text>
+                  <Text style={styles.emptyText}>Nenhum livro encontrado.</Text>
                 ) : null
               }
             />
@@ -695,15 +775,9 @@ export default function SearchScreen() {
                 style={styles.announcementsBackdrop}
                 onPress={() => setIsAnnouncementsVisible(false)}
               >
-                <Pressable
-                  style={styles.announcementsModal}
-                  onPress={() => {}}
-                >
+                <Pressable style={styles.announcementsModal} onPress={() => {}}>
                   <View style={styles.announcementsHeader}>
-                    <Text
-                      style={styles.announcementsTitle}
-                      numberOfLines={2}
-                    >
+                    <Text style={styles.announcementsTitle} numberOfLines={2}>
                       {selectedBook?.title ?? "Anuncios"}
                     </Text>
                     <TouchableOpacity
@@ -765,6 +839,14 @@ export default function SearchScreen() {
           </View>
         </View>
       </DismissKeyboardView>
+      <BarcodeScannerModal
+        visible={scannerVisible}
+        onClose={() => setScannerVisible(false)}
+        onScanned={(code) => {
+          setSearchTerm(code);
+          handleSearchByIsbn(code);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -854,6 +936,7 @@ const styles = StyleSheet.create({
     fontFamily: "montserratRegular",
     fontSize: 14,
     color: "#a6a8aa",
+    textAlign: "center",
   },
   searchLoadingRow: {
     marginTop: 12,
