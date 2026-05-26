@@ -209,7 +209,9 @@ export default function AnnounceScreen() {
       const book = await openLibraryService.lookupByIsbn(normalized);
 
       if (!book) {
-        setLookupError("Nenhum livro encontrado com esse ISBN.");
+        setLookupError(
+          "ISBN nao encontrado. Preencha o titulo manualmente.",
+        );
         return;
       }
 
@@ -336,18 +338,8 @@ export default function AnnounceScreen() {
       return;
     }
 
-    if (
-      !normalizedIsbn ||
-      !normalizedTitle ||
-      !normalizedAuthor ||
-      !normalizedPublisher
-    ) {
+    if (!normalizedTitle || !normalizedAuthor || !normalizedPublisher) {
       Alert.alert("Campos obrigatorios", "Preencha todos os campos.");
-      return;
-    }
-    
-    if (normalizedIsbn.length !== 13) {
-      Alert.alert("ISBN invalido", "Informe um ISBN com 13 digitos.");
       return;
     }
 
@@ -583,15 +575,12 @@ export default function AnnounceScreen() {
               placeholder="Ex: 978-85-359..."
               placeholderTextColor="#a6a8aa"
               keyboardType="numeric"
-              editable={false}
-              labelStyle={[styles.floatingLabel, styles.disabledLabel]}
-              inputStyle={[styles.input, styles.disabledInput]}
-              inputContainerStyle={styles.disabledInputContainer}
+              labelStyle={styles.floatingLabel}
+              inputStyle={styles.input}
               rightElement={
                 <TouchableOpacity
                   style={styles.iconScan}
                   onPress={() => setScannerVisible(true)}
-                  disabled
                 >
                   <Ionicons name="barcode-outline" size={24} color="#6c63ff" />
                 </TouchableOpacity>
@@ -707,35 +696,6 @@ export default function AnnounceScreen() {
               labelStyle={[styles.floatingLabel, styles.disabledLabel]}
               inputStyle={[styles.input, styles.disabledInput]}
               inputContainerStyle={styles.disabledInputContainer}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <FloatingLabelInput
-              label="Editora"
-              placeholder="Ex: HarperCollins"
-              placeholderTextColor="#a6a8aa"
-              value={publisher}
-              onChangeText={setPublisher}
-              editable={false}
-              labelStyle={[styles.floatingLabel, styles.disabledLabel]}
-              inputStyle={[styles.input, styles.disabledInput]}
-              inputContainerStyle={styles.disabledInputContainer}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <FloatingLabelInput
-              label="Ano"
-              placeholder="Ex: 2019"
-              placeholderTextColor="#a6a8aa"
-              value={year}
-              onChangeText={setYear}
-              editable={false}
-              labelStyle={[styles.floatingLabel, styles.disabledLabel]}
-              inputStyle={[styles.input, styles.disabledInput]}
-              inputContainerStyle={styles.disabledInputContainer}
-              keyboardType="numeric"
             />
           </View>
 

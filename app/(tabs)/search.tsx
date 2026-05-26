@@ -418,7 +418,7 @@ export default function SearchScreen() {
   function getCountText(book: OpenLibraryBook) {
     const key = getCountKey(book);
     if (!key) {
-      return "Nenhum livro cadastrado";
+      return "Nenhum livro anunciado";
     }
 
     if (!isAuthenticated) {
@@ -428,22 +428,22 @@ export default function SearchScreen() {
     const count = announcementCounts[key];
 
     if (count === undefined && countError) {
-      return "Nao foi possivel carregar os anuncios";
+      return "Nao foi possivel carregar os anúncios";
     }
 
     if (count === undefined) {
-      return "Carregando anuncios...";
+      return "Carregando anúncios...";
     }
 
     if (count === 0) {
-      return "Nenhum livro cadastrado";
+      return "Nenhum livro anunciado";
     }
 
     if (count === 1) {
-      return "1 livro cadastrado";
+      return "1 livro anunciado";
     }
 
-    return `${count} livros cadastrados`;
+    return `${count} livros anunciados`;
   }
 
   const selectedCards = useMemo(
