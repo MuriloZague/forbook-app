@@ -7,7 +7,7 @@ export default function MyRatings() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScreenHeader title="Minhas Avaliações" />
-      <Text>minhas avaliações</Text>
+      <Text style={{margin: 'auto'}}>Ainda não possui nenhuma avaliação</Text>
     </SafeAreaView>
   );
 }

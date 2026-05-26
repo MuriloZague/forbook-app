@@ -7,7 +7,7 @@ export default function MyNotifications() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScreenHeader title="Notificações" />
-      <Text>minhas notificações</Text>
+      <Text style={{margin: 'auto'}}>Ainda não possui nenhuma notificação</Text>
     </SafeAreaView>
   );
 }

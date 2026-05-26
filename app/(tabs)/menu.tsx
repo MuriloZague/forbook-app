@@ -170,7 +170,7 @@ export default function MenuScreen() {
             labelStyle={styles.menuItemText}
             onPress={() => router.push("/myratings")}
           />
-
+        {/**
           <ListItemRow
             label="Histórico de visualizações"
             iconName="time-outline"
@@ -178,7 +178,7 @@ export default function MenuScreen() {
             labelStyle={styles.menuItemText}
             onPress={() => router.push("/viewhistory")}
           />
-
+        */}
           <ListItemRow
             label="Configurações"
             iconName="settings-outline"
