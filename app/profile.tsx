@@ -36,8 +36,13 @@ function formatMemberSince(value?: string) {
   return formatted ? `Membro desde ${formatted}` : "Membro desde ...";
 }
 
+function getPrimaryAddress(user?: UserProfile | null) {
+  const addresses = user?.Addresses ?? [];
+  return addresses.find((item) => item.isDefault) ?? addresses[0];
+}
+
 function formatAddress(user?: UserProfile | null) {
-  const address = user?.Address?.[0];
+  const address = getPrimaryAddress(user);
   if (!address) {
     return "Endereço não informado";
   }
@@ -141,15 +146,15 @@ export default function Profile() {
         <View style={styles.profileSummary}>
           <View style={styles.avatarWrap}>
             <View style={styles.avatarImageContainer}>
-              <Image
-                source={
-                  user?.ProfileImage?.url
-                    ? { uri: user.ProfileImage.url }
-                    : require("../assets/images/profile.png")
-                }
-                style={styles.avatarImage}
-                resizeMode="cover"
-              />
+              {user?.ProfileImage?.url ? (
+                <Image
+                  source={{ uri: user.ProfileImage.url }}
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.avatarPlaceholder} />
+              )}
             </View>
 
             <TouchableOpacity
@@ -211,38 +216,20 @@ export default function Profile() {
 
           <ProfileInfoItem label="Email" value={user?.email ?? ""} />
           <ProfileInfoItem label="Telefone" value={user?.phoneNumber ?? ""} />
-
-          <View style={styles.itemContainer}>
-            <Text style={styles.itemLabel}>Senha</Text>
-
-            <View style={styles.passwordRow}>
-              <Text style={styles.itemValue}>{passwordValue}</Text>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={togglePasswordVisibility}
-              >
-                <Ionicons
-                  name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
-                  size={20}
-                  color="#6C63FF"
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.changePasswordButton}
-            onPress={() =>
-              router.push({
-                pathname: "/forgot-password-code",
-                params: { email: user?.email ?? "" },
-              })
-            }
-          >
-            <Text style={styles.changePasswordText}>Alterar senha</Text>
-          </TouchableOpacity>
         </View>
+        <TouchableOpacity onPress={() => router.push("/edit-profile")}>
+          <Text
+            style={{
+              textAlign: "center",
+              color: "#6C63FF",
+              fontFamily: "montserratBold",
+              marginTop: 18,
+              fontSize: 16,
+            }}
+          >
+            Editar Perfil
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -292,6 +279,11 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: "100%",
     height: "100%",
+  },
+  avatarPlaceholder: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#d5d5d5",
   },
   avatarEditBadge: {
     position: "absolute",

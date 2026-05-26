@@ -59,80 +59,86 @@ export default function MyFavorites() {
       setLoading(true);
       setError(null);
 
-      // If authenticated, fetch wishlist (catalog books) from backend
-      if (isAuthenticated) {
-        try {
-          const me = await userService.getMe();
-          const wishlist = await userService.getUserWishlist(me.id);
-          const catalogBooks = wishlist?.CatalogBooks ?? [];
-
-          const cards: any[] = [];
-
-          await Promise.all(
-            catalogBooks.map(async (cb: any) => {
-              try {
-                const filter = JSON.stringify({ bookId: cb.id });
-                const res = await apiFetch<{ data: any[] }>(
-                  `/user-books?filter=${encodeURIComponent(filter)}`,
-                );
-                const ub = res.data?.[0];
-                if (ub) {
-                  cards.push({
-                    id: ub.id,
-                    title: ub.CatalogBook.title,
-                    author: ub.CatalogBook.author,
-                    priceWhole: (ub.price ?? 0).toFixed(2).split(".")[0],
-                    priceCents: (ub.price ?? 0).toFixed(2).split(".")[1],
-                    imageUri: ub.MainImage?.url ?? FALLBACK_IMAGE_URI,
-                    condition: mapConditionLabel(ub.condition),
-                    catalogId: cb.id,
-                  });
-                } else {
-                  cards.push({
-                    id: cb.id,
-                    title: cb.title,
-                    author: cb.author,
-                    priceWhole: "0",
-                    priceCents: "00",
-                    imageUri: FALLBACK_IMAGE_URI,
-                    condition: "Usado",
-                    catalogId: cb.id,
-                  });
-                }
-              } catch {
-                cards.push({
-                  id: cb.id,
-                  title: cb.title,
-                  author: cb.author,
-                  priceWhole: "0",
-                  priceCents: "00",
-                  imageUri: FALLBACK_IMAGE_URI,
-                  condition: "Usado",
-                  catalogId: cb.id,
-                });
-              }
-            }),
-          );
-
-          if (!cancelled) setBooks(cards);
-
-          return;
-        } catch (err) {
-          // fallback to local
-        }
-      }
-
-      const favIds = await getFavorites();
-
-      if (favIds.length === 0) {
+      if (!isAuthenticated) {
         if (!cancelled) setBooks([]);
         return;
       }
 
-      const promises = favIds.map((id) => userBookService.getUserBookById(id));
-      const items = await Promise.all(promises);
+      const me = await userService.getMe();
+      let wishlist: any;
 
-      if (!cancelled) setBooks(items.map(mapUserBookToCard));
+      try {
+        wishlist = await userService.getUserWishlist(me.id);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 404) {
+          const favIds = await getFavorites(me.id);
+
+          if (favIds.length === 0) {
+            if (!cancelled) setBooks([]);
+            return;
+          }
+
+          const items = await Promise.all(
+            favIds.map((id) => userBookService.getUserBookById(id)),
+          );
+
+          if (!cancelled) setBooks(items.map(mapUserBookToCard));
+          return;
+        }
+
+        throw err;
+      }
+      const catalogBooks = wishlist?.CatalogBooks ?? [];
+
+      const cards: any[] = [];
+
+      await Promise.all(
+        catalogBooks.map(async (cb: any) => {
+          try {
+            const filter = JSON.stringify({ bookId: cb.id });
+            const res = await apiFetch<{ data: any[] }>(
+              `/user-books?filter=${encodeURIComponent(filter)}`,
+            );
+            const ub = res.data?.[0];
+            if (ub) {
+              cards.push({
+                id: ub.id,
+                title: ub.CatalogBook.title,
+                author: ub.CatalogBook.author,
+                priceWhole: (ub.price ?? 0).toFixed(2).split(".")[0],
+                priceCents: (ub.price ?? 0).toFixed(2).split(".")[1],
+                imageUri: ub.MainImage?.url ?? FALLBACK_IMAGE_URI,
+                condition: mapConditionLabel(ub.condition),
+                catalogId: cb.id,
+              });
+            } else {
+              cards.push({
+                id: cb.id,
+                title: cb.title,
+                author: cb.author,
+                priceWhole: "0",
+                priceCents: "00",
+                imageUri: FALLBACK_IMAGE_URI,
+                condition: "Usado",
+                catalogId: cb.id,
+              });
+            }
+          } catch {
+            cards.push({
+              id: cb.id,
+              title: cb.title,
+              author: cb.author,
+              priceWhole: "0",
+              priceCents: "00",
+              imageUri: FALLBACK_IMAGE_URI,
+              condition: "Usado",
+              catalogId: cb.id,
+            });
+          }
+        }),
+      );
+
+      if (!cancelled) setBooks(cards);
     } catch (err) {
       if (!cancelled)
         setError(

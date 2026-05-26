@@ -2,9 +2,17 @@ import * as SecureStore from "expo-secure-store";
 
 const FAVORITES_KEY = "forbook.favorites";
 
-export async function getFavorites(): Promise<string[]> {
+function buildFavoritesKey(userId?: string) {
+  if (userId && userId.trim().length > 0) {
+    return `${FAVORITES_KEY}.${userId}`;
+  }
+
+  return FAVORITES_KEY;
+}
+
+export async function getFavorites(userId?: string): Promise<string[]> {
   try {
-    const raw = await SecureStore.getItemAsync(FAVORITES_KEY);
+    const raw = await SecureStore.getItemAsync(buildFavoritesKey(userId));
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (Array.isArray(parsed)) return parsed as string[];
@@ -14,17 +22,20 @@ export async function getFavorites(): Promise<string[]> {
   }
 }
 
-export async function saveFavorites(ids: string[]): Promise<void> {
+export async function saveFavorites(ids: string[], userId?: string): Promise<void> {
   try {
-    await SecureStore.setItemAsync(FAVORITES_KEY, JSON.stringify(ids));
+    await SecureStore.setItemAsync(
+      buildFavoritesKey(userId),
+      JSON.stringify(ids),
+    );
   } catch {
     // ignore
   }
 }
 
-export async function clearFavorites(): Promise<void> {
+export async function clearFavorites(userId?: string): Promise<void> {
   try {
-    await SecureStore.deleteItemAsync(FAVORITES_KEY);
+    await SecureStore.deleteItemAsync(buildFavoritesKey(userId));
   } catch {
     // ignore
   }

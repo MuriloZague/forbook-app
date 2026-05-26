@@ -88,7 +88,7 @@ export default function EmailConfirmationScreen() {
 
         <View style={styles.buttonContainer}>
           <PrimaryButton
-            onPress={handleVerifyPress}
+            onPress={() => router.replace("/login")}
             label="Verificar"
             style={styles.verifyButton}
             textStyle={styles.verifyButtonText}

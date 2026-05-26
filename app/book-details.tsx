@@ -124,6 +124,7 @@ export default function BookDetailsScreen() {
   const conditionParam = getParam(params.condition);
   const [bookData, setBookData] = useState<UserBook | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     let cancelled = false;
@@ -165,28 +166,34 @@ export default function BookDetailsScreen() {
       if (!bookId || bookId === "book") return;
 
       try {
-        // If authenticated, fetch wishlist from backend (catalog book ids)
-        if (isAuthenticated) {
-          try {
-            const me = await userService.getMe();
-            const wishlist = await userService.getUserWishlist(me.id);
-            const catalogIds =
-              wishlist?.CatalogBooks?.map((b: any) => b.id) ?? [];
-            const currentCatalogId = bookData?.CatalogBook?.id;
-            if (!cancelled)
-              setIsFavorited(
-                Boolean(
-                  currentCatalogId && catalogIds.includes(currentCatalogId),
-                ),
-              );
-            return;
-          } catch {
-            // fallback to local
-          }
+        if (!isAuthenticated) {
+          if (!cancelled) setIsFavorited(false);
+          return;
         }
 
-        const ids = await getFavorites();
-        if (!cancelled) setIsFavorited(ids.includes(bookId));
+        const me = await userService.getMe();
+
+        try {
+          const wishlist = await userService.getUserWishlist(me.id);
+          const catalogIds =
+            wishlist?.CatalogBooks?.map((b: any) => b.id) ?? [];
+          const currentCatalogId = bookData?.CatalogBook?.id;
+          if (!cancelled)
+            setIsFavorited(
+              Boolean(
+                currentCatalogId && catalogIds.includes(currentCatalogId),
+              ),
+            );
+          return;
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 404) {
+            const ids = await getFavorites(me.id);
+            if (!cancelled) setIsFavorited(ids.includes(bookId));
+            return;
+          }
+
+          throw err;
+        }
       } catch {
         // ignore
       }
@@ -197,7 +204,7 @@ export default function BookDetailsScreen() {
     return () => {
       cancelled = true;
     };
-  }, [bookId]);
+  }, [bookId, isAuthenticated, bookData?.CatalogBook?.id]);
 
   const resolvedTitle = bookData?.CatalogBook.title ?? title;
   const resolvedAuthor = bookData?.CatalogBook.author ?? author;
@@ -234,7 +241,6 @@ export default function BookDetailsScreen() {
   }, [bookData, imageUri]);
 
   const [isFavorited, setIsFavorited] = useState(false);
-  const { isAuthenticated } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false);
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
@@ -321,41 +327,52 @@ export default function BookDetailsScreen() {
   }
 
   function handleFavoritePress() {
+    if (!isAuthenticated) return;
+
     setIsFavorited((prev) => {
       const next = !prev;
 
       (async () => {
         try {
-          // If authenticated, sync with backend wishlist (uses CatalogBook ids)
-          if (isAuthenticated) {
+          const me = await userService.getMe();
+          const catalogId = bookData?.CatalogBook?.id;
+          if (!catalogId) {
+            const ids = await getFavorites(me.id);
+            const nextSet = new Set(ids);
+
+            if (next) {
+              nextSet.add(bookId);
+            } else {
+              nextSet.delete(bookId);
+            }
+
+            await saveFavorites(Array.from(nextSet), me.id);
+            return;
+          }
+
+          if (next) {
+            await userService.addBookToWishlist(me.id, catalogId);
+          } else {
+            await userService.removeBookFromWishlist(me.id, catalogId);
+          }
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 404) {
             try {
               const me = await userService.getMe();
-              const catalogId = bookData?.CatalogBook?.id;
-              if (catalogId) {
-                if (next) {
-                  await userService.addBookToWishlist(me.id, catalogId);
-                } else {
-                  await userService.removeBookFromWishlist(me.id, catalogId);
-                }
+              const ids = await getFavorites(me.id);
+              const nextSet = new Set(ids);
+
+              if (next) {
+                nextSet.add(bookId);
+              } else {
+                nextSet.delete(bookId);
               }
+
+              await saveFavorites(Array.from(nextSet), me.id);
             } catch {
-              // fallback to local storage below
+              // ignore
             }
           }
-
-          const ids = await getFavorites();
-          const nextSet = new Set(ids);
-
-          // local storage keeps userBook ids for backward compatibility
-          if (next) {
-            nextSet.add(bookId);
-          } else {
-            nextSet.delete(bookId);
-          }
-
-          await saveFavorites(Array.from(nextSet));
-        } catch {
-          // ignore
         }
       })();
 
