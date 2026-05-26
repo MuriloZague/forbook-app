@@ -6,6 +6,10 @@ import ScreenHeader from "@/src/components/screenHeader";
 import { useTransition } from "@/src/context/transition-context";
 import { useAuth } from "@/src/hooks/useAuth";
 import { ApiError } from "@/src/services/api";
+import {
+  openLibraryService,
+  type OpenLibraryBook,
+} from "@/src/services/openLibrary.service";
 import { imageService } from "../src/services/image.service";
 import {
   userBookService,
@@ -17,6 +21,7 @@ import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   KeyboardAvoidingView,
@@ -65,7 +70,7 @@ function parsePriceValue(value: string): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-export default function Modal() {
+export default function AnnounceScreen() {
   const { overlayRef } = useTransition();
   const { isAuthenticated } = useAuth();
   const navigation = useNavigation();
@@ -87,6 +92,19 @@ export default function Modal() {
   const [attachments, setAttachments] = useState<Array<string | null>>(
     Array.from({ length: MAX_ATTACHMENTS }, () => null),
   );
+  const [suggestedCoverUrl, setSuggestedCoverUrl] = useState<string | null>(
+    null,
+  );
+  const [lookupError, setLookupError] = useState<string | null>(null);
+  const [isLookupLoading, setIsLookupLoading] = useState(false);
+  const [isTitleSearchLoading, setIsTitleSearchLoading] = useState(false);
+  const [titleSuggestions, setTitleSuggestions] = useState<OpenLibraryBook[]>(
+    [],
+  );
+  const [titleNoResults, setTitleNoResults] = useState(false);
+  const lastIsbnLookupRef = useRef<string | null>(null);
+  const titleSearchTokenRef = useRef(0);
+  const skipTitleSearchRef = useRef(false);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
@@ -122,6 +140,162 @@ export default function Modal() {
   function handleClose() {
     router.back();
   }
+
+  function applyBookSuggestion(book: OpenLibraryBook) {
+    const normalizedIsbn = openLibraryService.normalizeIsbn(book.isbn);
+
+    skipTitleSearchRef.current = true;
+    setTitleSuggestions([]);
+    setTitleNoResults(false);
+
+    if (normalizedIsbn) {
+      setIsbn(normalizedIsbn);
+      setLookupError(null);
+    } else {
+      setLookupError("ISBN nao encontrado. Preencha manualmente.");
+    }
+
+    if (book.title) {
+      setTitle(book.title);
+    }
+
+    if (book.author) {
+      setAuthor(book.author);
+    } else {
+      setAuthor("Autor desconhecido");
+    }
+
+    if (book.publisher) {
+      setPublisher(book.publisher);
+    } else {
+      setPublisher("Editora desconhecida");
+    }
+
+    if (book.year) {
+      setYear(String(book.year));
+    } else {
+      setYear(String(new Date().getFullYear()));
+    }
+
+    if (book.description) {
+      setSynopsis(book.description);
+    }
+
+    if (book.coverUrl) {
+      setSuggestedCoverUrl(book.coverUrl);
+    }
+  }
+
+  async function handleIsbnLookup(value: string) {
+    const normalized = openLibraryService.normalizeIsbn(value);
+    if (!normalized || (normalized.length !== 10 && normalized.length !== 13)) {
+      return;
+    }
+
+    if (lastIsbnLookupRef.current === normalized) {
+      return;
+    }
+
+    setIsLookupLoading(true);
+    setLookupError(null);
+
+    try {
+      const book = await openLibraryService.lookupByIsbn(normalized);
+
+      if (!book) {
+        setLookupError("Nenhum livro encontrado com esse ISBN.");
+        return;
+      }
+
+      applyBookSuggestion(book);
+      lastIsbnLookupRef.current = normalized;
+    } catch {
+      setLookupError("Nao foi possivel buscar o livro pelo ISBN.");
+    } finally {
+      setIsLookupLoading(false);
+    }
+  }
+
+  async function handleTitleLookup(value?: string) {
+    const trimmed = (value ?? title).trim();
+    if (trimmed.length < 3) {
+      setTitleSuggestions([]);
+      setTitleNoResults(false);
+      setIsTitleSearchLoading(false);
+      return;
+    }
+
+    const token = titleSearchTokenRef.current + 1;
+    titleSearchTokenRef.current = token;
+
+    setIsTitleSearchLoading(true);
+    setLookupError(null);
+    setTitleNoResults(false);
+
+    try {
+      const results = await openLibraryService.searchBooksByQuery(trimmed, 6);
+      if (titleSearchTokenRef.current !== token) {
+        return;
+      }
+
+      if (results.length === 0) {
+        setTitleSuggestions([]);
+        setTitleNoResults(true);
+        return;
+      }
+
+      setTitleSuggestions(results);
+      setTitleNoResults(false);
+    } catch {
+      if (titleSearchTokenRef.current !== token) {
+        return;
+      }
+
+      setTitleSuggestions([]);
+      setTitleNoResults(false);
+      setLookupError("Nao foi possivel buscar o livro pelo titulo.");
+    } finally {
+      if (titleSearchTokenRef.current === token) {
+        setIsTitleSearchLoading(false);
+      }
+    }
+  }
+
+  async function handleSelectSearchResult(book: OpenLibraryBook) {
+    setIsLookupLoading(true);
+    setLookupError(null);
+    setTitleSuggestions([]);
+    setTitleNoResults(false);
+
+    try {
+      const enriched = await openLibraryService.enrichBookWithDescription(book);
+      applyBookSuggestion(enriched);
+    } catch {
+      setLookupError("Nao foi possivel carregar os detalhes do livro.");
+    } finally {
+      setIsLookupLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (skipTitleSearchRef.current) {
+      skipTitleSearchRef.current = false;
+      return;
+    }
+
+    const trimmed = title.trim();
+    if (trimmed.length < 3) {
+      setTitleSuggestions([]);
+      setTitleNoResults(false);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      void handleTitleLookup(trimmed);
+    }, 350);
+
+    return () => clearTimeout(timeout);
+  }, [title]);
 
   async function handleAnnounce() {
     if (isSubmitting) {
@@ -359,6 +533,23 @@ export default function Modal() {
                 </>
               )}
             </TouchableOpacity>
+            {suggestedCoverUrl ? (
+              <View style={styles.suggestedCoverRow}>
+                <Image
+                  source={{ uri: suggestedCoverUrl }}
+                  style={styles.suggestedCoverImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.suggestedCoverInfo}>
+                  <Text style={styles.suggestedCoverTitle}>
+                    Capa sugerida pela busca
+                  </Text>
+                  <Text style={styles.suggestedCoverSubtitle}>
+                    Foto do usuario continua obrigatoria
+                  </Text>
+                </View>
+              </View>
+            ) : null}
           </View>
 
           <View style={styles.inputContainer}>
@@ -366,24 +557,40 @@ export default function Modal() {
               label="ISBN"
               value={isbn}
               onChangeText={setIsbn}
+              onEndEditing={() => handleIsbnLookup(isbn)}
               placeholder="Ex: 978-85-359..."
               placeholderTextColor="#a6a8aa"
               keyboardType="numeric"
-              labelStyle={styles.floatingLabel}
-              inputStyle={styles.input}
+              editable={false}
+              labelStyle={[styles.floatingLabel, styles.disabledLabel]}
+              inputStyle={[styles.input, styles.disabledInput]}
+              inputContainerStyle={styles.disabledInputContainer}
               rightElement={
                 <TouchableOpacity
                   style={styles.iconScan}
                   onPress={() => setScannerVisible(true)}
+                  disabled
                 >
                   <Ionicons name="barcode-outline" size={24} color="#6c63ff" />
                 </TouchableOpacity>
               }
             />
+            {isLookupLoading ? (
+              <View style={styles.lookupRow}>
+                <ActivityIndicator size="small" color="#6c63ff" />
+                <Text style={styles.lookupText}>Buscando livro...</Text>
+              </View>
+            ) : null}
+            {!isLookupLoading && lookupError ? (
+              <Text style={styles.lookupErrorText}>{lookupError}</Text>
+            ) : null}
             <BarcodeScannerModal
               visible={scannerVisible}
               onClose={() => setScannerVisible(false)}
-              onScanned={(code) => setIsbn(code)}
+              onScanned={(code) => {
+                setIsbn(code);
+                handleIsbnLookup(code);
+              }}
             />
           </View>
 
@@ -397,7 +604,73 @@ export default function Modal() {
               onChangeText={setTitle}
               labelStyle={styles.floatingLabel}
               inputStyle={styles.input}
+              rightElement={
+                <TouchableOpacity
+                  style={styles.iconScan}
+                  onPress={() => handleTitleLookup(title)}
+                  disabled={isTitleSearchLoading}
+                >
+                  {isTitleSearchLoading ? (
+                    <ActivityIndicator size="small" color="#6c63ff" />
+                  ) : (
+                    <Ionicons name="search-outline" size={24} color="#6c63ff" />
+                  )}
+                </TouchableOpacity>
+              }
             />
+            {isTitleSearchLoading ? (
+              <View style={styles.lookupRow}>
+                <ActivityIndicator size="small" color="#6c63ff" />
+                <Text style={styles.lookupText}>Buscando sugestoes...</Text>
+              </View>
+            ) : null}
+            {titleNoResults ? (
+              <Text style={styles.lookupErrorText}>
+                Nenhum livro encontrado com esse titulo.
+              </Text>
+            ) : null}
+            {titleSuggestions.length > 0 ? (
+              <View style={styles.titleSuggestions}>
+                {titleSuggestions.map((item, index) => (
+                  <TouchableOpacity
+                    key={item.isbn ? `${item.isbn}-${index}` : `${item.title}-${index}`}
+                    style={styles.titleSuggestionItem}
+                    activeOpacity={0.8}
+                    onPress={() => handleSelectSearchResult(item)}
+                  >
+                    {item.coverUrl ? (
+                      <Image
+                        source={{ uri: item.coverUrl }}
+                        style={styles.titleSuggestionImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={styles.titleSuggestionPlaceholder}>
+                        <Text style={styles.titleSuggestionPlaceholderText}>
+                          Sem capa
+                        </Text>
+                      </View>
+                    )}
+                    <View style={styles.titleSuggestionInfo}>
+                      <Text
+                        style={styles.titleSuggestionTitle}
+                        numberOfLines={2}
+                      >
+                        {item.title}
+                      </Text>
+                      {item.author ? (
+                        <Text
+                          style={styles.titleSuggestionMeta}
+                          numberOfLines={1}
+                        >
+                          {item.author}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : null}
           </View>
 
           {/* Autor */}
@@ -408,8 +681,10 @@ export default function Modal() {
               placeholderTextColor="#a6a8aa"
               value={author}
               onChangeText={setAuthor}
-              labelStyle={styles.floatingLabel}
-              inputStyle={styles.input}
+              editable={false}
+              labelStyle={[styles.floatingLabel, styles.disabledLabel]}
+              inputStyle={[styles.input, styles.disabledInput]}
+              inputContainerStyle={styles.disabledInputContainer}
             />
           </View>
 
@@ -420,8 +695,10 @@ export default function Modal() {
               placeholderTextColor="#a6a8aa"
               value={publisher}
               onChangeText={setPublisher}
-              labelStyle={styles.floatingLabel}
-              inputStyle={styles.input}
+              editable={false}
+              labelStyle={[styles.floatingLabel, styles.disabledLabel]}
+              inputStyle={[styles.input, styles.disabledInput]}
+              inputContainerStyle={styles.disabledInputContainer}
             />
           </View>
 
@@ -432,8 +709,10 @@ export default function Modal() {
               placeholderTextColor="#a6a8aa"
               value={year}
               onChangeText={setYear}
-              labelStyle={styles.floatingLabel}
-              inputStyle={styles.input}
+              editable={false}
+              labelStyle={[styles.floatingLabel, styles.disabledLabel]}
+              inputStyle={[styles.input, styles.disabledInput]}
+              inputContainerStyle={styles.disabledInputContainer}
               keyboardType="numeric"
             />
           </View>
@@ -586,15 +865,93 @@ const styles = StyleSheet.create({
     color: "#6c63ff",
     fontFamily: "lexendBold",
   },
+  disabledLabel: {
+    color: "#a6a8aa",
+  },
   input: {
     fontFamily: "lexendRegular",
     fontSize: 15,
     color: "#333",
   },
+  disabledInput: {
+    color: "#a6a8aa",
+  },
+  disabledInputContainer: {
+    borderColor: "#d6d9df",
+    backgroundColor: "#f5f6f7",
+  },
 
   iconScan: {
     alignItems: "center",
     justifyContent: "center",
+  },
+  lookupRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 8,
+  },
+  lookupText: {
+    fontFamily: "lexendRegular",
+    fontSize: 12,
+    color: "#6c63ff",
+  },
+  lookupErrorText: {
+    fontFamily: "lexendRegular",
+    fontSize: 12,
+    color: "#e74c3c",
+    marginTop: 8,
+  },
+  titleSuggestions: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    overflow: "hidden",
+  },
+  titleSuggestionItem: {
+    flexDirection: "row",
+    gap: 12,
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eef0f3",
+  },
+  titleSuggestionImage: {
+    width: 48,
+    height: 70,
+    borderRadius: 8,
+    backgroundColor: "#f0f0ff",
+  },
+  titleSuggestionPlaceholder: {
+    width: 48,
+    height: 70,
+    borderRadius: 8,
+    backgroundColor: "#f0f0ff",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  titleSuggestionPlaceholderText: {
+    fontFamily: "lexendRegular",
+    fontSize: 10,
+    color: "#a6a8aa",
+    textAlign: "center",
+  },
+  titleSuggestionInfo: {
+    flex: 1,
+    justifyContent: "center",
+    gap: 4,
+  },
+  titleSuggestionTitle: {
+    fontFamily: "lexendBold",
+    fontSize: 14,
+    color: "#333",
+  },
+  titleSuggestionMeta: {
+    fontFamily: "lexendRegular",
+    fontSize: 12,
+    color: "#7a7d80",
   },
 
   // Outros estilos
@@ -624,6 +981,33 @@ const styles = StyleSheet.create({
   coverImage: {
     width: "100%",
     height: "100%",
+  },
+  suggestedCoverRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 12,
+    paddingHorizontal: 6,
+  },
+  suggestedCoverImage: {
+    width: 60,
+    height: 86,
+    borderRadius: 8,
+    backgroundColor: "#f0f0ff",
+  },
+  suggestedCoverInfo: {
+    flex: 1,
+  },
+  suggestedCoverTitle: {
+    fontFamily: "lexendBold",
+    fontSize: 13,
+    color: "#333",
+  },
+  suggestedCoverSubtitle: {
+    fontFamily: "lexendRegular",
+    fontSize: 12,
+    color: "#a6a8aa",
+    marginTop: 2,
   },
   removeCoverButton: {
     position: "absolute",
