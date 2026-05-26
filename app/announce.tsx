@@ -21,6 +21,11 @@ import {
   openLibraryService,
   type OpenLibraryBook,
 } from "@/src/services/openLibrary.service";
+import {
+  fetchBookByIsbnFromBrasilApi,
+  isBrazilianIsbn,
+  type BrasilApiBook,
+} from "@/src/services/brasilApi.service";
 import { imageService } from "../src/services/image.service";
 import {
   userBookService,
@@ -163,8 +168,13 @@ export default function AnnounceScreen() {
     router.back();
   }
 
-  function applyBookSuggestion(book: OpenLibraryBook) {
-    const normalizedIsbn = openLibraryService.normalizeIsbn(book.isbn);
+  // Preenche campos a partir de OpenLibrary ou BrasilAPI
+  function applyBookSuggestion(book: OpenLibraryBook | BrasilApiBook) {
+    // Detecta origem e normaliza campos
+    const isBrasilApi = (book as BrasilApiBook).authors !== undefined;
+    const normalizedIsbn = isBrasilApi
+      ? String((book as BrasilApiBook).isbn || "").replace(/[^0-9Xx]/g, "")
+      : openLibraryService.normalizeIsbn((book as OpenLibraryBook).isbn);
 
     skipTitleSearchRef.current = true;
     setTitleSuggestions([]);
@@ -174,37 +184,51 @@ export default function AnnounceScreen() {
       setIsbn(normalizedIsbn);
       setLookupError(null);
     } else {
-      setLookupError("ISBN nao encontrado. Preencha manualmente.");
+      setLookupError("ISBN não encontrado. Preencha novamente ou informe o nome do livro.");
     }
 
-    if (book.title) {
-      setTitle(book.title);
+    // Limpa erro visual se campos obrigatórios foram preenchidos
+    if (
+      (book.title || (isBrasilApi && Array.isArray((book as BrasilApiBook).authors) && (book as BrasilApiBook).authors.length > 0))
+    ) {
+      setLookupError(null);
     }
 
-    if (book.author) {
-      setAuthor(book.author);
+    // Título
+    setTitle(book.title ? String(book.title) : "");
+
+    // Autor
+    if (isBrasilApi) {
+      const authors = Array.isArray((book as BrasilApiBook).authors)
+        ? (book as BrasilApiBook).authors.filter(Boolean).join(", ")
+        : "";
+      setAuthor(authors || "Autor desconhecido");
     } else {
-      setAuthor("Autor desconhecido");
+      setAuthor((book as OpenLibraryBook).author || "Autor desconhecido");
     }
 
-    if (book.publisher) {
-      setPublisher(book.publisher);
-    } else {
-      setPublisher("Editora desconhecida");
-    }
+    // Editora
+    let publisher = isBrasilApi ? (book as BrasilApiBook).publisher : (book as OpenLibraryBook).publisher;
+    if (publisher === null || publisher === undefined) publisher = "";
+    setPublisher(String(publisher) || "Editora desconhecida");
 
-    if (book.year) {
-      setYear(String(book.year));
-    } else {
-      setYear(String(new Date().getFullYear()));
-    }
+    // Ano
+    let year = isBrasilApi ? (book as BrasilApiBook).year : (book as OpenLibraryBook).year;
+    if (year === null || year === undefined) year = "";
+    setYear(String(year) || String(new Date().getFullYear()));
 
-    setCatalogSynopsis(
-      book.description?.trim() || DEFAULT_CATALOG_SYNOPSIS,
-    );
+    // Sinopse
+    let synopsis = isBrasilApi
+      ? (book as BrasilApiBook).synopsis
+      : (book as OpenLibraryBook).description;
+    if (synopsis === null || synopsis === undefined) synopsis = "";
+    setCatalogSynopsis(String(synopsis).trim() || DEFAULT_CATALOG_SYNOPSIS);
 
-    if (book.coverUrl) {
-      setSuggestedCoverUrl(book.coverUrl);
+    // Capa sugerida
+    if (isBrasilApi && (book as BrasilApiBook).cover_url) {
+      setSuggestedCoverUrl((book as BrasilApiBook).cover_url!);
+    } else if (!isBrasilApi && (book as OpenLibraryBook).coverUrl) {
+      setSuggestedCoverUrl((book as OpenLibraryBook).coverUrl!);
     }
   }
 
@@ -222,19 +246,29 @@ export default function AnnounceScreen() {
     setLookupError(null);
 
     try {
+      if (isBrazilianIsbn(normalized)) {
+        // Busca na BrasilAPI
+        const book = await fetchBookByIsbnFromBrasilApi(normalized);
+        if (!book) {
+          setLookupError("ISBN brasileiro não encontrado. Preencha novamente ou informe o nome do livro.");
+          return;
+        }
+        applyBookSuggestion(book);
+        lastIsbnLookupRef.current = normalized;
+        return;
+      }
+      // Busca padrão OpenLibrary
       const book = await openLibraryService.lookupByIsbn(normalized);
-
       if (!book) {
         setLookupError(
-          "ISBN nao encontrado. Preencha o titulo manualmente.",
+          "ISBN não encontrado. Preencha novamente ou informe o nome do livro.",
         );
         return;
       }
-
       applyBookSuggestion(book);
       lastIsbnLookupRef.current = normalized;
     } catch {
-      setLookupError("Nao foi possivel buscar o livro pelo ISBN.");
+      setLookupError("Não foi possível buscar o livro pelo ISBN.");
     } finally {
       setIsLookupLoading(false);
     }
@@ -277,7 +311,7 @@ export default function AnnounceScreen() {
 
       setTitleSuggestions([]);
       setTitleNoResults(false);
-      setLookupError("Nao foi possivel buscar o livro pelo titulo.");
+      setLookupError("Não foi possível buscar o livro pelo título.");
     } finally {
       if (titleSearchTokenRef.current === token) {
         setIsTitleSearchLoading(false);
@@ -295,7 +329,7 @@ export default function AnnounceScreen() {
       const enriched = await openLibraryService.enrichBookWithDescription(book);
       applyBookSuggestion(enriched);
     } catch {
-      setLookupError("Nao foi possivel carregar os detalhes do livro.");
+      setLookupError("Não foi possível carregar os detalhes do livro.");
     } finally {
       setIsLookupLoading(false);
     }
@@ -328,8 +362,8 @@ export default function AnnounceScreen() {
 
     if (!isAuthenticated) {
       Alert.alert(
-        "Sessao expirada",
-        "Faca login para publicar um anuncio.",
+        "Sessão expirada",
+        "Faca login para publicar um anúncio.",
       );
       return;
     }

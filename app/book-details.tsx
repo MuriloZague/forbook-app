@@ -38,7 +38,7 @@ import {
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IMAGE_HEIGHT = 480;
 const SYNOPSIS_BASE_TEXT = "Livro sem sinopse";
-const DEFAULT_PRODUCT_DESCRIPTION = "descricao nao informa pelo anunciante";
+const DEFAULT_PRODUCT_DESCRIPTION = "Descrição não informada pelo anunciante";
 const FALLBACK_IMAGE_URI = "https://via.placeholder.com/600x900.png?text=Livro";
 const DEFAULT_ADDRESS_TEXT = "Endereço não informado";
 const SHIPPING_FEE = 15;
