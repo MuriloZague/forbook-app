@@ -58,7 +58,7 @@ const CONDITION_MAP: Record<string, UserBookCondition> = {
 };
 
 const DEFAULT_CATALOG_SYNOPSIS = "Livro sem sinopse";
-const DEFAULT_PRODUCT_DESCRIPTION = "descricao nao informa pelo anunciante";
+const DEFAULT_PRODUCT_DESCRIPTION = "Descrição não informada pelo anunciante";
 
 function parsePriceValue(value: string): number | null {
   const trimmed = value.trim();
