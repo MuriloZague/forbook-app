@@ -329,7 +329,7 @@ export default function AnnounceScreen() {
       normalizedCatalogSynopsis || DEFAULT_CATALOG_SYNOPSIS;
     const resolvedProductDescription =
       normalizedProductDescription || DEFAULT_PRODUCT_DESCRIPTION;
-    const catalogDescription = resolvedCatalogSynopsis.slice(0, 255);
+    const catalogDescription = resolvedCatalogSynopsis;
 
     if (!coverImage) {
       Alert.alert("Capa obrigatoria", "Adicione uma capa principal.");
@@ -345,7 +345,7 @@ export default function AnnounceScreen() {
       Alert.alert("Campos obrigatorios", "Preencha todos os campos.");
       return;
     }
-
+    
     if (normalizedIsbn.length !== 13) {
       Alert.alert("ISBN invalido", "Informe um ISBN com 13 digitos.");
       return;
@@ -412,6 +412,17 @@ export default function AnnounceScreen() {
       setAttachments(Array.from({ length: MAX_ATTACHMENTS }, () => null));
       router.back();
     } catch (error) {
+      //tirar daqui
+      if (error instanceof ApiError) {
+        console.error("announce submit error", {
+          status: error.status,
+          message: error.message,
+          errors: error.errors,
+        });
+      } else {
+        console.error("announce submit error", error);
+      }
+      //ate aqui remover
       const message =
         error instanceof ApiError
           ? error.message
