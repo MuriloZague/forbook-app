@@ -448,7 +448,7 @@ export default function HomeScreen() {
       ) : error ? (
         <Text style={styles.errorText}>{error}</Text>
       ) : books.length === 0 ? (
-        <Text style={styles.emptyText}>Nenhum anuncio anunciado.</Text>
+        <Text style={styles.emptyText}>Nenhum anúncio encontrado.</Text>
       ) : (
         <FlatList
           data={books}

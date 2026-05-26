@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import type { ReactNode } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -19,6 +20,7 @@ interface BookCardProps {
   onPress?: () => void;
   onUnfavorite?: () => void;
   columns?: number;
+  extraInfo?: ReactNode;
 }
 
 export default function BookCard({
@@ -30,6 +32,7 @@ export default function BookCard({
   onPress,
   onUnfavorite,
   columns,
+  extraInfo,
 }: BookCardProps) {
   const CARD_WIDTH = (Dimensions.get("window").width - 32) / (columns ?? 2);
 
@@ -86,6 +89,7 @@ export default function BookCard({
           <Text style={styles.priceWhole}>{priceWhole}</Text>
           <Text style={styles.priceCents}>{priceCents}</Text>
         </View>
+        {extraInfo ? <View style={styles.extraInfo}>{extraInfo}</View> : null}
       </View>
     </TouchableOpacity>
   );
@@ -207,5 +211,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#1a1a1a",
     marginBottom: 10,
+  },
+  extraInfo: {
+    marginTop: 6,
+    gap: 3,
   },
 });

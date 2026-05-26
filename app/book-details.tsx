@@ -2,8 +2,9 @@ import BookImageViewerModal from "@/src/components/bookImageViewerModal";
 import ScreenHeader from "@/src/components/screenHeader";
 import { useAuth } from "@/src/hooks/useAuth";
 import { getFavorites, saveFavorites } from "@/src/lib/favorites-storage";
+import { addPurchase } from "../src/lib/purchases-storage";
 import { ApiError } from "@/src/services/api";
-import { userService } from "@/src/services/user.service";
+import { userService, type UserProfile } from "@/src/services/user.service";
 import {
     userBookService,
     type UserBook,
@@ -11,14 +12,18 @@ import {
 } from "@/src/services/userBook.service";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
     Animated,
     Dimensions,
     FlatList,
+  Modal,
     NativeScrollEvent,
     NativeSyntheticEvent,
+  Pressable,
     ScrollView,
     StyleSheet,
     Text,
@@ -33,8 +38,17 @@ import {
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IMAGE_HEIGHT = 480;
 const SYNOPSIS_BASE_TEXT = "Livro sem sinopse";
-const DEFAULT_PRODUCT_DESCRIPTION = "descricao nao informa pelo anunciante";
+const DEFAULT_PRODUCT_DESCRIPTION = "Descrição não informada pelo anunciante";
 const FALLBACK_IMAGE_URI = "https://via.placeholder.com/600x900.png?text=Livro";
+const DEFAULT_ADDRESS_TEXT = "Endereço não informado";
+const SHIPPING_FEE = 15;
+
+type ConditionLabel =
+  | "Novo"
+  | "Usado"
+  | "Usado (Bom)"
+  | "Com Grifos"
+  | "Danificado";
 
 function getParam(value?: string | string[]) {
   if (Array.isArray(value)) {
@@ -44,7 +58,7 @@ function getParam(value?: string | string[]) {
   return value ?? "";
 }
 
-function mapConditionLabel(condition?: UserBookCondition | string) {
+function mapConditionLabel(condition?: UserBookCondition | string): ConditionLabel {
   if (!condition) {
     return "Usado";
   }
@@ -102,8 +116,37 @@ function splitSynopsis(text: string) {
   };
 }
 
+function parsePriceValue(whole: string, cents: string) {
+  const safeWhole = whole.replace(/[^\d]/g, "");
+  const safeCents = cents.replace(/[^\d]/g, "");
+  const normalizedCents = (safeCents || "00").slice(0, 2).padEnd(2, "0");
+  const numeric = Number(`${safeWhole || "0"}.${normalizedCents}`);
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
+function formatCurrency(value: number) {
+  const safeValue = Number.isFinite(value) ? value : 0;
+  return `R$ ${safeValue.toFixed(2).replace(".", ",")}`;
+}
+
+function getPrimaryAddress(user?: UserProfile | null) {
+  const addresses = user?.Addresses ?? [];
+  return addresses.find((item) => item.isDefault) ?? addresses[0];
+}
+
+function formatAddress(user?: UserProfile | null) {
+  const address = getPrimaryAddress(user);
+  if (!address) {
+    return DEFAULT_ADDRESS_TEXT;
+  }
+
+  const complement = address.complement ? `, ${address.complement}` : "";
+  return `${address.street}, ${address.number}${complement} - ${address.neighborhood}\n${address.city} - ${address.state} (${address.zipCode})`;
+}
+
 export default function BookDetailsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const params = useLocalSearchParams<{
     id?: string | string[];
     title?: string | string[];
@@ -244,6 +287,11 @@ export default function BookDetailsScreen() {
   const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false);
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
   const [viewerImageIndex, setViewerImageIndex] = useState(0);
+  const [isPurchaseModalVisible, setIsPurchaseModalVisible] = useState(false);
+  const [purchaseAddress, setPurchaseAddress] = useState(DEFAULT_ADDRESS_TEXT);
+  const [purchaseUserId, setPurchaseUserId] = useState<string | null>(null);
+  const [isPurchaseLoading, setIsPurchaseLoading] = useState(false);
+  const [isPurchaseFinalizing, setIsPurchaseFinalizing] = useState(false);
   const listRef = useRef<FlatList<string>>(null);
 
   const toastOpacity = useRef(new Animated.Value(0)).current;
@@ -391,6 +439,83 @@ export default function BookDetailsScreen() {
     setCurrentImageIndex(
       Math.max(0, Math.min(nextIndex, galleryImages.length - 1)),
     );
+  }
+
+  async function handleOpenPurchaseModal() {
+    if (!isAuthenticated) {
+      Alert.alert("Login necessário", "Faça login para comprar.", [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Entrar", onPress: () => router.push("/login") },
+      ]);
+      return;
+    }
+
+    setIsPurchaseModalVisible(true);
+    setIsPurchaseLoading(true);
+
+    try {
+      const me = await userService.getMe();
+      setPurchaseUserId(me.id);
+      setPurchaseAddress(formatAddress(me));
+    } catch {
+      setPurchaseUserId(null);
+      setPurchaseAddress(DEFAULT_ADDRESS_TEXT);
+    } finally {
+      setIsPurchaseLoading(false);
+    }
+  }
+
+  function handleClosePurchaseModal() {
+    if (isPurchaseFinalizing) {
+      return;
+    }
+
+    setIsPurchaseModalVisible(false);
+  }
+
+  async function handleFinalizePurchase() {
+    if (isPurchaseFinalizing) {
+      return;
+    }
+
+    setIsPurchaseFinalizing(true);
+
+    try {
+      const userId = purchaseUserId ?? (await userService.getMe()).id;
+      const priceValue =
+        bookData?.price ?? parsePriceValue(priceWhole, priceCents);
+      const totalValue = priceValue + SHIPPING_FEE;
+      const addressText = purchaseAddress || DEFAULT_ADDRESS_TEXT;
+
+      await addPurchase(
+        {
+          id: `${bookId}-${Date.now()}`,
+          bookId,
+          title: resolvedTitle,
+          author: resolvedAuthor,
+          imageUri: galleryImages[0] ?? FALLBACK_IMAGE_URI,
+          condition: resolvedCondition,
+          price: priceValue,
+          shipping: SHIPPING_FEE,
+          total: totalValue,
+          addressText,
+          purchasedAt: new Date().toISOString(),
+        },
+        userId,
+      );
+
+      setIsPurchaseModalVisible(false);
+      router.push("/mypurchases");
+    } catch (error) {
+      Alert.alert(
+        "Erro",
+        error instanceof ApiError
+          ? error.message
+          : "Não foi possível finalizar a compra.",
+      );
+    } finally {
+      setIsPurchaseFinalizing(false);
+    }
   }
 
   return (
@@ -589,6 +714,91 @@ export default function BookDetailsScreen() {
           onRequestClose={handleCloseImageViewer}
         />
 
+        <Modal
+          visible={isPurchaseModalVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={handleClosePurchaseModal}
+        >
+          <Pressable
+            style={styles.purchaseBackdrop}
+            onPress={handleClosePurchaseModal}
+          >
+            <Pressable
+              style={[
+                styles.purchaseSheet,
+                { paddingBottom: Math.max(insets.bottom, 16) },
+              ]}
+              onPress={() => {}}
+            >
+              <View style={styles.purchaseHeader}>
+                <Text style={styles.purchaseTitle}>Finalizar compra</Text>
+                <TouchableOpacity
+                  style={styles.purchaseCloseButton}
+                  onPress={handleClosePurchaseModal}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="close" size={20} color="#2b2e34" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.purchaseSection}>
+                <Text style={styles.purchaseSectionTitle}>Resumo</Text>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Preço do anúncio</Text>
+                  <Text style={styles.summaryValue}>
+                    {formatCurrency(
+                      bookData?.price ??
+                        parsePriceValue(priceWhole, priceCents),
+                    )}
+                  </Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Frete (fixo)</Text>
+                  <Text style={styles.summaryValue}>
+                    {formatCurrency(SHIPPING_FEE)}
+                  </Text>
+                </View>
+                <View style={[styles.summaryRow, styles.summaryTotalRow]}>
+                  <Text style={styles.summaryTotalLabel}>Total</Text>
+                  <Text style={styles.summaryTotalValue}>
+                    {formatCurrency(
+                      (bookData?.price ??
+                        parsePriceValue(priceWhole, priceCents)) + SHIPPING_FEE,
+                    )}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.purchaseSection}>
+                <Text style={styles.purchaseSectionTitle}>Entrega</Text>
+                {isPurchaseLoading ? (
+                  <ActivityIndicator size="small" color="#6c63ff" />
+                ) : (
+                  <Text style={styles.addressText}>{purchaseAddress}</Text>
+                )}
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.purchaseButton,
+                  isPurchaseFinalizing && styles.purchaseButtonDisabled,
+                ]}
+                activeOpacity={0.85}
+                onPress={handleFinalizePurchase}
+                disabled={isPurchaseFinalizing}
+              >
+                <Ionicons name="bag-check-outline" size={18} color="#fff" />
+                <Text style={styles.purchaseButtonText}>
+                  {isPurchaseFinalizing
+                    ? "Finalizando..."
+                    : "Finalizar compra"}
+                </Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </Modal>
+
         <View
           style={[
             styles.bottomBar,
@@ -598,6 +808,7 @@ export default function BookDetailsScreen() {
           <TouchableOpacity
             style={[styles.bottomButton, styles.buyButton]}
             activeOpacity={0.85}
+            onPress={handleOpenPurchaseModal}
           >
             <Ionicons name="bag-outline" size={18} color="#fff" />
             <Text style={styles.buyButtonText}>Comprar</Text>
@@ -839,6 +1050,104 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     textAlign: "justify",
+  },
+  purchaseBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "flex-end",
+  },
+  purchaseSheet: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    gap: 16,
+  },
+  purchaseHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  purchaseTitle: {
+    fontFamily: "lexendBold",
+    fontSize: 18,
+    color: "#1f2228",
+  },
+  purchaseCloseButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#eef0f3",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  purchaseSection: {
+    backgroundColor: "#f7f8fa",
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  purchaseSectionTitle: {
+    fontFamily: "montserratBold",
+    fontSize: 15,
+    color: "#7f848a",
+  },
+  summaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  summaryLabel: {
+    fontFamily: "montserratRegular",
+    fontSize: 14,
+    color: "#6f747a",
+  },
+  summaryValue: {
+    fontFamily: "montserratBold",
+    fontSize: 14,
+    color: "#2b2e34",
+  },
+  summaryTotalRow: {
+    borderTopWidth: 1,
+    borderTopColor: "#e1e4ea",
+    paddingTop: 8,
+    marginTop: 4,
+  },
+  summaryTotalLabel: {
+    fontFamily: "lexendBold",
+    fontSize: 15,
+    color: "#1f2228",
+  },
+  summaryTotalValue: {
+    fontFamily: "lexendBold",
+    fontSize: 16,
+    color: "#1f2228",
+  },
+  addressText: {
+    fontFamily: "montserratRegular",
+    fontSize: 14,
+    color: "#2d3137",
+    lineHeight: 20,
+  },
+  purchaseButton: {
+    marginBottom: 6,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: "#6c63ff",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  purchaseButtonDisabled: {
+    opacity: 0.7,
+  },
+  purchaseButtonText: {
+    fontFamily: "lexendBold",
+    fontSize: 16,
+    color: "#fff",
   },
   bottomBar: {
     position: "absolute",
