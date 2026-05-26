@@ -27,6 +27,7 @@ import {
   ActivityIndicator,
   FlatList,
   Modal,
+  Pressable,
     StyleSheet,
     Text,
     TextInput,
@@ -690,8 +691,14 @@ export default function SearchScreen() {
               transparent
               onRequestClose={() => setIsAnnouncementsVisible(false)}
             >
-              <View style={styles.announcementsBackdrop}>
-                <View style={styles.announcementsModal}>
+              <Pressable
+                style={styles.announcementsBackdrop}
+                onPress={() => setIsAnnouncementsVisible(false)}
+              >
+                <Pressable
+                  style={styles.announcementsModal}
+                  onPress={() => {}}
+                >
                   <View style={styles.announcementsHeader}>
                     <Text
                       style={styles.announcementsTitle}
@@ -732,25 +739,28 @@ export default function SearchScreen() {
                           condition={item.condition}
                           columns={2}
                           onPress={() =>
-                            router.push({
-                              pathname: "/book-details",
-                              params: {
-                                id: item.id,
-                                title: item.title,
-                                author: item.author,
-                                priceWhole: item.priceWhole,
-                                priceCents: item.priceCents,
-                                imageUri: item.imageUri,
-                                condition: item.condition,
-                              },
-                            })
+                            (() => {
+                              setIsAnnouncementsVisible(false);
+                              router.push({
+                                pathname: "/book-details",
+                                params: {
+                                  id: item.id,
+                                  title: item.title,
+                                  author: item.author,
+                                  priceWhole: item.priceWhole,
+                                  priceCents: item.priceCents,
+                                  imageUri: item.imageUri,
+                                  condition: item.condition,
+                                },
+                              });
+                            })()
                           }
                         />
                       )}
                     />
                   )}
-                </View>
-              </View>
+                </Pressable>
+              </Pressable>
             </Modal>
           </View>
         </View>
@@ -917,7 +927,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: "85%",
+    maxHeight: "92%",
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
