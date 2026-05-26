@@ -64,18 +64,60 @@ export type UserBookCreateBody = {
   galleryImages?: string[];
 };
 
-async function listUserBooks(): Promise<UserBook[]> {
-  const response = await apiFetch<ApiResponse<UserBook[]>>("/user-books", {
-    method: "GET",
-  });
+type ListUserBooksParams = {
+  filter?: Record<string, unknown>;
+  page?: number;
+  limit?: number;
+  sort?: Record<string, unknown>;
+};
+
+function buildQueryString(params?: ListUserBooksParams): string {
+  if (!params) {
+    return "";
+  }
+
+  const query = new URLSearchParams();
+
+  if (params.filter && Object.keys(params.filter).length > 0) {
+    query.set("filter", JSON.stringify(params.filter));
+  }
+
+  if (typeof params.page === "number") {
+    query.set("page", String(params.page));
+  }
+
+  if (typeof params.limit === "number") {
+    query.set("limit", String(params.limit));
+  }
+
+  if (params.sort && Object.keys(params.sort).length > 0) {
+    query.set("sort", JSON.stringify(params.sort));
+  }
+
+  const queryString = query.toString();
+  return queryString ? `?${queryString}` : "";
+}
+
+async function listUserBooks(params?: ListUserBooksParams): Promise<UserBook[]> {
+  const response = await apiFetch<ApiResponse<UserBook[]>>(
+    `/user-books${buildQueryString(params)}`,
+    {
+      method: "GET",
+    },
+  );
 
   return response.data;
 }
 
-async function listMyUserBooks(): Promise<UserBook[]> {
-  const response = await apiFetch<ApiResponse<UserBook[]>>("/user-books/my", {
-    method: "GET",
-  });
+async function listMyUserBooks(
+  params?: ListUserBooksParams,
+): Promise<UserBook[]> {
+  const response = await apiFetch<ApiResponse<UserBook[]>>(
+    `/user-books/my${buildQueryString(params)}`,
+    {
+      method: "GET",
+    },
+  );
 
   return response.data;
 }
@@ -101,3 +143,29 @@ export const userBookService = {
   createUserBook,
   getUserBookById,
 };
+
+export async function listUserBooksWithMeta(
+  params?: ListUserBooksParams,
+): Promise<{ data: UserBook[]; meta?: ApiResponse<UserBook[]>["meta"] }> {
+  const response = await apiFetch<ApiResponse<UserBook[]>>(
+    `/user-books${buildQueryString(params)}`,
+    {
+      method: "GET",
+    },
+  );
+
+  return { data: response.data, meta: response.meta };
+}
+
+export async function listMyUserBooksWithMeta(
+  params?: ListUserBooksParams,
+): Promise<{ data: UserBook[]; meta?: ApiResponse<UserBook[]>["meta"] }> {
+  const response = await apiFetch<ApiResponse<UserBook[]>>(
+    `/user-books/my${buildQueryString(params)}`,
+    {
+      method: "GET",
+    },
+  );
+
+  return { data: response.data, meta: response.meta };
+}

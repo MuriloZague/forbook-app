@@ -8,6 +8,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -54,13 +55,24 @@ function formatAddress(user?: UserProfile | null) {
 interface ProfileInfoItemProps {
   label: string;
   value: string;
+  isLoading?: boolean;
 }
 
-function ProfileInfoItem({ label, value }: ProfileInfoItemProps) {
+function ProfileInfoItem({ label, value, isLoading }: ProfileInfoItemProps) {
   return (
     <View style={styles.itemContainer}>
       <Text style={styles.itemLabel}>{label}</Text>
-      <Text style={styles.itemValue}>{value}</Text>
+      {isLoading ? (
+        <View style={styles.itemValueRow}>
+          <ActivityIndicator size="small" color="#6C63FF" />
+          <View style={styles.loadingLines}>
+            <View style={[styles.loadingLine, styles.loadingLineLong]} />
+            <View style={[styles.loadingLine, styles.loadingLineShort]} />
+          </View>
+        </View>
+      ) : (
+        <Text style={styles.itemValue}>{value}</Text>
+      )}
     </View>
   );
 }
@@ -70,6 +82,7 @@ export default function Profile() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const passwordValue = isPasswordVisible ? "••••••••" : "•".repeat(12);
 
@@ -83,6 +96,7 @@ export default function Profile() {
         }
 
         try {
+          setIsLoading(true);
           setLoadError(null);
           const me = await userService.getMe();
 
@@ -96,6 +110,10 @@ export default function Profile() {
                 ? error.message
                 : "Não foi possível carregar o perfil.",
             );
+          }
+        } finally {
+          if (!cancelled) {
+            setIsLoading(false);
           }
         }
       }
@@ -203,19 +221,36 @@ export default function Profile() {
         <View style={styles.dataSection}>
           <Text style={styles.dataSectionTitle}>Dados pessoais</Text>
 
-          <ProfileInfoItem label="Nome" value={user?.name ?? ""} />
+          <ProfileInfoItem
+            label="Nome"
+            value={user?.name ?? ""}
+            isLoading={isLoading}
+          />
           <ProfileInfoItem
             label="Data de Nascimento"
             value={formatDate(user?.birthDate)}
+            isLoading={isLoading}
           />
-          <ProfileInfoItem label="Endereço" value={formatAddress(user)} />
+          <ProfileInfoItem
+            label="Endereço"
+            value={formatAddress(user)}
+            isLoading={isLoading}
+          />
 
           <View style={styles.divider} />
 
           <Text style={styles.dataSectionTitle}>Dados da conta</Text>
 
-          <ProfileInfoItem label="Email" value={user?.email ?? ""} />
-          <ProfileInfoItem label="Telefone" value={user?.phoneNumber ?? ""} />
+          <ProfileInfoItem
+            label="Email"
+            value={user?.email ?? ""}
+            isLoading={isLoading}
+          />
+          <ProfileInfoItem
+            label="Telefone"
+            value={user?.phoneNumber ?? ""}
+            isLoading={isLoading}
+          />
         </View>
         <TouchableOpacity onPress={() => router.push("/edit-profile")}>
           <Text
@@ -378,6 +413,26 @@ const styles = StyleSheet.create({
     fontSize: 17,
     lineHeight: 26,
     color: "#000000",
+  },
+  itemValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  loadingLines: {
+    flex: 1,
+    gap: 6,
+  },
+  loadingLine: {
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#d9dbe1",
+  },
+  loadingLineLong: {
+    width: "100%",
+  },
+  loadingLineShort: {
+    width: "70%",
   },
   divider: {
     height: 1,

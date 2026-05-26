@@ -77,7 +77,14 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     const mappedErrors =
       mapInvalidParamsToErrors(bodyObj.invalid_params) ??
       (bodyObj.errors as Record<string, string[]> | undefined);
-
+    //remover isso
+    console.error("apiFetch error", {
+      path,
+      status: res.status,
+      body,
+      mappedErrors,
+    });
+    //ate aqui
     throw new ApiError(
       typeof bodyObj.detail === "string"
         ? bodyObj.detail
