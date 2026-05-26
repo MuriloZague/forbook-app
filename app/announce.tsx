@@ -1,3 +1,14 @@
+// Função para formatar valor monetário (R$ 1.234,56)
+function formatPriceInput(value: string): string {
+  // Remove tudo que não for dígito
+  const onlyDigits = value.replace(/\D/g, "");
+  if (!onlyDigits) return "";
+  // Converte para centavos
+  const intValue = parseInt(onlyDigits, 10);
+  const cents = intValue / 100;
+  // Formata para pt-BR
+  return cents.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }).replace(/^R\$\s?/, "");
+}
 import BarcodeScannerModal from "@/src/components/barcodeScannerModal";
 import FloatingLabelInput from "@/src/components/floatingLabelInput";
 import OptionChips from "@/src/components/optionChips";
@@ -92,6 +103,11 @@ export default function AnnounceScreen() {
   );
   const [productDescription, setProductDescription] = useState("");
   const [price, setPrice] = useState("");
+
+  // Handler para aplicar máscara
+  function handlePriceChange(text: string) {
+    setPrice(formatPriceInput(text));
+  }
   const [condition, setCondition] = useState("");
   const [scannerVisible, setScannerVisible] = useState(false);
   const [coverImage, setCoverImage] = useState<string | null>(null);
@@ -334,12 +350,12 @@ export default function AnnounceScreen() {
     const catalogDescription = resolvedCatalogSynopsis;
 
     if (!coverImage) {
-      Alert.alert("Capa obrigatoria", "Adicione uma capa principal.");
+      Alert.alert("Capa obrigatória", "Adicione uma capa principal.");
       return;
     }
 
     if (!normalizedTitle || !normalizedAuthor || !normalizedPublisher) {
-      Alert.alert("Campos obrigatorios", "Preencha todos os campos.");
+      Alert.alert("Campos obrigatórios", "Preencha todos os campos.");
       return;
     }
 
@@ -632,7 +648,7 @@ export default function AnnounceScreen() {
             {isTitleSearchLoading ? (
               <View style={styles.lookupRow}>
                 <ActivityIndicator size="small" color="#6c63ff" />
-                <Text style={styles.lookupText}>Buscando sugestoes...</Text>
+                <Text style={styles.lookupText}>Buscando sugestões...</Text>
               </View>
             ) : null}
             {titleNoResults ? (
@@ -758,7 +774,7 @@ export default function AnnounceScreen() {
               placeholderTextColor="#a6a8aa"
               keyboardType="numeric"
               value={price}
-              onChangeText={setPrice}
+              onChangeText={handlePriceChange}
               labelStyle={styles.floatingLabel}
             />
           </View>
