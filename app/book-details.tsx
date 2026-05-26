@@ -16,7 +16,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
     Animated,
     Dimensions,
-    Easing,
     FlatList,
     NativeScrollEvent,
     NativeSyntheticEvent,
@@ -33,8 +32,8 @@ import {
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IMAGE_HEIGHT = 480;
-const SYNOPSIS_BASE_TEXT =
-  "Sinopse legalzinha bonitinha fofinha topzera e bla bla bla.";
+const SYNOPSIS_BASE_TEXT = "Livro sem sinopse";
+const DEFAULT_PRODUCT_DESCRIPTION = "descricao nao informa pelo anunciante";
 const FALLBACK_IMAGE_URI = "https://via.placeholder.com/600x900.png?text=Livro";
 
 function getParam(value?: string | string[]) {
@@ -221,7 +220,7 @@ export default function BookDetailsScreen() {
     [synopsisText],
   );
   const descriptionText =
-    bookData?.description?.trim() || "Sem descricao do produto.";
+    bookData?.description?.trim() || DEFAULT_PRODUCT_DESCRIPTION;
   const sellerName = bookData?.User.name ?? "Carregando..";
   const sellerImageUrl = bookData?.User.ProfileImage?.url ?? "";
   const galleryImages = useMemo(() => {
@@ -245,28 +244,11 @@ export default function BookDetailsScreen() {
   const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false);
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
   const [viewerImageIndex, setViewerImageIndex] = useState(0);
-  const [synopsisExtraHeight, setSynopsisExtraHeight] = useState(0);
   const listRef = useRef<FlatList<string>>(null);
-  const synopsisAnim = useRef(new Animated.Value(0)).current;
 
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTranslateY = useRef(new Animated.Value(-10)).current;
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const synopsisAnimatedHeight = synopsisAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, synopsisExtraHeight || 0],
-  });
-
-  const synopsisAnimatedOpacity = synopsisAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
-
-  const synopsisBottomSpacerHeight = synopsisAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [synopsisExtraHeight || 0, 0],
-  });
 
   useEffect(() => {
     return () => {
@@ -275,15 +257,6 @@ export default function BookDetailsScreen() {
       }
     };
   }, []);
-
-  useEffect(() => {
-    Animated.timing(synopsisAnim, {
-      toValue: isSynopsisExpanded ? 1 : 0,
-      duration: 240,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: false,
-    }).start();
-  }, [isSynopsisExpanded, synopsisAnim]);
 
   function showSavedToast() {
     if (toastTimeoutRef.current) {
@@ -581,23 +554,12 @@ export default function BookDetailsScreen() {
 
           <View style={styles.textSection}>
             <Text style={styles.sectionLabel}>Sinopse</Text>
-
-            <Text style={styles.sectionText}>Sinopse do livro aqui</Text>
-
+            <Text style={styles.sectionText}>{synopsisBaseText}</Text>
             {synopsisExtraText ? (
               <>
-                <Animated.View
-                  style={[
-                    styles.synopsisExtraWrapper,
-                    {
-                      height: synopsisAnimatedHeight,
-                      opacity: synopsisAnimatedOpacity,
-                    },
-                  ]}
-                >
+                {isSynopsisExpanded ? (
                   <Text style={styles.sectionText}>{synopsisExtraText}</Text>
-                </Animated.View>
-
+                ) : null}
                 <TouchableOpacity
                   onPress={handleSynopsisToggle}
                   activeOpacity={0.8}
@@ -606,23 +568,6 @@ export default function BookDetailsScreen() {
                     {isSynopsisExpanded ? "Mostrar menos" : "Ler mais..."}
                   </Text>
                 </TouchableOpacity>
-
-                <View style={styles.synopsisMeasureLayer}>
-                  <Text
-                    style={styles.sectionText}
-                    onLayout={(event) => {
-                      const nextHeight = Math.ceil(
-                        event.nativeEvent.layout.height,
-                      );
-
-                      setSynopsisExtraHeight((prev) =>
-                        prev === nextHeight ? prev : nextHeight,
-                      );
-                    }}
-                  >
-                    {synopsisExtraText}
-                  </Text>
-                </View>
               </>
             ) : null}
           </View>
@@ -634,12 +579,6 @@ export default function BookDetailsScreen() {
             <Text style={styles.descriptionText}>{descriptionText}</Text>
           </View>
 
-          <Animated.View
-            style={{
-              height: synopsisBottomSpacerHeight,
-              pointerEvents: "none",
-            }}
-          />
         </ScrollView>
 
         <BookImageViewerModal
@@ -882,26 +821,11 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     textAlign: "justify",
   },
-  readMore: {
-    color: "#f06486",
-    fontFamily: "montserratBold",
-  },
   readMoreStandalone: {
     color: "#f06486",
     fontFamily: "montserratBold",
     fontSize: 16,
     lineHeight: 22,
-  },
-  synopsisExtraWrapper: {
-    overflow: "hidden",
-  },
-  synopsisMeasureLayer: {
-    position: "absolute",
-    opacity: 0,
-    left: 18,
-    right: 18,
-    top: 0,
-    pointerEvents: "none",
   },
   divider: {
     height: 1,

@@ -41,6 +41,9 @@ const CONDITION_MAP: Record<string, UserBookCondition> = {
   "Danificado": "POOR",
 };
 
+const DEFAULT_CATALOG_SYNOPSIS = "Livro sem sinopse";
+const DEFAULT_PRODUCT_DESCRIPTION = "descricao nao informa pelo anunciante";
+
 function parsePriceValue(value: string): number | null {
   const trimmed = value.trim();
 
@@ -84,7 +87,10 @@ export default function AnnounceScreen() {
   const [author, setAuthor] = useState("");
   const [publisher, setPublisher] = useState("");
   const [year, setYear] = useState("");
-  const [synopsis, setSynopsis] = useState("");
+  const [catalogSynopsis, setCatalogSynopsis] = useState(
+    DEFAULT_CATALOG_SYNOPSIS,
+  );
+  const [productDescription, setProductDescription] = useState("");
   const [price, setPrice] = useState("");
   const [condition, setCondition] = useState("");
   const [scannerVisible, setScannerVisible] = useState(false);
@@ -177,9 +183,9 @@ export default function AnnounceScreen() {
       setYear(String(new Date().getFullYear()));
     }
 
-    if (book.description) {
-      setSynopsis(book.description);
-    }
+    setCatalogSynopsis(
+      book.description?.trim() || DEFAULT_CATALOG_SYNOPSIS,
+    );
 
     if (book.coverUrl) {
       setSuggestedCoverUrl(book.coverUrl);
@@ -314,11 +320,16 @@ export default function AnnounceScreen() {
     const normalizedTitle = title.trim();
     const normalizedAuthor = author.trim();
     const normalizedPublisher = publisher.trim();
-    const normalizedSynopsis = synopsis.trim();
+    const normalizedCatalogSynopsis = catalogSynopsis.trim();
+    const normalizedProductDescription = productDescription.trim();
     const parsedYear = Number.parseInt(year.trim(), 10);
     const parsedPrice = parsePriceValue(price);
     const mappedCondition = CONDITION_MAP[condition];
-    const catalogDescription = normalizedSynopsis.slice(0, 255);
+    const resolvedCatalogSynopsis =
+      normalizedCatalogSynopsis || DEFAULT_CATALOG_SYNOPSIS;
+    const resolvedProductDescription =
+      normalizedProductDescription || DEFAULT_PRODUCT_DESCRIPTION;
+    const catalogDescription = resolvedCatalogSynopsis.slice(0, 255);
 
     if (!coverImage) {
       Alert.alert("Capa obrigatoria", "Adicione uma capa principal.");
@@ -329,8 +340,7 @@ export default function AnnounceScreen() {
       !normalizedIsbn ||
       !normalizedTitle ||
       !normalizedAuthor ||
-      !normalizedPublisher ||
-      !normalizedSynopsis
+      !normalizedPublisher
     ) {
       Alert.alert("Campos obrigatorios", "Preencha todos os campos.");
       return;
@@ -372,13 +382,13 @@ export default function AnnounceScreen() {
       await userBookService.createUserBook({
         condition: mappedCondition,
         price: parsedPrice,
-          description: normalizedSynopsis,
+        description: resolvedProductDescription,
         status: "ACTIVE",
         catalogBook: {
           isbn: normalizedIsbn,
           title: normalizedTitle,
           author: normalizedAuthor,
-            description: catalogDescription,
+          description: catalogDescription,
           publisher: normalizedPublisher,
           year: parsedYear,
         },
@@ -394,7 +404,8 @@ export default function AnnounceScreen() {
       setAuthor("");
       setPublisher("");
       setYear("");
-      setSynopsis("");
+      setCatalogSynopsis(DEFAULT_CATALOG_SYNOPSIS);
+      setProductDescription("");
       setPrice("");
       setCondition("");
       setCoverImage(null);
@@ -720,15 +731,32 @@ export default function AnnounceScreen() {
           {/* Sinopse */}
           <View style={styles.inputContainer}>
             <FloatingLabelInput
-              label="Descrição / Observações"
+              label="Sinopse"
+              inputStyle={[styles.input, styles.textArea, styles.disabledInput]}
+              placeholder={DEFAULT_CATALOG_SYNOPSIS}
+              placeholderTextColor="#a6a8aa"
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              value={catalogSynopsis}
+              editable={false}
+              labelStyle={[styles.floatingLabel, styles.disabledLabel]}
+              inputContainerStyle={styles.disabledInputContainer}
+            />
+          </View>
+
+          {/* Descrição do produto */}
+          <View style={styles.inputContainer}>
+            <FloatingLabelInput
+              label="Descrição do produto / Observações"
               inputStyle={[styles.input, styles.textArea]}
               placeholder="Descreva sobre o livro..."
               placeholderTextColor="#a6a8aa"
               multiline
               numberOfLines={4}
               textAlignVertical="top"
-              value={synopsis}
-              onChangeText={setSynopsis}
+              value={productDescription}
+              onChangeText={setProductDescription}
               labelStyle={styles.floatingLabel}
             />
           </View>
